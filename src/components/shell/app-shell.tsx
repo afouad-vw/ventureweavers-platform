@@ -170,17 +170,3 @@ export function Who({ initials, name, sub, href }: { initials: string; name: str
     </Link>
   );
 }
-
-/** Switch between the member app and the admin console (temporary until roles exist). */
-export function ModeSwitch({ admin }: { admin: boolean }) {
-  return (
-    <div className="flex rounded-lg bg-ink2 p-[3px]">
-      <Link href="/" aria-current={!admin ? "page" : undefined} className={cn("flex h-7 flex-1 items-center justify-center rounded-md text-xs font-bold", !admin ? "bg-teal text-ink" : "text-ink-muted")}>
-        Member app
-      </Link>
-      <Link href="/admin" aria-current={admin ? "page" : undefined} className={cn("flex h-7 flex-1 items-center justify-center rounded-md text-xs font-bold", admin ? "bg-teal text-ink" : "text-ink-muted")}>
-        Admin
-      </Link>
-    </div>
-  );
-}

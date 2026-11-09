@@ -1,11 +1,11 @@
 # VentureWeavers Platform
 
-One Next.js app with two faces:
+One Next.js app with two separate faces. Members and admins have separate logins; the member app never links to the admin console.
 
 - **Member app**: Home, Outloud, TVS, BRICKR, QuidQuo, Library, My space, Live mode, Join.
-- **Admin console** (`/admin`): Overview, Contacts, Requests, Payments, one section per space (Outloud, TVS, BRICKR, QuidQuo), Library, Publishing.
+- **Admin console** (`/admin`, login at `/admin/sign-in` with username and password): Overview, Contacts, Requests, Payments, one section per space (Outloud, TVS, BRICKR, QuidQuo), Library, Publishing.
 
-`reference/prototype.html` is the clickable spec. Every screen and flow in it must exist in the real product. Open it in a browser before building any screen, and match its layout and copy.
+`reference/prototype.html` is the clickable spec. Its Member/Admin switch exists only for convenience in the prototype; the real product has no switch. Every screen and flow in it must exist in the real product. Open it in a browser before building any screen, and match its layout and copy.
 
 ## Who we are
 
@@ -59,3 +59,4 @@ Add product decisions here as they are made (prices, refund policy, roles, langu
 
 - Build phases follow the development guide: Phase 0 setup, Phase 1 design system and shells, Phase 2 data model and auth, then features.
 - Sign-up and sign-in: Google and LinkedIn accounts only (Supabase Auth providers `google` and `linkedin_oidc`). Screens at `/join` and `/sign-in`; wiring comes in Phase 2. (2026-11-09)
+- Admin console is separate from the member app: its own login (username and password) at `/admin/sign-in`, no Member/Admin switch, no link from the member app. Access rules come in the Phase 2 plan. (2026-11-09)

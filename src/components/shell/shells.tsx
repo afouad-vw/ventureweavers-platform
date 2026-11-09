@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberSpaces, memberTabBar } from "@/lib/nav";
-import { AppShell, BellButton, ModeSwitch, Who } from "./app-shell";
+import { LogOut } from "lucide-react";
+import { AppShell, BellButton, Who } from "./app-shell";
 
 /** Member app layout. Sample member until login arrives in Phase 2. */
 export function MemberShell({ children }: { children: React.ReactNode }) {
@@ -32,7 +33,6 @@ export function MemberShell({ children }: { children: React.ReactNode }) {
             <span className="text-ink-muted">·</span>
             <Link href="/join" className="text-teal hover:text-white">Join</Link>
           </div>
-          <ModeSwitch admin={false} />
         </>
       }
     >
@@ -49,7 +49,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       searchPlaceholder="Search contacts, events, content"
       crumb="Admin console"
       topRight={<Who initials="FK" name="Fouad & Karim" sub="Owners" href="/admin" />}
-      footer={<ModeSwitch admin />}
+      footer={
+        <Link href="/admin/sign-in" className="flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">
+          <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
+          Sign out
+        </Link>
+      }
     >
       {children}
     </AppShell>
