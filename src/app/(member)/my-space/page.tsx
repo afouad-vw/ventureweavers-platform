@@ -105,7 +105,7 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
         const badge = bookingBadge({ status: b.status, hold_expires_at: b.hold_expires_at, checked_in_at: b.tickets?.checked_in_at });
         const live = ["Awaiting payment", "Confirmed", "Checked in"].includes(badge.label);
         return (
-          <Card key={b.id} as="article" className="overflow-hidden p-0 sm:flex-row">
+          <Card key={b.id} as="article" className="overflow-hidden !p-0 !gap-0 sm:flex-row">
             <div className="flex flex-[999_1_280px] flex-col gap-2.5 p-4">
               <div className="flex items-center justify-between gap-2">
                 <ThreadTag thread="Outloud" />

@@ -1,6 +1,6 @@
 # Phase 3 plan: My space and Outloud events with booking
 
-Status: **waiting for approval** (touches the database, payments and access rules).
+Status: **3a approved and live (2026-11-09).** 3b waits for the Paymob merchant account.
 
 Spec: `reference/prototype.html` → Outloud › Shows & events, the booking pop-up, My space, and Admin › Outloud › Events.
 

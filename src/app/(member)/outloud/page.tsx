@@ -48,7 +48,7 @@ async function Shows() {
     <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-[18px]">
       <div className="flex min-w-0 flex-col gap-4">
         {next ? (
-          <Card as="article" className="overflow-hidden p-0 sm:flex-row">
+          <Card as="article" className="overflow-hidden !p-0 !gap-0 sm:flex-row">
             <div className="relative h-[200px] shrink-0 sm:h-auto sm:w-[42%]">
               <Banner choice={next.banner as BannerChoice} thread="Outloud" height={200} className="h-full sm:!h-full" chip={<span className="inline-flex items-center gap-1 rounded-md bg-black/40 px-2 py-0.5 text-[11.5px] font-bold"><MessageSquare size={12} aria-hidden="true" />Open Floor.</span>} />
             </div>
