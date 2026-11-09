@@ -67,6 +67,16 @@ describe("unknown hosts", () => {
   });
 });
 
+describe("scheduled jobs", () => {
+  it("reach the cron routes on any host, even in strict mode", () => {
+    expect(decide("vw.vercel.app", "/api/cron/reminders", strict)).toEqual({ kind: "next", surface: "path", noindex: true });
+    expect(decide("admin.ventureweavers.com", "/api/cron/reminders", cfg).kind).toBe("next");
+  });
+  it("don't open other API routes in strict mode", () => {
+    expect(decide("vw.vercel.app", "/api/tickets/VW-AAAA-BBBB/calendar", strict).kind).toBe("redirect");
+  });
+});
+
 describe("admin links", () => {
   it("drop the prefix on the admin host", () => {
     expect(adminHref("/admin", "")).toBe("/");

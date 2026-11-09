@@ -76,7 +76,7 @@ export function StatusPill({ tone: t, children }: { tone: PillTone; children: Re
 /** Pick a pill tone from a common status word. */
 export function statusTone(status: string): PillTone {
   if (["Published", "Open", "Paid", "Approved", "Won", "Reviewed", "Confirmed"].includes(status)) return "ok";
-  if (["Draft", "Closed", "Hidden", "Refunded", "Expired", "Locked"].includes(status)) return "draft";
+  if (["Draft", "Closed", "Hidden", "Refunded", "Expired", "Locked", "Cancelled"].includes(status)) return "draft";
   if (["Scheduled", "In development", "Submitted", "Intro call", "Upcoming"].includes(status)) return "blue";
   if (["Failed", "Declined"].includes(status)) return "bad";
   return "warn";

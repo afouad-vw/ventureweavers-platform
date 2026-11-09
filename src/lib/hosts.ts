@@ -40,6 +40,9 @@ export function decide(rawHost: string | null, pathname: string, cfg: HostConfig
   const admin = isUnder(pathname, "/admin");
   const site = isUnder(pathname, SITE_PATH);
 
+  // Scheduled jobs (Vercel Cron) call the deployment address; the route checks its own secret.
+  if (isUnder(pathname, "/api/cron")) return { kind: "next", surface: "path", noindex: true };
+
   if (host === "www." + cfg.site) return { kind: "redirect", url: `https://${cfg.site}${pathname}` };
 
   if (host === cfg.admin) {

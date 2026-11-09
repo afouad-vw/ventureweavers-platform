@@ -367,4 +367,6 @@ revoke all on function public.seats_taken(uuid), public.event_seats_left(uuid), 
 grant execute on function public.event_seats_left(uuid) to anon, authenticated;
 grant execute on function public.book_event(uuid, int), public.cancel_my_booking(uuid), public.payment_instructions(),
   public.admin_mark_paid(uuid), public.admin_cancel_booking(uuid, boolean), public.admin_check_in(text) to authenticated;
-grant execute on function public.expire_holds(uuid), public.seats_taken(uuid) to service_role;
+-- Expiring lapsed holds is harmless, so any signed-in session may trigger the cleanup.
+grant execute on function public.expire_holds(uuid) to authenticated, service_role;
+grant execute on function public.seats_taken(uuid) to service_role;
