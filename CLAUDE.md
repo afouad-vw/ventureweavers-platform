@@ -60,3 +60,4 @@ Add product decisions here as they are made (prices, refund policy, roles, langu
 - Build phases follow the development guide: Phase 0 setup, Phase 1 design system and shells, Phase 2 data model and auth, then features.
 - Sign-up and sign-in: Google and LinkedIn accounts only (Supabase Auth providers `google` and `linkedin_oidc`). Screens at `/join` and `/sign-in`; wiring comes in Phase 2. (2026-11-09)
 - Admin console is separate from the member app: its own login (username and password) at `/admin/sign-in`, no Member/Admin switch, no link from the member app. Access rules come in the Phase 2 plan. (2026-11-09)
+- Admin logins: one account per partner (Ahmed, Karim), no shared login. Admin console served on its own subdomain (`admin.[DOMAIN]`), same codebase; member host never serves `/admin`. (2026-11-09)
