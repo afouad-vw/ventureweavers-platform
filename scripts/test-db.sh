@@ -11,4 +11,8 @@ PSQL=(psql -h "$DIR" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -q -t -A)
 "${PSQL[@]}" -c "create database t"
 "${PSQL[@]}" -d t -f supabase/tests/stub_supabase.sql
 for f in supabase/migrations/*.sql; do "${PSQL[@]}" -d t -f "$f"; done
-"${PSQL[@]}" -d t -f supabase/tests/access.sql 2>&1 | sed 's/^psql:[^:]*:[0-9]*: NOTICE:  /  /'
+for f in supabase/tests/access.sql supabase/tests/events.sql; do
+  "${PSQL[@]}" -d t -f "$f" 2>&1 | sed 's/^psql:[^:]*:[0-9]*: NOTICE:  /  /'
+  [ "${PIPESTATUS[0]}" = "0" ] || exit 1
+done
+bash supabase/tests/race.sh "${PSQL[@]}" -d t
