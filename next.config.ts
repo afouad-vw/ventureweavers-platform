@@ -29,8 +29,21 @@ const securityHeaders = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
 ];
 
+const supabaseHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    return "";
+  }
+})();
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Banner uploads are up to 5 MB.
+  experimental: { serverActions: { bodySizeLimit: "6mb" } },
+  images: {
+    remotePatterns: supabaseHost ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }] : [],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

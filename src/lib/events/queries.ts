@@ -16,6 +16,7 @@ export type EventRow = {
   guest: string | null;
   description: string | null;
   banner: string;
+  banner_url: string | null;
   status: "draft" | "published";
   created_at: string;
 };
@@ -34,7 +35,7 @@ export type MyBooking = {
   tickets: { code: string; checked_in_at: string | null } | null;
 };
 
-const EVENT_COLS = "id, slug, title, type, starts_at, venue, capacity, price_piasters, hosts, guest, description, banner, status, created_at";
+const EVENT_COLS = "id, slug, title, type, starts_at, venue, capacity, price_piasters, hosts, guest, description, banner, banner_url, status, created_at";
 
 async function withSeats(rows: EventRow[]): Promise<EventWithSeats[]> {
   const supabase = await createClient();

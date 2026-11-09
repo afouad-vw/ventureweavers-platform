@@ -43,7 +43,9 @@ export function Banner({
   chip,
   chipRight,
   className,
+  src: customSrc,
 }: {
+  src?: string | null;
   choice?: BannerChoice;
   thread: TagTone;
   label?: string;
@@ -52,13 +54,13 @@ export function Banner({
   chipRight?: React.ReactNode;
   className?: string;
 }) {
-  const src = photos[choice];
+  const src = customSrc || photos[choice];
   const Mark = mark[thread];
   return (
     <div className={cn("relative flex shrink-0 items-end overflow-hidden px-3.5 py-3 text-white", bg[thread], !src && "vw-pattern", className)} style={{ height }}>
       {src ? (
         <>
-          <Image src={src} alt="" fill sizes="(max-width: 900px) 100vw, 400px" className="object-cover" />
+          <Image src={src} alt="" fill sizes="(max-width: 900px) 100vw, 900px" className="object-cover" />
           <span className="absolute inset-0 bg-gradient-to-b from-ink/5 from-20% to-ink/80" aria-hidden="true" />
         </>
       ) : (

@@ -50,7 +50,7 @@ async function Shows() {
         {next ? (
           <Card as="article" className="overflow-hidden !p-0 !gap-0 sm:flex-row">
             <div className="relative h-[200px] shrink-0 sm:h-auto sm:w-[42%]">
-              <Banner choice={next.banner as BannerChoice} thread="Outloud" height={200} className="h-full sm:!h-full" chip={<span className="inline-flex items-center gap-1 rounded-md bg-black/40 px-2 py-0.5 text-[11.5px] font-bold"><MessageSquare size={12} aria-hidden="true" />Open Floor.</span>} />
+              <Banner src={next.banner_url} choice={next.banner as BannerChoice} thread="Outloud" height={200} className="h-full sm:!h-full" chip={<span className="inline-flex items-center gap-1 rounded-md bg-black/40 px-2 py-0.5 text-[11.5px] font-bold"><MessageSquare size={12} aria-hidden="true" />Open Floor.</span>} />
             </div>
             <div className="flex flex-1 flex-col gap-2.5 p-4">
               <Eyebrow>Next show · {typeLabel(next.type)}</Eyebrow>

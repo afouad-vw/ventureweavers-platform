@@ -154,5 +154,18 @@ select pg_temp.expect_error($$insert into public.saved_items (member_id, item_ty
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000b2');
 select pg_temp.check((select count(*) from public.saved_items) = 0, 'saved items are private');
 
+-- ---------- banner uploads (storage)
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000b1');
+select pg_temp.expect_error($$insert into storage.objects (bucket_id, name) values ('event-banners', 'x/hack.jpg')$$, '%row-level security%', 'member cannot upload a banner');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1', 'aal1');
+select pg_temp.expect_error($$insert into storage.objects (bucket_id, name) values ('event-banners', 'x/a.jpg')$$, '%row-level security%', 'admin without 2-step cannot upload');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1', 'aal2');
+insert into storage.objects (bucket_id, name) values ('event-banners', 'x/ok.jpg');
+select pg_temp.check(true, 'admin with 2-step can upload a banner');
+select pg_temp.expect_error($$insert into storage.objects (bucket_id, name) values ('other-bucket', 'x.jpg')$$, '%', 'admin rule covers only the banner folder');
+update public.events set banner_url = 'https://abc.supabase.co/storage/v1/object/public/event-banners/x/ok.jpg' where slug = 'show-01';
+select pg_temp.check((select banner_url from public.events where slug = 'show-01') like '%event-banners%', 'event stores an uploaded banner');
+select pg_temp.expect_error($$update public.events set banner_url = 'https://evil.example/x.jpg' where slug = 'show-01'$$, '%check constraint%', 'banner must come from the banner folder');
+
 rollback;
 \echo ALL EVENT TESTS PASSED

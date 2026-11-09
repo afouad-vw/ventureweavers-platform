@@ -32,7 +32,7 @@ export default async function EventPage({ params }: Props) {
         Shows & events
       </Link>
       <Card as="article" className="overflow-hidden !p-0 !gap-0">
-        <Banner choice={e.banner as BannerChoice} thread="Outloud" height={220} />
+        <Banner src={e.banner_url} choice={e.banner as BannerChoice} thread="Outloud" height={220} />
         <div className="flex flex-col gap-3 p-5">
           <div className="flex flex-wrap gap-2">
             <ThreadTag thread="Outloud" />

@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { EVENT_TYPES, formatDateTime, formatEGP, isoToCairoLocal, typeLabel } from "@/lib/events/format";
 import type { AdminEvent } from "@/lib/events/admin-queries";
 import { deleteEvent, duplicateEvent, saveEvent, setEventStatus, type ActionResult } from "./actions";
+import { BannerField } from "./banner-field";
 
 const priceInput = (p: number | null) => (p == null ? "" : (p / 100).toString());
 
@@ -141,7 +142,8 @@ export function EventsManager({ events, base }: { events: AdminEvent[]; base: st
               <TextField label="Hosts" name="hosts" defaultValue={e?.hosts ?? "Fouad & Karim"} maxLength={160} />
               <TextField label="Guest" name="guest" defaultValue={e?.guest ?? ""} placeholder="[GUEST NAME]" maxLength={160} />
             </div>
-            <SelectField label="Banner" name="banner" defaultValue={e?.banner ?? "Stage"} options={BANNER_OPTIONS} />
+            <BannerField initial={e?.banner_url ?? null} />
+            <SelectField label="Photo or pattern (used when no image is uploaded)" name="banner" defaultValue={e?.banner ?? "Stage"} options={BANNER_OPTIONS} />
             <TextArea label="Description" name="description" rows={5} defaultValue={e?.description ?? ""} maxLength={4000} />
             {error ? <p role="alert" className="rounded-lg bg-bad-bg px-3 py-2 text-[13px] font-bold text-bad-fg">{error}</p> : null}
           </form>

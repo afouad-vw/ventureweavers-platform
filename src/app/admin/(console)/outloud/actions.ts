@@ -10,6 +10,34 @@ import { createServiceClient } from "@/lib/supabase/service";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 
+const BANNER_MAX_BYTES = 5 * 1024 * 1024;
+const BANNER_PREFIX = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/event-banners/`;
+
+/** Check the real file type from its first bytes, not the name or the browser's claim. */
+function sniffImage(b: Uint8Array): { ext: string; type: string } | null {
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return { ext: "jpg", type: "image/jpeg" };
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return { ext: "png", type: "image/png" };
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return { ext: "webp", type: "image/webp" };
+  return null;
+}
+
+/** Upload a banner image for the editor. Returns its public address to save with the event. */
+export async function uploadEventBanner(form: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const admin = await requireAdmin();
+  const file = form.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose an image." };
+  if (file.size > BANNER_MAX_BYTES) return { ok: false, error: "The image is larger than 5 MB. Export a smaller JPG or WebP." };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const kind = sniffImage(bytes);
+  if (!kind) return { ok: false, error: "Use a JPG, PNG or WebP image." };
+  const path = `${new Date().toISOString().slice(0, 7)}/${crypto.randomUUID()}.${kind.ext}`;
+  const supabase = await createClient();
+  const { error } = await supabase.storage.from("event-banners").upload(path, bytes, { contentType: kind.type, cacheControl: "31536000", upsert: false });
+  if (error) return { ok: false, error: "The upload didn't go through. Please try again." };
+  await audit(admin.userId, "event.banner_upload", "storage", { entityId: path });
+  return { ok: true, url: BANNER_PREFIX() + path };
+}
+
 const refresh = () => {
   revalidatePath("/admin/outloud", "layout");
   revalidatePath("/outloud", "layout");
@@ -49,6 +77,8 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
   if (!Number.isInteger(capacity) || capacity < 0 || capacity > 10000) return { ok: false, error: "Capacity must be a whole number." };
   const banner = (BANNER_OPTIONS as readonly string[]).includes(s("banner")) ? s("banner") : "Stage";
   const status = s("status") === "published" ? "published" : "draft";
+  const banner_url = s("banner_url") || null;
+  if (banner_url && !banner_url.startsWith(BANNER_PREFIX())) return { ok: false, error: "That banner image isn't from the upload folder." };
 
   const row = {
     title: title.slice(0, 140),
@@ -61,6 +91,7 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     guest: s("guest").slice(0, 160) || null,
     description: s("description").slice(0, 4000) || null,
     banner,
+    banner_url,
     status,
   };
 
@@ -103,6 +134,7 @@ export async function duplicateEvent(id: string): Promise<ActionResult> {
     guest: e.guest,
     description: e.description,
     banner: e.banner,
+    banner_url: e.banner_url,
     status: "draft",
     created_by: admin.userId,
   };
