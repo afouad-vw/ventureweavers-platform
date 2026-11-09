@@ -1,6 +1,6 @@
 # Phase 2 plan: accounts, access and the data model
 
-Status: **waiting for approval** (CLAUDE.md: plan first for database, auth and access rules).
+Status: **approved 2026-11-09; accounts, admin login and core tables are live.** Feature tables arrive with each phase.
 
 ## 1. Addresses (done in code, live once domains are connected)
 
