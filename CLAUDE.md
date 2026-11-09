@@ -62,3 +62,5 @@ Add product decisions here as they are made (prices, refund policy, roles, langu
 - Admin console is separate from the member app: its own login (username and password) at `/admin/sign-in`, no Member/Admin switch, no link from the member app. Access rules come in the Phase 2 plan. (2026-11-09)
 - Admin logins: one account per partner (Ahmed, Karim), no shared login. Admin console served on its own subdomain (`admin.[DOMAIN]`), same codebase; member host never serves `/admin`. (2026-11-09)
 - Addresses: `ventureweavers.com` landing page, `app.` member app, `admin.` console. Admins set their own passwords on first sign-in. Security measures and access rules: `docs/phase-2-plan.md`. (2026-11-09)
+- Services: Supabase project `ventureweavers-platform` (Frankfurt, Free plan until launch). Auth emails via Resend from `no-reply@mail.ventureweavers.com`; templates in `supabase/templates`. `app.` and `admin.` live on Vercel; `ventureweavers.com`/`www` stay on the old site until launch. `HOST_MODE=strict` in production. (2026-11-09)
+- Admin usernames: `ahmed.fouad`, `karim.hemdan`. (2026-11-09)
