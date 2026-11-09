@@ -1,0 +1,179 @@
+{
+  "primary": {
+    "ink": {
+      "hex": "#071112",
+      "rgb": [
+        7,
+        17,
+        18
+      ],
+      "cmyk": [
+        61,
+        6,
+        0,
+        93
+      ],
+      "role": "Base: dark surfaces and text"
+    },
+    "deep-teal": {
+      "hex": "#02686F",
+      "rgb": [
+        2,
+        104,
+        111
+      ],
+      "cmyk": [
+        98,
+        6,
+        0,
+        56
+      ],
+      "role": "Primary: highlights and panels"
+    },
+    "weave-teal": {
+      "hex": "#29BE9C",
+      "rgb": [
+        41,
+        190,
+        156
+      ],
+      "cmyk": [
+        78,
+        0,
+        18,
+        25
+      ],
+      "role": "Accent: the leading strand"
+    },
+    "mint": {
+      "hex": "#DCF1DD",
+      "rgb": [
+        220,
+        241,
+        221
+      ],
+      "cmyk": [
+        9,
+        0,
+        8,
+        5
+      ],
+      "role": "Soft: panels and text on dark"
+    },
+    "paper": {
+      "hex": "#F3F8F5",
+      "rgb": [
+        243,
+        248,
+        245
+      ],
+      "cmyk": [
+        2,
+        0,
+        1,
+        3
+      ],
+      "role": "Base: light surfaces"
+    }
+  },
+  "neutrals": {
+    "body": {
+      "hex": "#44585A",
+      "rgb": [
+        68,
+        88,
+        90
+      ]
+    },
+    "muted": {
+      "hex": "#7A8E8B",
+      "rgb": [
+        122,
+        142,
+        139
+      ]
+    },
+    "line": {
+      "hex": "#D3E5DC",
+      "rgb": [
+        211,
+        229,
+        220
+      ]
+    },
+    "surface-dark": {
+      "hex": "#0E3536",
+      "rgb": [
+        14,
+        53,
+        54
+      ]
+    },
+    "logo-black": {
+      "hex": "#070C0C",
+      "rgb": [
+        7,
+        12,
+        12
+      ]
+    }
+  },
+  "functional": {
+    "positive": {
+      "hex": "#29BE9C",
+      "rgb": [
+        41,
+        190,
+        156
+      ]
+    },
+    "attention": {
+      "hex": "#E3A33B",
+      "rgb": [
+        227,
+        163,
+        59
+      ]
+    },
+    "critical": {
+      "hex": "#D9534F",
+      "rgb": [
+        217,
+        83,
+        79
+      ]
+    },
+    "information": {
+      "hex": "#02686F",
+      "rgb": [
+        2,
+        104,
+        111
+      ]
+    },
+    "data-3-aqua": {
+      "hex": "#7FD6BE",
+      "rgb": [
+        127,
+        214,
+        190
+      ]
+    }
+  },
+  "proportion": {
+    "dark-led": {
+      "ink": 55,
+      "deep-teal": 15,
+      "weave-teal": 10,
+      "mint": 10,
+      "paper": 10
+    },
+    "light-led": {
+      "paper": 55,
+      "ink": 15,
+      "deep-teal": 15,
+      "weave-teal": 10,
+      "mint": 5
+    }
+  }
+}

@@ -1,0 +1,27 @@
+:root {
+  /* primary */
+  --vw-ink: #071112;
+  --vw-deep-teal: #02686F;
+  --vw-weave-teal: #29BE9C;
+  --vw-mint: #DCF1DD;
+  --vw-paper: #F3F8F5;
+  /* neutrals */
+  --vw-body: #44585A;
+  --vw-muted: #7A8E8B;
+  --vw-line: #D3E5DC;
+  --vw-surface-dark: #0E3536;
+  --vw-logo-black: #070C0C;
+  /* functional */
+  --vw-positive: #29BE9C;
+  --vw-attention: #E3A33B;
+  --vw-critical: #D9534F;
+  --vw-information: #02686F;
+  --vw-data-3-aqua: #7FD6BE;
+  /* type */
+  --vw-font-display: 'Chakra Petch', Arial, sans-serif;
+  --vw-font-text: 'Nunito Sans', Arial, sans-serif;
+  --vw-font-arabic: 'IBM Plex Sans Arabic', Arial, sans-serif;
+  /* shape */
+  --vw-radius-card: 16px;
+  --vw-radius-pill: 999px;
+}

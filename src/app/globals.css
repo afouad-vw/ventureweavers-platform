@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* VentureWeavers design tokens.
+   Colours switch with the system theme through CSS variables; Tailwind utilities read them via @theme. */
+
+@theme inline {
+  --breakpoint-desk: 56.25rem; /* 900px: sidebar appears */
+
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-hover: var(--hover);
+  --color-soft: var(--soft);
+  --color-soft-fg: var(--soft-fg);
+  --color-primary: var(--primary);
+  --color-link: var(--link);
+
+  --color-ink: #071112;
+  --color-ink2: #12302f;
+  --color-ink-line: #1e3233;
+  --color-ink-fg: #dcf1dd;
+  --color-ink-muted: #a9c9c1;
+  --color-teal: #29be9c;
+  --color-deep: #02686f;
+  --color-mint: #dcf1dd;
+  --color-paper: #f3f8f5;
+
+  --color-out: #e39b2d;
+  --color-out-bg: var(--out-bg);
+  --color-out-fg: var(--out-fg);
+  --color-tvs: #1f4fa3;
+  --color-tvs-bg: var(--tvs-bg);
+  --color-tvs-fg: var(--tvs-fg);
+  --color-brk: #b5532f;
+  --color-brk-bg: var(--brk-bg);
+  --color-brk-fg: var(--brk-fg);
+  --color-qq: #8dbf2e;
+  --color-qq-bg: var(--qq-bg);
+  --color-qq-fg: var(--qq-fg);
+  --color-house-bg: var(--soft);
+  --color-house-fg: var(--soft-fg);
+
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-fg: var(--warn-fg);
+  --color-bad-bg: var(--bad-bg);
+  --color-bad-fg: var(--bad-fg);
+
+  --font-display: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+  --font-sans: "Nunito Sans", Arial, Helvetica, sans-serif;
+}
+
+:root {
+  --bg: #f3f8f5;
+  --card: #ffffff;
+  --fg: #071112;
+  --muted: #3e4e4c;
+  --faint: #55655f;
+  --line: #dfe8e3;
+  --line2: #ccdad3;
+  --hover: #eef4f1;
+  --soft: #dcf1dd;
+  --soft-fg: #02686f;
+  --primary: #02686f;
+  --link: #02686f;
+  --out-bg: #fbebd3;
+  --out-fg: #7a4700;
+  --tvs-bg: #dfe7f6;
+  --tvs-fg: #1c3f86;
+  --brk-bg: #f6e3dc;
+  --brk-fg: #8a3a1e;
+  --qq-bg: #eaf4d2;
+  --qq-fg: #3f5a0a;
+  --warn-bg: #fbebd3;
+  --warn-fg: #7a4700;
+  --bad-bg: #f8e1de;
+  --bad-fg: #9a2b1e;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a1617;
+    --card: #0f2122;
+    --fg: #e4f1ec;
+    --muted: #b4cbc5;
+    --faint: #9db8b1;
+    --line: #1f3536;
+    --line2: #2c4747;
+    --hover: #142b2c;
+    --soft: #14302e;
+    --soft-fg: #7fe0c4;
+    --primary: #1e8c86;
+    --link: #5fd6b8;
+    --out-bg: #3a2a10;
+    --out-fg: #f2c27a;
+    --tvs-bg: #16264a;
+    --tvs-fg: #b9ccf4;
+    --brk-bg: #3b1e14;
+    --brk-fg: #f0b49a;
+    --qq-bg: #26330d;
+    --qq-fg: #c8e68a;
+    --warn-bg: #3a2a10;
+    --warn-fg: #f2c27a;
+    --bad-bg: #3d1a16;
+    --bad-fg: #f2a99e;
+    color-scheme: dark;
+  }
+}
+
+html,
+body {
+  background: var(--bg);
+}
+
+body {
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid #29be9c;
+  outline-offset: 2px;
+}
+
+/* Brand pattern used on banners without a photo */
+.vw-pattern {
+  background-image: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.07) 0 2px, transparent 2px 16px);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
