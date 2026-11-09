@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { EmailPasswordForm, OrDivider } from "@/components/auth/email-form";
 import { ProviderButtons } from "@/components/auth/provider-buttons";
 
 export const metadata: Metadata = { title: "Join" };
@@ -18,7 +19,7 @@ export default function JoinPage() {
     <AuthLayout>
       <div className="flex flex-col gap-1">
         <h1 className="font-display text-2xl font-semibold">Join VentureWeavers</h1>
-        <p className="text-[13.5px] text-muted">One account for every space. Use your Google or LinkedIn account.</p>
+        <p className="text-[13.5px] text-muted">One account for every space. Use Google, LinkedIn or your email.</p>
       </div>
       <ul className="flex flex-col gap-2">
         {perks.map((p) => (
@@ -29,6 +30,8 @@ export default function JoinPage() {
         ))}
       </ul>
       <ProviderButtons verb="Sign up" />
+      <OrDivider />
+      <EmailPasswordForm mode="sign-up" />
       <p className="text-xs text-faint">
         After you sign up we ask for your role, stage and interests to shape your feed. By joining you agree to the [TERMS] and [PRIVACY POLICY].
       </p>

@@ -1,9 +1,9 @@
 # VentureWeavers Platform
 
-One Next.js app with two separate faces. Members and admins have separate logins; the member app never links to the admin console.
+One Next.js app serving three addresses: `ventureweavers.com` (landing page), `app.ventureweavers.com` (member app) and `admin.ventureweavers.com` (admin console). Members and admins have separate logins; the member app never links to the admin console. Host routing is in `src/lib/hosts.ts` and `src/middleware.ts`.
 
 - **Member app**: Home, Outloud, TVS, BRICKR, QuidQuo, Library, My space, Live mode, Join.
-- **Admin console** (`/admin`, login at `/admin/sign-in` with username and password): Overview, Contacts, Requests, Payments, one section per space (Outloud, TVS, BRICKR, QuidQuo), Library, Publishing.
+- **Admin console** (`admin.` host; `/admin` paths in local and preview path mode; login with username, password and 2-step code): Overview, Contacts, Requests, Payments, one section per space (Outloud, TVS, BRICKR, QuidQuo), Library, Publishing.
 
 `reference/prototype.html` is the clickable spec. Its Member/Admin switch exists only for convenience in the prototype; the real product has no switch. Every screen and flow in it must exist in the real product. Open it in a browser before building any screen, and match its layout and copy.
 
@@ -48,7 +48,7 @@ VentureWeavers house branding leads; spaces appear as coloured tags.
 ## Working rules
 
 - Plan first and wait for approval on anything touching the database, payments, auth or access rules.
-- Small commits with clear messages. Run `npm run build` and `npm run lint` before every push.
+- Small commits with clear messages. Run `npm run build`, `npm run lint` and `npm test` before every push.
 - Write tests for money, capacity and access logic.
 - Secrets live in environment variables only (`.env.local`, Vercel settings). Never commit keys.
 - Every admin list supports create, edit, duplicate, delete and Published/Draft status through the shared editor drawer.
@@ -58,6 +58,7 @@ VentureWeavers house branding leads; spaces appear as coloured tags.
 Add product decisions here as they are made (prices, refund policy, roles, languages).
 
 - Build phases follow the development guide: Phase 0 setup, Phase 1 design system and shells, Phase 2 data model and auth, then features.
-- Sign-up and sign-in: Google and LinkedIn accounts only (Supabase Auth providers `google` and `linkedin_oidc`). Screens at `/join` and `/sign-in`; wiring comes in Phase 2. (2026-11-09)
+- Member sign-up and sign-in: Google, LinkedIn (`google`, `linkedin_oidc`) or email and password. Screens at `/join`, `/sign-in`, `/forgot-password`; wiring comes in Phase 2. (2026-11-09)
 - Admin console is separate from the member app: its own login (username and password) at `/admin/sign-in`, no Member/Admin switch, no link from the member app. Access rules come in the Phase 2 plan. (2026-11-09)
 - Admin logins: one account per partner (Ahmed, Karim), no shared login. Admin console served on its own subdomain (`admin.[DOMAIN]`), same codebase; member host never serves `/admin`. (2026-11-09)
+- Addresses: `ventureweavers.com` landing page, `app.` member app, `admin.` console. Admins set their own passwords on first sign-in. Security measures and access rules: `docs/phase-2-plan.md`. (2026-11-09)

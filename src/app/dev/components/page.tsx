@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -23,6 +24,7 @@ const swatches = [
 ] as const;
 
 export default function ComponentsPage() {
+  if (process.env.VERCEL_ENV === "production") notFound();
   return (
     <div className="mx-auto flex max-w-[1100px] flex-col gap-5 px-4 py-8 desk:px-6">
       <PageHeader

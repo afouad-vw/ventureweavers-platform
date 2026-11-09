@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberSpaces, memberTabBar } from "@/lib/nav";
 import { LogOut } from "lucide-react";
+import { adminHref } from "@/lib/hosts";
+import type { NavItem } from "@/lib/nav";
 import { AppShell, BellButton, Who } from "./app-shell";
 
 /** Member app layout. Sample member until login arrives in Phase 2. */
@@ -42,15 +44,16 @@ export function MemberShell({ children }: { children: React.ReactNode }) {
 }
 
 /** Admin console layout. */
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ base, children }: { base: string; children: React.ReactNode }) {
+  const at = (items: NavItem[]) => items.map((i) => ({ ...i, href: adminHref(i.href, base) }));
   return (
     <AppShell
-      sections={[{ items: adminMain }, { label: "Spaces", items: adminSpaces }, { label: "Shared", items: adminShared }]}
+      sections={[{ items: at(adminMain) }, { label: "Spaces", items: at(adminSpaces) }, { label: "Shared", items: at(adminShared) }]}
       searchPlaceholder="Search contacts, events, content"
       crumb="Admin console"
-      topRight={<Who initials="FK" name="Fouad & Karim" sub="Owners" href="/admin" />}
+      topRight={<Who initials="FK" name="Fouad & Karim" sub="Owners" href={adminHref("/admin", base)} />}
       footer={
-        <Link href="/admin/sign-in" className="flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">
+        <Link href={adminHref("/admin/sign-in", base)} className="flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">
           <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
           Sign out
         </Link>

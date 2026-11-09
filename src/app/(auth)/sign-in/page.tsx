@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { EmailPasswordForm, OrDivider } from "@/components/auth/email-form";
 import { ProviderButtons } from "@/components/auth/provider-buttons";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -13,6 +14,8 @@ export default function SignInPage() {
         <p className="text-[13.5px] text-muted">Sign in to your tickets, learning and requests.</p>
       </div>
       <ProviderButtons verb="Sign in" />
+      <OrDivider />
+      <EmailPasswordForm mode="sign-in" />
       <p className="text-[13px] text-muted">
         New here?{" "}
         <Link href="/join" className="font-bold text-link hover:underline">
