@@ -62,7 +62,15 @@ Money is stored in piasters (whole numbers), never as decimals.
 - Payment confirmation only from the provider's signed server notification (never from the browser), recorded once even if sent twice.
 - Refunds from Admin › Payments with confirmation; receipts by email.
 
-## Decisions needed from you
+## Decisions (answered 2026-11-09)
+
+- Payment until Paymob: **bank transfer only**; an admin marks it paid.
+- Deadline: **48 hours**, or 24 hours before the show if sooner.
+- Maximum **2 seats** per booking.
+- Refund policy: **decide later**; tools built, text shows `[REFUND POLICY]`.
+- Prices: `[PRICE]` until set.
+
+## Original questions
 
 1. **Payment until Paymob is ready**: bank transfer (we show your bank details and a reference), cash at the door, or both?
 2. **Deadline to pay a reservation** before seats are released (suggest 48 hours, or 24 hours if the show is within 2 days).
