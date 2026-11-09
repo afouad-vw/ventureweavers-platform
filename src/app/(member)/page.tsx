@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Home" };
 export default function HomePage() {
   return (
     <Placeholder
-      title="Good evening, Nour"
+      title="Welcome to VentureWeavers"
       description="Your feed is tuned to your role, stage and interests."
       phase="Phase 5"
       items={[

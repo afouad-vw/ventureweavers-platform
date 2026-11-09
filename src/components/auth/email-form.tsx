@@ -1,23 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useActionState } from "react";
+import { signInWithEmail, signUpWithEmail } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/field";
-import { useToast } from "@/components/ui/toast";
+import { FormNote } from "./form-note";
+import { Turnstile } from "./turnstile";
 
-/** Email and password form for members. Phase 2 connects it to Supabase Auth. */
-export function EmailPasswordForm({ mode }: { mode: "sign-in" | "sign-up" }) {
-  const toast = useToast();
+/** Email and password form for members. */
+export function EmailPasswordForm({ mode, next }: { mode: "sign-in" | "sign-up"; next?: string }) {
   const signUp = mode === "sign-up";
+  const [state, action, pending] = useActionState(signUp ? signUpWithEmail : signInWithEmail, null);
+  if (signUp && state?.message) return <FormNote state={state} />;
   return (
-    <form
-      className="flex flex-col gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        toast(`Email ${signUp ? "sign-up" : "sign-in"} connects in Phase 2`);
-      }}
-    >
-      {signUp ? <TextField label="Full name" name="name" autoComplete="name" required /> : null}
+    <form action={action} className="flex flex-col gap-3">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
+      {signUp ? <TextField label="Full name" name="name" autoComplete="name" maxLength={120} required /> : null}
       <TextField label="Email" name="email" type="email" autoComplete="email" required />
       <TextField
         label="Password"
@@ -33,8 +32,10 @@ export function EmailPasswordForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           Forgot password?
         </Link>
       ) : null}
-      <Button type="submit" size="lg" className="w-full">
-        {signUp ? "Create account" : "Sign in"}
+      <Turnstile />
+      <FormNote state={state} />
+      <Button type="submit" size="lg" className="w-full" disabled={pending}>
+        {pending ? "Please wait…" : signUp ? "Create account" : "Sign in"}
       </Button>
     </form>
   );

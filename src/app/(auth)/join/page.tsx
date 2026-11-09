@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { FormNote } from "@/components/auth/form-note";
+import { safeNext } from "@/lib/auth/policy";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { EmailPasswordForm, OrDivider } from "@/components/auth/email-form";
 import { ProviderButtons } from "@/components/auth/provider-buttons";
@@ -14,7 +16,9 @@ const perks = [
   "Join the QuidQuo waitlist",
 ];
 
-export default function JoinPage() {
+export default async function JoinPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
+  const { next, error } = await searchParams;
+  const safe = safeNext(next, "");
   return (
     <AuthLayout>
       <div className="flex flex-col gap-1">
@@ -29,9 +33,10 @@ export default function JoinPage() {
           </li>
         ))}
       </ul>
-      <ProviderButtons verb="Sign up" />
+      {error === "link" ? <FormNote state={{ error: "That link has expired or was already used. Please try again." }} /> : null}
+      <ProviderButtons verb="Sign up" next={safe || undefined} />
       <OrDivider />
-      <EmailPasswordForm mode="sign-up" />
+      <EmailPasswordForm mode="sign-up" next={safe || undefined} />
       <p className="text-xs text-faint">
         After you sign up we ask for your role, stage and interests to shape your feed. By joining you agree to the [TERMS] and [PRIVACY POLICY].
       </p>

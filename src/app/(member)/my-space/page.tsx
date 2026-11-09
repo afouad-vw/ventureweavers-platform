@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Placeholder } from "@/components/placeholder";
+import { requireMember } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "My space" };
 
-export default function MySpacePage() {
+export default async function MySpacePage() {
+  await requireMember("/my-space");
   return (
     <Placeholder
       title="My space"

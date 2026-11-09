@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Placeholder } from "@/components/placeholder";
+import { requireMember } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "Live" };
 
-export default function LivePage() {
+export default async function LivePage() {
+  await requireMember("/live");
   return (
     <Placeholder
       title="Live mode"

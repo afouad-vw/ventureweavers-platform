@@ -43,6 +43,8 @@ export function decide(rawHost: string | null, pathname: string, cfg: HostConfig
   if (host === "www." + cfg.site) return { kind: "redirect", url: `https://${cfg.site}${pathname}` };
 
   if (host === cfg.admin) {
+    // Shared auth routes (/auth/confirm for invites) stay as they are; they check the surface themselves.
+    if (isUnder(pathname, "/auth")) return { kind: "next", surface: "admin", noindex: true };
     // Canonical admin URLs have no /admin prefix.
     if (admin) return { kind: "redirect", url: `https://${cfg.admin}${pathname.slice(6) || "/"}` };
     if (site) return { kind: "notfound" };

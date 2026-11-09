@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Placeholder } from "@/components/placeholder";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "QuidQuo admin" };
 
-export default function AdminQuidQuoPage() {
+export default async function AdminQuidQuoPage() {
+  await requireAdmin();
   return (
     <Placeholder
       title="QuidQuo"

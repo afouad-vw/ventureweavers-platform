@@ -1,7 +1,8 @@
 "use client";
 
-import { useToast } from "@/components/ui/toast";
-import { cn } from "@/lib/cn";
+import { useActionState } from "react";
+import { signInWithProvider } from "@/app/(auth)/actions";
+import { FormNote } from "./form-note";
 
 function GoogleMark() {
   return (
@@ -28,28 +29,26 @@ const providers = [
   { id: "linkedin_oidc", label: "LinkedIn", Mark: LinkedInMark },
 ] as const;
 
-/**
- * Social sign-in buttons. Phase 2 connects these to Supabase Auth
- * (providers "google" and "linkedin_oidc"); until then they only show a note.
- */
-export function ProviderButtons({ verb }: { verb: "Sign in" | "Sign up" }) {
-  const toast = useToast();
+/** Google and LinkedIn sign-in through Supabase Auth. */
+export function ProviderButtons({ verb, next }: { verb: "Sign in" | "Sign up"; next?: string }) {
+  const [state, action, pending] = useActionState(signInWithProvider, null);
   return (
-    <div className="flex flex-col gap-2.5">
+    <form action={action} className="flex flex-col gap-2.5">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       {providers.map(({ id, label, Mark }) => (
         <button
           key={id}
-          type="button"
-          data-provider={id}
-          onClick={() => toast(`${label} ${verb.toLowerCase()} connects in Phase 2`)}
-          className={cn(
-            "inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-line2 bg-card text-[14px] font-bold text-fg hover:bg-hover",
-          )}
+          type="submit"
+          name="provider"
+          value={id}
+          disabled={pending}
+          className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-line2 bg-card text-[14px] font-bold text-fg hover:bg-hover disabled:cursor-wait disabled:opacity-60"
         >
           <Mark />
           {verb === "Sign in" ? "Continue" : "Sign up"} with {label}
         </button>
       ))}
-    </div>
+      <FormNote state={state} />
+    </form>
   );
 }

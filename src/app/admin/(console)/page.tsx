@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Placeholder } from "@/components/placeholder";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "Admin" };
 
-export default function AdminOverviewPage() {
+export default async function AdminOverviewPage() {
+  await requireAdmin();
   return (
     <Placeholder
       title="Overview"

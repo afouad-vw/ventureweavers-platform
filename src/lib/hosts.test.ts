@@ -47,6 +47,9 @@ describe("admin host", () => {
   it("maps clean paths into the console", () => {
     expect(decide("admin.ventureweavers.com", "/sign-in", cfg)).toMatchObject({ kind: "rewrite", path: "/admin/sign-in" });
   });
+  it("passes auth routes through, marked as admin", () => {
+    expect(decide("admin.ventureweavers.com", "/auth/confirm", cfg)).toEqual({ kind: "next", surface: "admin", noindex: true });
+  });
   it("redirects /admin URLs to the clean form", () => {
     expect(decide("admin.ventureweavers.com", "/admin/contacts", cfg)).toEqual({ kind: "redirect", url: "https://admin.ventureweavers.com/contacts" });
     expect(decide("admin.ventureweavers.com", "/admin", cfg)).toEqual({ kind: "redirect", url: "https://admin.ventureweavers.com/" });

@@ -4,12 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberSpaces, memberTabBar } from "@/lib/nav";
 import { LogOut } from "lucide-react";
+import { signOut } from "@/app/(auth)/actions";
+import { adminSignOut } from "@/app/admin/(gate)/actions";
 import { adminHref } from "@/lib/hosts";
 import type { NavItem } from "@/lib/nav";
 import { AppShell, BellButton, Who } from "./app-shell";
 
-/** Member app layout. Sample member until login arrives in Phase 2. */
-export function MemberShell({ children }: { children: React.ReactNode }) {
+export type ShellMember = { name: string; initials: string; sub: string } | null;
+
+/** Member app layout. Shows the signed-in member, or Sign in and Join. */
+export function MemberShell({ member, children }: { member: ShellMember; children: React.ReactNode }) {
   return (
     <AppShell
       sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: [memberAccount] }]}
@@ -17,8 +21,17 @@ export function MemberShell({ children }: { children: React.ReactNode }) {
       tabBar={memberTabBar}
       topRight={
         <>
-          <BellButton count={2} />
-          <Who initials="NH" name="Nour Hassan" sub="Founder · Seed" href="/my-space" />
+          {member ? (
+            <>
+              <BellButton count={0} />
+              <Who initials={member.initials} name={member.name} sub={member.sub} href="/my-space" />
+            </>
+          ) : (
+            <>
+              <Link href="/sign-in" className="hidden h-9 items-center px-2 text-[13.5px] font-bold text-fg hover:text-link sm:inline-flex">Sign in</Link>
+              <Link href="/join" className="inline-flex h-9 items-center rounded-lg bg-primary px-3.5 text-[13.5px] font-bold text-white hover:opacity-90">Join</Link>
+            </>
+          )}
         </>
       }
       footer={
@@ -30,11 +43,20 @@ export function MemberShell({ children }: { children: React.ReactNode }) {
             </span>
             Hosted by Fouad &amp; Karim
           </div>
-          <div className="flex gap-2 px-1.5 text-xs font-bold">
-            <Link href="/sign-in" className="text-ink-fg hover:text-white">Sign in</Link>
-            <span className="text-ink-muted">·</span>
-            <Link href="/join" className="text-teal hover:text-white">Join</Link>
-          </div>
+          {member ? (
+            <form action={signOut}>
+              <button type="submit" className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">
+                <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
+                Sign out
+              </button>
+            </form>
+          ) : (
+            <div className="flex gap-2 px-1.5 text-xs font-bold">
+              <Link href="/sign-in" className="text-ink-fg hover:text-white">Sign in</Link>
+              <span className="text-ink-muted">·</span>
+              <Link href="/join" className="text-teal hover:text-white">Join</Link>
+            </div>
+          )}
         </>
       }
     >
@@ -44,22 +66,29 @@ export function MemberShell({ children }: { children: React.ReactNode }) {
 }
 
 /** Admin console layout. */
-export function AdminShell({ base, children }: { base: string; children: React.ReactNode }) {
+export function AdminShell({ base, name, children }: { base: string; name: string; children: React.ReactNode }) {
   const at = (items: NavItem[]) => items.map((i) => ({ ...i, href: adminHref(i.href, base) }));
   return (
     <AppShell
       sections={[{ items: at(adminMain) }, { label: "Spaces", items: at(adminSpaces) }, { label: "Shared", items: at(adminShared) }]}
       searchPlaceholder="Search contacts, events, content"
       crumb="Admin console"
-      topRight={<Who initials="FK" name="Fouad & Karim" sub="Owners" href={adminHref("/admin", base)} />}
+      topRight={<Who initials={initialsOf(name)} name={name} sub="Admin" href={adminHref("/admin", base)} />}
       footer={
-        <Link href={adminHref("/admin/sign-in", base)} className="flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">
-          <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
-          Sign out
-        </Link>
+        <form action={adminSignOut}>
+          <button type="submit" className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">
+            <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
+            Sign out
+          </button>
+        </form>
       }
     >
       {children}
     </AppShell>
   );
+}
+
+export function initialsOf(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "VW";
 }

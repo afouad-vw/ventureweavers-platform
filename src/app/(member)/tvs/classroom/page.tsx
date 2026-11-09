@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Placeholder } from "@/components/placeholder";
+import { requireMember } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "Classroom" };
 
-export default function ClassroomPage() {
+export default async function ClassroomPage() {
+  await requireMember("/tvs/classroom");
   return (
     <Placeholder
       title="TVAC classroom"

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Placeholder } from "@/components/placeholder";
+import { requireAdmin } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "BRICKR admin" };
 
-export default function AdminBrickrPage() {
+export default async function AdminBrickrPage() {
+  await requireAdmin();
   return (
     <Placeholder
       title="BRICKR"
