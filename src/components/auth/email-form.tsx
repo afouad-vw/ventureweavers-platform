@@ -32,7 +32,7 @@ export function EmailPasswordForm({ mode, next }: { mode: "sign-in" | "sign-up";
           Forgot password?
         </Link>
       ) : null}
-      <Turnstile />
+      <Turnstile resetKey={state} />
       <FormNote state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Please wait…" : signUp ? "Create account" : "Sign in"}

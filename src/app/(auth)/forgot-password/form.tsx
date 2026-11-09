@@ -13,7 +13,7 @@ export function ResetRequestForm() {
   return (
     <form action={action} className="flex flex-col gap-3">
       <TextField label="Email" name="email" type="email" autoComplete="email" required />
-      <Turnstile />
+      <Turnstile resetKey={state} />
       <FormNote state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         Send reset link

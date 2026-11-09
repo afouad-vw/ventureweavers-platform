@@ -49,7 +49,8 @@ export async function adminSignIn(_: FormState, form: FormData): Promise<FormSta
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const captchaToken = (form.get("cf-turnstile-response") as string | null) || undefined;
+  const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
   if (error) {
     await record(false);
     return { error: GENERIC };
