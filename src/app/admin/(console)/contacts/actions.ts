@@ -7,6 +7,10 @@ import { parseCsv, toContacts } from "@/lib/contacts/import";
 import { toCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { parseAbout } from "@/lib/profile/about";
+import { sendPartnerPasswordReset } from "@/lib/email/account";
+import type { FormState } from "@/lib/auth/form-state";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -15,7 +19,7 @@ const CONSENT = ["Email, WhatsApp, push", "Email, WhatsApp", "Email", "WhatsApp"
 const cleanTags = (v: FormDataEntryValue[]) => SPACES.filter((s) => v.map(String).includes(s));
 
 const refresh = () => {
-  revalidatePath("/admin/contacts");
+  revalidatePath("/admin/contacts", "layout");
   revalidatePath("/admin", "page");
 };
 
@@ -114,4 +118,91 @@ export async function exportContactsCsv(space: string, q: string): Promise<{ ok:
       rows.map((c) => [c.name, c.email, c.phone, c.company, c.role, c.spaces.join(", "), c.source, c.consent, c.last?.text ?? "", formatDate(c.joinedAt)]),
     ),
   };
+}
+
+// ---------------------------------------------------------------- member accounts (Phase 13)
+
+const APP = `https://${process.env.APP_HOST ?? "app.ventureweavers.com"}`;
+const BAN_FOREVER = "876000h";
+
+function dbError(message: string | undefined, fallback: string) {
+  const m = message ?? "";
+  if (m.includes("admin_account")) return "Admin accounts can't be changed from Contacts.";
+  if (m.includes("not_admin")) return "Only partners can do that.";
+  if (m.includes("bad_phone")) return "Add the mobile number with its country code.";
+  if (m.includes("bad_interests")) return "Pick at least one interest.";
+  if (m.includes("bad_contact")) return "Choose at least one way to communicate.";
+  if (m.includes("linkedin")) return "That LinkedIn link doesn't look right.";
+  if (m.includes("too_many_resets")) return "Three reset emails were sent in the last hour. Try again later.";
+  if (m.includes("not_found")) return "We couldn't find that member.";
+  return fallback;
+}
+
+/** Edit a member's details (the "About you" fields). Their email and newsletter choice stay theirs. */
+export async function updateMember(memberId: string, _state: FormState, form: FormData): Promise<FormState> {
+  await requireAdmin();
+  if (!ID.test(memberId)) return { error: "Unknown member." };
+  const parsed = parseAbout((k) => form.get(k), (k) => form.getAll(k));
+  if (!parsed.ok) return { error: parsed.error.replace("your ", "the ").replace("Add the name.", "Add a name.") };
+  const v = parsed.value;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_update_member", {
+    p_member: memberId,
+    p_full_name: v.full_name,
+    p_phone: v.phone,
+    p_linkedin: v.linkedin ?? "",
+    p_country: v.country,
+    p_role: v.role,
+    p_goals: v.goals,
+    p_contact_prefs: v.contact_prefs,
+  });
+  if (error) return { error: dbError(error.message, "Couldn't save the details.") };
+  refresh();
+  return { message: "Details saved. The member was told in their notifications." };
+}
+
+/** Email the member a 2-hour link to choose a new password. Nobody else sees or sets it. */
+export async function sendPasswordReset(memberId: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!ID.test(memberId)) return { ok: false, error: "Unknown member." };
+  const svc = createServiceClient();
+  const { data: u } = await svc.auth.admin.getUserById(memberId);
+  const email = u?.user?.email;
+  if (!email) return { ok: false, error: "This member has no email address." };
+  if (!process.env.RESEND_API_KEY) return { ok: false, error: "Email sending isn't set up yet (RESEND_API_KEY)." };
+
+  // Checks admin rights, never admin accounts, and the 3-per-hour limit; logs the reset.
+  const supabase = await createClient();
+  const { error: logError } = await supabase.rpc("admin_log_password_reset", { p_member: memberId });
+  if (logError) return { ok: false, error: dbError(logError.message, "Couldn't send the reset email.") };
+
+  const { data: link, error } = await svc.auth.admin.generateLink({ type: "recovery", email });
+  const token = link?.properties?.hashed_token;
+  if (error || !token) return { ok: false, error: "Couldn't create a reset link. Try again." };
+  const href = `${APP}/auth/confirm?token_hash=${encodeURIComponent(token)}&type=recovery&next=/reset-password`;
+  const { data: p } = await svc.from("profiles").select("full_name").eq("id", memberId).maybeSingle();
+  try {
+    await sendPartnerPasswordReset(email, p?.full_name ?? "", href);
+  } catch {
+    return { ok: false, error: "The email service didn't accept the message. Try again in a minute." };
+  }
+  refresh();
+  return { ok: true, message: `Reset link sent to ${email}` };
+}
+
+/** Suspend a member (they're signed out and can't sign in) or lift the suspension. */
+export async function setSuspension(memberId: string, suspend: boolean, reason = ""): Promise<ActionResult> {
+  await requireAdmin();
+  if (!ID.test(memberId)) return { ok: false, error: "Unknown member." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_set_suspension", { p_member: memberId, p_suspend: suspend, p_reason: reason.slice(0, 500) });
+  if (error) return { ok: false, error: dbError(error.message, suspend ? "Couldn't suspend the account." : "Couldn't lift the suspension.") };
+  const { error: banError } = await createServiceClient().auth.admin.updateUserById(memberId, { ban_duration: suspend ? BAN_FOREVER : "none" });
+  if (banError) {
+    // Keep the record and the sign-in block in step: undo the record if the sign-in ban didn't apply.
+    await supabase.rpc("admin_set_suspension", { p_member: memberId, p_suspend: !suspend, p_reason: "" });
+    return { ok: false, error: "The sign-in service didn't accept the change. Try again." };
+  }
+  refresh();
+  return { ok: true, message: suspend ? "Account suspended" : "Suspension lifted" };
 }

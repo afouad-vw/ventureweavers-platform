@@ -16,6 +16,8 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const m = await getMember();
+  // A suspended account is signed out and told why.
+  if (m?.suspended) redirect("/auth/suspended");
   if (m) {
     // New members, and existing ones missing the new details, complete "About you" once.
     const supabase = await createClient();

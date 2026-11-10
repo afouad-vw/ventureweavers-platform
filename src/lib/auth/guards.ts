@@ -10,7 +10,7 @@ import { adminSessionVerdict, clientIp } from "./policy";
 /** Local development only: open the admin console without Supabase. Ignored in production builds. */
 const devOpen = process.env.NODE_ENV !== "production" && process.env.DEV_OPEN_ADMIN === "1";
 
-export type Member = { id: string; email: string | null; name: string | null; avatar: string | null; onboarded: boolean };
+export type Member = { id: string; email: string | null; name: string | null; avatar: string | null; onboarded: boolean; suspended: boolean };
 
 /** The signed-in member, or null. Safe to call from any member page. */
 export async function getMember(): Promise<Member | null> {
@@ -19,13 +19,17 @@ export async function getMember(): Promise<Member | null> {
   const { data } = await supabase.auth.getClaims();
   const sub = data?.claims?.sub;
   if (!sub) return null;
-  const { data: p } = await supabase.from("profiles").select("full_name, avatar_url, onboarded_at").eq("id", sub).maybeSingle();
+  const [{ data: p }, { data: suspended }] = await Promise.all([
+    supabase.from("profiles").select("full_name, avatar_url, onboarded_at").eq("id", sub).maybeSingle(),
+    supabase.rpc("am_i_suspended"),
+  ]);
   return {
     id: sub,
     email: (data.claims.email as string | undefined) ?? null,
     name: p?.full_name ?? null,
     avatar: p?.avatar_url ?? null,
     onboarded: Boolean(p?.onboarded_at),
+    suspended: suspended === true,
   };
 }
 
@@ -33,6 +37,7 @@ export async function getMember(): Promise<Member | null> {
 export async function requireMember(here: string): Promise<Member> {
   const m = await getMember();
   if (!m) redirect(`/sign-in?next=${encodeURIComponent(here)}`);
+  if (m.suspended) redirect("/auth/suspended");
   return m;
 }
 

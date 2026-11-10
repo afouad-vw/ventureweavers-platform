@@ -13,7 +13,10 @@ export async function GET(req: NextRequest) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error || !data.user) return NextResponse.redirect(new URL("/sign-in?error=link", url.origin));
+  if (error || !data.user) {
+    const banned = error?.code === "user_banned" || /banned/i.test(error?.message ?? "");
+    return NextResponse.redirect(new URL(`/sign-in?error=${banned ? "suspended" : "link"}`, url.origin));
+  }
 
   const { data: p } = await supabase.from("profiles").select("onboarded_at").eq("id", data.user.id).maybeSingle();
   return NextResponse.redirect(new URL(p?.onboarded_at ? next : `/welcome?next=${encodeURIComponent(next)}`, url.origin));

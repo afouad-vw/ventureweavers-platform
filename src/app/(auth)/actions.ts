@@ -34,6 +34,7 @@ export async function signInWithEmail(_: FormState, form: FormData): Promise<For
     options: { captchaToken: captcha(form) },
   });
   if (error) {
+    if (error.code === "user_banned") return { error: "This account is suspended. If you think this is a mistake, email us at info@ventureweavers.com." };
     if (error.code === "email_not_confirmed") return { error: "Please confirm your email first. Check your inbox for the link." };
     return { error: "That email and password don't match." };
   }

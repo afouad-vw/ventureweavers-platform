@@ -17,6 +17,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         <h1 className="font-display text-2xl font-semibold">Welcome back</h1>
         <p className="text-[13.5px] text-muted">Sign in to your tickets, learning and requests.</p>
       </div>
+      {error === "suspended" ? <FormNote state={{ error: "This account is suspended. If you think this is a mistake, email us at info@ventureweavers.com." }} /> : null}
       {error === "link" ? <FormNote state={{ error: "That link has expired or was already used. Please try again." }} /> : null}
       <ProviderButtons verb="Sign in" next={safe || undefined} />
       <OrDivider />

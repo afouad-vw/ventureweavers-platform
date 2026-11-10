@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { FormNote } from "@/components/auth/form-note";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextField, Toggle } from "@/components/ui/field";
@@ -34,6 +34,8 @@ export function AboutForm({
   returning,
   save = saveAbout,
   inProfile = false,
+  byAdmin = false,
+  onSaved,
   children,
 }: {
   initial: AboutInitial;
@@ -41,9 +43,15 @@ export function AboutForm({
   returning: boolean;
   save?: (s: FormState, f: FormData) => Promise<FormState>;
   inProfile?: boolean;
+  /** A partner editing a member from Contacts: no newsletter choice, and the email stays the member's. */
+  byAdmin?: boolean;
+  onSaved?: () => void;
   children?: React.ReactNode;
 }) {
   const [state, action, pending] = useActionState(save, null);
+  useEffect(() => {
+    if (state?.message) onSaved?.();
+  }, [state, onSaved]);
   const [interests, setInterests] = useState<string[]>(initial.interests);
   const [contact, setContact] = useState<string[]>(initial.contact.length ? initial.contact : ["Email"]);
   const toggle = (list: string[], set: (v: string[]) => void, v: string) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
@@ -79,7 +87,7 @@ export function AboutForm({
         </div>
       </div>
 
-      <TextField label="Email" value={initial.email} readOnly disabled hint="From your account." />
+      <TextField label="Email" value={initial.email} readOnly disabled hint={byAdmin ? "Members change their own sign-in email." : "From your account."} />
       <TextField label="LinkedIn (optional)" name="linkedin" defaultValue={initial.linkedin} inputMode="url" placeholder="linkedin.com/in/your-name" maxLength={200} />
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -111,11 +119,11 @@ export function AboutForm({
         </div>
       </fieldset>
 
-      <Toggle label="The Floor Notes newsletter by email" name="newsletter" defaultChecked={initial.newsletter} />
+      {byAdmin ? null : <Toggle label="The Floor Notes newsletter by email" name="newsletter" defaultChecked={initial.newsletter} />}
       {children}
       <FormNote state={state} />
       <Button type="submit" size={inProfile ? "md" : "lg"} className={inProfile ? "self-start" : undefined} disabled={pending}>
-        {pending ? "Saving…" : inProfile ? "Save changes" : returning ? "Save and continue" : "Enter VentureWeavers"}
+        {pending ? "Saving…" : byAdmin ? "Save details" : inProfile ? "Save changes" : returning ? "Save and continue" : "Enter VentureWeavers"}
       </Button>
     </form>
   );
