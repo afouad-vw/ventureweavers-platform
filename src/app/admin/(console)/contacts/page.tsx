@@ -6,13 +6,14 @@ import { ContactsBoard } from "./contacts-board";
 
 export const metadata: Metadata = { title: "Contacts" };
 
-export default async function ContactsPage() {
+export default async function ContactsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requireAdmin();
   const { contacts } = await loadPeople();
+  const { q } = await searchParams;
   return (
     <>
       <PageHeader title="Contacts" description="Everyone who joined, booked, applied or was added by the partners." />
-      <ContactsBoard contacts={contacts} />
+      <ContactsBoard contacts={contacts} initialQuery={(q ?? "").slice(0, 80)} />
     </>
   );
 }

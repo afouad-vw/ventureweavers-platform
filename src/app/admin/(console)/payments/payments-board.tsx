@@ -18,10 +18,10 @@ export type RequestDetail = { id: string; due_on: string | null; note: string };
 const SPACES = ["All", "Outloud", "TVS", "BRICKR", "QuidQuo", "House"];
 const ACTION_LABEL = { paid: "Mark paid", cancel: "Cancel", refund: "Mark refunded (full)" } as const;
 
-export function PaymentsBoard({ rows, members, details, admins }: { rows: LedgerRow[]; members: MemberOption[]; details: Record<string, RequestDetail>; admins: Record<string, string> }) {
+export function PaymentsBoard({ rows, members, details, admins, initialQuery = "" }: { initialQuery?: string; rows: LedgerRow[]; members: MemberOption[]; details: Record<string, RequestDetail>; admins: Record<string, string> }) {
   const [status, setStatus] = useState<string>("All");
   const [space, setSpace] = useState("All");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [edit, setEdit] = useState<LedgerRow | "new" | null>(null);
   const [del, setDel] = useState<LedgerRow | null>(null);

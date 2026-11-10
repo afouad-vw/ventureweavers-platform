@@ -19,9 +19,9 @@ const SPACES: Space[] = ["Outloud", "TVS", "BRICKR", "QuidQuo"];
 const CONSENT = ["Email, WhatsApp, push", "Email, WhatsApp", "Email", "WhatsApp", "Not asked yet"];
 const waNumber = (p: string | null) => (p ? p.replace(/[^\d]/g, "").replace(/^0(?=1)/, "20") : "");
 
-export function ContactsBoard({ contacts }: { contacts: Contact[] }) {
+export function ContactsBoard({ contacts, initialQuery = "" }: { contacts: Contact[]; initialQuery?: string }) {
   const [seg, setSeg] = useState<"All" | Space>("All");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [selKey, setSelKey] = useState<string | null>(contacts[0]?.key ?? null);
   const [edit, setEdit] = useState<Contact | "new" | null>(null);
   const [del, setDel] = useState<Contact | null>(null);

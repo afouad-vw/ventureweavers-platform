@@ -21,6 +21,7 @@ export function MemberShell({ member, live = false, children }: { member: ShellM
       sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: live ? [memberAccount, memberLive] : [memberAccount] }]}
       badges={live ? { "/live": "LIVE" } : undefined}
       searchPlaceholder="Search shows, programs, resources"
+      searchAction="/search"
       tabBar={memberTabBar}
       topRight={
         <>
@@ -75,6 +76,7 @@ export function AdminShell({ base, name, children }: { base: string; name: strin
     <AppShell
       sections={[{ items: at(adminMain) }, { label: "Spaces", items: at(adminSpaces) }, { label: "Shared", items: at(adminShared) }]}
       searchPlaceholder="Search contacts, events, content"
+      searchAction={adminHref("/admin/search", base)}
       crumb="Admin console"
       topRight={<Who initials={initialsOf(name)} name={name} sub="Admin" href={adminHref("/admin", base)} />}
       footer={

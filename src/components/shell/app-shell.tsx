@@ -44,6 +44,7 @@ export function AppShell({
   footer,
   topRight,
   searchPlaceholder,
+  searchAction,
   crumb,
   tabBar,
   badges = {},
@@ -53,6 +54,8 @@ export function AppShell({
   footer?: React.ReactNode;
   topRight?: React.ReactNode;
   searchPlaceholder: string;
+  /** Where the top-bar search goes (a GET form with ?q=). */
+  searchAction: string;
   crumb?: string;
   tabBar?: NavItem[];
   badges?: Record<string, number | string>;
@@ -107,11 +110,13 @@ export function AppShell({
             <Menu size={18} aria-hidden="true" />
           </button>
           {crumb ? <span className="hidden text-[13px] font-bold whitespace-nowrap text-faint desk:inline">{crumb}</span> : null}
-          <label className="flex h-9 max-w-[460px] min-w-0 flex-1 items-center gap-2 rounded-lg border border-line2 bg-bg px-3 text-faint">
-            <Search size={16} aria-hidden="true" className="shrink-0" />
-            <span className="sr-only">Search</span>
-            <input className="min-w-0 flex-1 bg-transparent text-[13.5px] text-fg outline-none placeholder:text-faint" placeholder={searchPlaceholder} />
-          </label>
+          <form action={searchAction} role="search" className="flex h-9 max-w-[460px] min-w-0 flex-1">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line2 bg-bg px-3 text-faint focus-within:border-primary">
+              <Search size={16} aria-hidden="true" className="shrink-0" />
+              <span className="sr-only">Search</span>
+              <input name="q" type="search" maxLength={80} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-[13.5px] text-fg outline-none placeholder:text-faint" placeholder={searchPlaceholder} />
+            </label>
+          </form>
           <span className="flex-1" />
           {topRight}
         </header>
