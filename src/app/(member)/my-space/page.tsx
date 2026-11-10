@@ -18,6 +18,8 @@ import { mySavedEntries } from "@/lib/content/queries";
 import { applicationLabel, enrolmentLabel } from "@/lib/tvs/format";
 import { myTvs } from "@/lib/tvs/queries";
 import { myRequests } from "@/lib/brickr/queries";
+import { KIND_LABEL, statusLabel as payLabel, statusTone as payTone } from "@/lib/payments/format";
+import { myPayments, type MyPayment } from "@/lib/payments/queries";
 import { WithdrawButton } from "@/components/brickr/brickr-client";
 import { CancelReservation } from "./cancel-button";
 import { ProfileForm, type ProfileValues } from "./profile-form";
@@ -28,16 +30,19 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
   const member = await requireMember("/my-space");
   const { tab: raw } = await searchParams;
   const supabase = await createClient();
-  const [{ data: p }, bookings, { count: savedCount }] = await Promise.all([
+  const [{ data: p }, bookings, { count: savedCount }, payments] = await Promise.all([
     supabase.from("profiles").select("full_name, phone, role, stage, goals, interests, consent_whatsapp, consent_push, consent_newsletter").eq("id", member.id).maybeSingle(),
     myBookings(),
     supabase.from("saved_items").select("item_id", { count: "exact", head: true }),
+    myPayments(),
   ]);
+  const owed = payments.filter((x) => x.status === "pending").length;
   const active = bookings.filter((b) => ["reserved", "confirmed"].includes(b.status));
   const tabs = [
     { value: "tickets", label: "Tickets", count: active.length },
     { value: "learning", label: "Learning" },
     { value: "requests", label: "Requests" },
+    { value: "payments", label: "Payments", count: owed || null },
     { value: "saved", label: "Saved", count: savedCount ?? 0 },
     { value: "profile", label: "Profile & settings" },
   ];
@@ -62,6 +67,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
       {tab === "tickets" ? <Tickets bookings={bookings} /> : null}
       {tab === "learning" ? <Learning /> : null}
       {tab === "requests" ? <Requests /> : null}
+      {tab === "payments" ? <Payments payments={payments} /> : null}
       {tab === "saved" ? <Saved /> : null}
       {tab === "profile" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
@@ -170,6 +176,46 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
           </Card>
         );
       })}
+    </div>
+  );
+}
+
+async function Payments({ payments }: { payments: MyPayment[] }) {
+  if (!payments.length) return <EmptyState>Your payments for seats, programs and services appear here.</EmptyState>;
+  const pending = payments.filter((x) => x.status === "pending");
+  const pay = pending.length ? await paymentInstructions() : null;
+  return (
+    <div className="flex flex-col gap-4">
+      {pending.length && pay ? (
+        <Card tone="soft">
+          <CardHeader title="How to pay" />
+          <p className="text-[13.5px]">Pay by bank transfer and use the reference shown next to each item, so we can match it. We email a receipt once it arrives.</p>
+          <p className="rounded-lg bg-card p-3 text-[13.5px] whitespace-pre-line">{pay.bank_details || "[BANK DETAILS]"}</p>
+          <p className="text-[12.5px] text-faint">Refunds: {pay.refund_policy || "[REFUND POLICY]"}</p>
+        </Card>
+      ) : null}
+      <div className="overflow-x-auto rounded-xl border border-line bg-card">
+        <table className="w-full min-w-[640px] text-left text-[13px]">
+          <thead className="border-b border-line text-[11.5px] font-extrabold tracking-wide text-faint uppercase">
+            <tr><th className="px-3 py-2.5">Item</th><th className="px-3 py-2.5">Amount</th><th className="px-3 py-2.5">Reference</th><th className="px-3 py-2.5">Status</th><th className="px-3 py-2.5">Date</th></tr>
+          </thead>
+          <tbody>
+            {payments.map((x) => (
+              <tr key={`${x.kind}:${x.id}`} className="border-b border-line align-top last:border-b-0">
+                <td className="px-3 py-2.5">
+                  <b>{x.item}</b>
+                  <span className="block text-[12px] text-faint">{KIND_LABEL[x.kind]}{x.due_on && x.status === "pending" ? ` · due ${formatDate(x.due_on)}` : ""}{x.kind === "seat" && x.status === "pending" && x.hold_expires_at ? ` · pay before ${formatDateTime(x.hold_expires_at)}` : ""}</span>
+                  {x.note ? <span className="mt-1 block text-[12.5px] whitespace-pre-line text-muted">{x.note}</span> : null}
+                </td>
+                <td className="px-3 py-2.5 font-bold whitespace-nowrap">{formatEGP(x.amount_piasters)}</td>
+                <td className="px-3 py-2.5 font-display tracking-wide">{x.reference}</td>
+                <td className="px-3 py-2.5"><StatusPill tone={payTone(x.status)}>{x.status === "pending" ? "To pay" : payLabel(x.status)}</StatusPill></td>
+                <td className="px-3 py-2.5 whitespace-nowrap text-muted">{formatDate(x.paid_at ?? x.created_at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

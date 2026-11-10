@@ -1,6 +1,11 @@
 # Phase 9 plan: Payments
 
-Status: **for approval**.
+Status: **approved 2026-11-10**.
+
+## Decisions (answered 2026-11-10)
+
+- Payment requests go to **members only** (email plus My space › Payments).
+- **Full refunds only** until the refund policy is set.
 
 Spec: `reference/prototype.html` → Admin › Payments.
 
