@@ -163,3 +163,12 @@ h3 {
 }
 .live-dot { animation: live-pulse 1.4s infinite; }
 @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+/* Pointer on everything clickable; "not allowed" when disabled. (Tailwind v4 leaves buttons on the arrow.) */
+@layer base {
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a[href], summary, label[for], select:not(:disabled),
+  input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled), input[type="file"]:not(:disabled) {
+    cursor: pointer;
+  }
+  button:disabled, [aria-disabled="true"], select:disabled, input:disabled { cursor: not-allowed; }
+}
