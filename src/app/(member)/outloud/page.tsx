@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle2, MessageSquare } from "lucide-react";
 import { RequestButton } from "@/components/brickr/brickr-client";
@@ -52,7 +51,6 @@ async function Shows() {
   const privateService = services.find((s) => s.space === "Outloud");
   const [booked, pay] = member ? await Promise.all([myActiveEventIds(), paymentInstructions()]) : [new Set<string>(), { bank_details: "" }];
   const shows = events.filter((e) => e.type !== "private_session");
-  const privateSession = events.find((e) => e.type === "private_session");
   const next = shows[0];
 
   return (
@@ -114,39 +112,21 @@ async function Shows() {
       </div>
 
       <aside className="flex min-w-0 flex-col gap-4">
-        {privateSession ? (
-          <Card tone="ink">
-            <Eyebrow className="text-teal">For teams</Eyebrow>
-            <h3 className="text-[15px] font-extrabold text-white">{privateSession.title}</h3>
-            {privateSession.description ? <p className="text-[13px] text-ink-muted">{privateSession.description}</p> : null}
-            {privateService ? (
-              <RequestButton service={privateService} days={nextWorkingDays()} signedIn={!!member} label="Request a session" variant="teal" size="md" className="self-start" />
-            ) : (
-              <a href="mailto:info@ventureweavers.com?subject=Open%20Floor%20private%20session" className={buttonClass("teal", "md", "self-start")}>
-                Request a session
-              </a>
-            )}
-          </Card>
-        ) : null}
+        <Card tone="ink" className="gap-2.5">
+          <Eyebrow className="text-teal">Private Shows &amp; Sponsorships</Eyebrow>
+          <h3 className="text-[15px] font-extrabold text-white">A show for your people, or your name on ours</h3>
+          <p className="text-[13px] text-ink-muted">Book a private show for your team, portfolio or community, or sponsor one of our public shows.</p>
+          {privateService ? (
+            <RequestButton service={privateService} days={nextWorkingDays()} signedIn={!!member} label="Request a meeting" variant="teal" size="md" className="self-start" />
+          ) : (
+            <a href="mailto:info@ventureweavers.com?subject=Private%20show%20or%20sponsorship" className={buttonClass("teal", "md", "self-start")}>
+              Get in touch
+            </a>
+          )}
+        </Card>
         <Card>
           <CardHeader title="Suggest a topic" />
           <TopicForm signedIn={!!member} />
-        </Card>
-        <Card>
-          <CardHeader title="Your hosts" />
-          {[
-            ["Ahmed Fouad", "/images/ahmed.jpg"],
-            ["Karim Hemdan", "/images/karim.jpg"],
-          ].map(([n, src]) => (
-            <div key={n} className="flex items-center gap-2.5">
-              <Image src={src} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
-              <span className="text-[13.5px]">
-                <b>{n}</b>
-                <br />
-                <span className="text-faint">Partner</span>
-              </span>
-            </div>
-          ))}
         </Card>
       </aside>
     </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatHours, namesOf, parseList, parseOutline, parsePeople, totalHours } from "./details";
+import { cleanLinkedIn, formatHours, namesOf, parseList, parseOutline, parsePeople, totalHours } from "./details";
 
 describe("details", () => {
   it("parses hosts and guests, dropping empty rows", () => {
@@ -29,5 +29,16 @@ describe("details", () => {
   it("joins names", () => {
     expect(namesOf([{ name: "Ahmed", title: "" }, { name: "Karim", title: "" }])).toBe("Ahmed & Karim");
     expect(namesOf([{ name: "A", title: "" }, { name: "B", title: "" }, { name: "C", title: "" }])).toBe("A, B & C");
+  });
+  it("keeps only real LinkedIn addresses", () => {
+    expect(cleanLinkedIn("linkedin.com/in/ahmed-fouad/")).toBe("https://www.linkedin.com/in/ahmed-fouad");
+    expect(cleanLinkedIn("https://eg.linkedin.com/in/karim")).toBe("https://www.linkedin.com/in/karim");
+    expect(cleanLinkedIn("https://evil.com/in/x")).toBe("");
+    expect(cleanLinkedIn("https://linkedin.com.evil.io/in/x")).toBe("");
+    expect(cleanLinkedIn("javascript:alert(1)")).toBe("");
+    expect(parsePeople('[{"name":"A","linkedin":"https://www.linkedin.com/in/a"},{"name":"B","linkedin":"nope"}]')).toEqual([
+      { name: "A", title: "", linkedin: "https://www.linkedin.com/in/a" },
+      { name: "B", title: "" },
+    ]);
   });
 });

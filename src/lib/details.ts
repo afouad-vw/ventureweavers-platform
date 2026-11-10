@@ -1,6 +1,22 @@
 /** Shared shapes and checks for program, masterclass, show and service details (Phase 11). */
 
-export type Person = { name: string; title: string };
+export type Person = { name: string; title: string; linkedin?: string };
+
+/** A LinkedIn profile or company page address, or "" when it isn't one. */
+export function cleanLinkedIn(v: unknown): string {
+  const raw = String(v ?? "").trim();
+  if (!raw) return "";
+  const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return "";
+    if (!/(^|\.)linkedin\.com$/i.test(u.hostname)) return "";
+    if (!/^\/(in|company|school|pub)\/[^/]+/i.test(u.pathname)) return "";
+    return `https://www.linkedin.com${u.pathname.replace(/\/+$/, "")}`.slice(0, 200);
+  } catch {
+    return "";
+  }
+}
 export type Session = { title: string; hours: number };
 
 export const MAX_PEOPLE = 10;
@@ -15,7 +31,10 @@ export function parsePeople(json: string | null | undefined): Person[] {
     const raw = JSON.parse(json || "[]");
     if (!Array.isArray(raw)) return [];
     return raw
-      .map((p) => ({ name: clean(p?.name, 80), title: clean(p?.title, 120) }))
+      .map((p) => {
+        const linkedin = cleanLinkedIn(p?.linkedin);
+        return { name: clean(p?.name, 80), title: clean(p?.title, 120), ...(linkedin ? { linkedin } : {}) };
+      })
       .filter((p) => p.name)
       .slice(0, MAX_PEOPLE);
   } catch {

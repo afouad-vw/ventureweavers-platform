@@ -31,6 +31,7 @@ export function PeopleEditor({ name, label, initial, addLabel }: { name: string;
         <div key={i} className="flex flex-wrap items-center gap-1.5">
           <input aria-label={`${label} ${i + 1} name`} value={p.name} onChange={(e) => set(i, "name", e.target.value)} maxLength={80} placeholder="Name" className={`${input} flex-1 basis-[150px]`} />
           <input aria-label={`${label} ${i + 1} title`} value={p.title} onChange={(e) => set(i, "title", e.target.value)} maxLength={120} placeholder="Title, e.g. Co-founder, VentureWeavers" className={`${input} flex-[2] basis-[200px]`} />
+          <input aria-label={`${label} ${i + 1} LinkedIn`} value={p.linkedin ?? ""} onChange={(e) => set(i, "linkedin", e.target.value)} maxLength={200} inputMode="url" placeholder="LinkedIn link (optional)" className={`${input} flex-[2] basis-[200px]`} />
           <RowButtons onUp={() => setRows((r) => move(r, i, -1))} onDown={() => setRows((r) => move(r, i, 1))} onRemove={() => setRows((r) => r.filter((_, n) => n !== i))} label={p.name || `${label} ${i + 1}`} />
         </div>
       ))}
