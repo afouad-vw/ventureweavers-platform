@@ -81,7 +81,7 @@ export function ListBar({ count, noun, onNew, newLabel }: { count: number; noun:
 
 export function TableBox({ minWidth = 760, head, children, empty }: { minWidth?: number; head: string[]; children: React.ReactNode; empty?: string | false }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-line bg-card">
+    <div className="overflow-x-auto glass rounded-2xl border">
       <table className="w-full text-left text-[13px]" style={{ minWidth }}>
         <thead className="border-b border-line text-[11.5px] font-extrabold tracking-wide text-faint uppercase">
           <tr>

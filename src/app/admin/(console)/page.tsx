@@ -50,7 +50,7 @@ export default async function AdminOverviewPage() {
       <PageHeader title="Overview" description="Key numbers, what needs attention, and recent activity from the member app." />
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
         {kpis.map(([l, v, dot]) => (
-          <div key={l} className="rounded-xl border border-line bg-card p-3.5">
+          <div key={l} className="glass rounded-2xl border p-3.5">
             <small className="flex items-center gap-1.5 text-[12px] font-bold text-faint"><i className={cn("h-2 w-2 rounded-full", dot)} aria-hidden="true" />{l}</small>
             <b className="font-display text-[26px]">{v}</b>
           </div>

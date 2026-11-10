@@ -5,13 +5,13 @@ type Variant = "primary" | "secondary" | "ghost" | "teal" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border font-bold transition-[filter,background-color] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border font-bold transition-[transform,box-shadow,filter,background-color] duration-200 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100";
 
 const variants: Record<Variant, string> = {
-  primary: "border-transparent bg-primary text-white hover:brightness-110",
-  secondary: "border-line2 bg-card text-fg hover:bg-hover",
+  primary: "border-transparent bg-[linear-gradient(180deg,#0b8088,var(--primary))] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(7_17_18/0.15)] hover:brightness-110 hover:shadow-glow hover:-translate-y-px",
+  secondary: "border-line2/80 bg-card/70 text-fg backdrop-blur-md shadow-[inset_0_1px_0_var(--glass-hi)] hover:bg-card hover:shadow-depth hover:-translate-y-px",
   ghost: "border-transparent bg-transparent text-link hover:bg-hover",
-  teal: "border-transparent bg-teal text-ink hover:brightness-105",
+  teal: "border-transparent bg-[linear-gradient(180deg,#3fd3b0,#29be9c)] text-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.35)] hover:brightness-105 hover:shadow-glow hover:-translate-y-px",
   danger: "border-transparent bg-bad-bg text-bad-fg hover:brightness-95",
 };
 

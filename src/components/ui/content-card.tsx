@@ -1,4 +1,5 @@
 import { Banner, type BannerChoice } from "./banner";
+import { Tilt } from "./tilt";
 import { TagRow, type TagTone } from "./tag";
 
 /**
@@ -35,8 +36,11 @@ export function ContentCard({
   cta?: React.ReactNode;
 }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-card shadow-[0_1px_2px_rgb(7_17_18/0.05)]">
-      <Banner src={bannerSrc} choice={banner} thread={thread} label={bannerLabel} chip={bannerChip} chipRight={bannerChipRight} />
+    <Tilt className="flex min-w-0 rounded-2xl">
+    <article className="glass flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border">
+      <div className="vw-zoom overflow-hidden">
+        <Banner src={bannerSrc} choice={banner} thread={thread} label={bannerLabel} chip={bannerChip} chipRight={bannerChipRight} />
+      </div>
       <div className="flex flex-1 flex-col gap-2 p-3.5">
         <h3 className="text-[15px] font-extrabold">
           {title}
@@ -52,5 +56,6 @@ export function ContentCard({
         ) : null}
       </div>
     </article>
+    </Tilt>
   );
 }

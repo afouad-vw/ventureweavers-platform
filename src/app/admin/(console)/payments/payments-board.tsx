@@ -43,7 +43,7 @@ export function PaymentsBoard({ rows, members, details, admins, initialQuery = "
           ["Refunded", formatEGP(t.refunded), "bg-line2"],
           ["Transactions", String(t.transactions), "bg-tvs"],
         ] as const).map(([l, v, dot]) => (
-          <div key={l} className="rounded-xl border border-line bg-card p-3.5">
+          <div key={l} className="glass rounded-2xl border p-3.5">
             <small className="flex items-center gap-1.5 text-[12px] font-bold text-faint"><i className={cn("h-2 w-2 rounded-full", dot)} aria-hidden="true" />{l}</small>
             <b className="font-display text-[21px]">{v}</b>
           </div>

@@ -3,9 +3,9 @@ import { cn } from "@/lib/cn";
 type Tone = "default" | "soft" | "ink";
 
 const tones: Record<Tone, string> = {
-  default: "bg-card border-line text-fg",
-  soft: "bg-soft border-transparent text-fg",
-  ink: "bg-ink border-ink-line text-ink-fg",
+  default: "glass text-fg",
+  soft: "bg-soft/85 border-white/40 text-fg shadow-depth-sm backdrop-blur-md",
+  ink: "border-ink-line text-ink-fg bg-[linear-gradient(160deg,#0d2526,#071112_65%)] shadow-depth-lg",
 };
 
 export function Card({
@@ -20,7 +20,7 @@ export function Card({
   as?: "div" | "section" | "article" | "aside";
 }) {
   return (
-    <Tag className={cn("flex min-w-0 flex-col gap-2 rounded-xl border p-4 shadow-[0_1px_2px_rgb(7_17_18/0.05)]", tones[tone], className)}>
+    <Tag className={cn("flex min-w-0 flex-col gap-2 rounded-2xl border p-4", tones[tone], className)}>
       {children}
     </Tag>
   );

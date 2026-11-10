@@ -58,13 +58,13 @@ export function NotificationsBell({ initial }: { initial: Notice[] }) {
           setOpen((o) => !o);
           if (!open) void refresh();
         }}
-        className="relative inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line2 bg-card text-fg hover:bg-hover"
+        className="relative inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line2/70 bg-card/70 text-fg backdrop-blur-md transition-[background-color,box-shadow] hover:bg-card hover:shadow-depth"
       >
         <Bell size={18} aria-hidden="true" />
         {unread ? <span className="absolute -top-1 -right-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-card bg-teal px-1 text-[10px] font-extrabold text-ink">{badgeText(unread)}</span> : null}
       </button>
       {open ? (
-        <div role="dialog" aria-label="Notifications" className="fixed inset-x-3 top-[60px] z-50 flex max-h-[70vh] flex-col overflow-hidden rounded-xl border border-line bg-card shadow-xl sm:absolute sm:inset-x-auto sm:top-11 sm:right-0 sm:w-[360px]">
+        <div role="dialog" aria-label="Notifications" className="glass-strong fixed inset-x-3 top-[60px] z-50 flex max-h-[70vh] flex-col overflow-hidden rounded-2xl border sm:absolute sm:inset-x-auto sm:top-11 sm:right-0 sm:w-[360px]">
           <div className="flex items-center justify-between gap-2 border-b border-line px-3.5 py-2.5">
             <b className="text-[14px]">Notifications</b>
             {unread ? (

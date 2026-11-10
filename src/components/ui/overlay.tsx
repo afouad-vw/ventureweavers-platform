@@ -31,7 +31,7 @@ function useDialog(open: boolean, onClose: () => void) {
 
 function CloseButton({ onClose }: { onClose: () => void }) {
   return (
-    <button type="button" onClick={onClose} aria-label="Close" className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line2 bg-card text-fg hover:bg-hover">
+    <button type="button" onClick={onClose} aria-label="Close" className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line2/70 bg-card/70 text-fg transition-colors hover:bg-card">
       <X size={16} strokeWidth={2} aria-hidden="true" />
     </button>
   );
@@ -58,7 +58,7 @@ export function Modal({
       ref={ref}
       onClick={onBackdrop}
       aria-label={title}
-      className="m-auto max-h-[calc(100dvh-32px)] w-[min(440px,calc(100vw-32px))] overflow-auto rounded-2xl bg-card p-0 text-fg backdrop:bg-ink/50"
+      className="glass-strong m-auto max-h-[calc(100dvh-32px)] w-[min(440px,calc(100vw-32px))] overflow-auto rounded-2xl border p-0 text-fg backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
     >
       <div className="flex items-center gap-3 border-b border-line px-4 py-3.5">
         <div className="min-w-0 flex-1">
@@ -98,7 +98,7 @@ export function Drawer({
       onClick={onBackdrop}
       aria-label={title}
       className={cn(
-        "m-0 ml-auto h-dvh max-h-dvh max-w-full bg-card p-0 text-fg backdrop:bg-ink/45",
+        "glass-strong m-0 ml-auto h-dvh max-h-dvh max-w-full border-l p-0 text-fg backdrop:bg-ink/35 backdrop:backdrop-blur-sm",
         wide ? "w-[min(1040px,100vw)]" : "w-[min(460px,100vw)]",
         "flex-col open:flex",
       )}

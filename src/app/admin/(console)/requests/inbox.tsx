@@ -41,7 +41,7 @@ export function RequestsInbox({ items, spaces, base, csv = true }: { items: Inbo
     <>
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(130px,1fr))]">
         {APPLICATION_STATUSES.map((s) => (
-          <div key={s.value} className="rounded-xl border border-line bg-card p-3">
+          <div key={s.value} className="glass rounded-2xl border p-3">
             <small className="flex items-center gap-1.5 text-[12px] font-bold text-faint"><i className={cn("h-2 w-2 rounded-full", DOT[s.value])} aria-hidden="true" />{s.label}</small>
             <b className="font-display text-[24px]">{list.filter((i) => i.status === s.value).length}</b>
           </div>

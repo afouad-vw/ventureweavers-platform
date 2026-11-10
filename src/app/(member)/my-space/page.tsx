@@ -194,7 +194,7 @@ async function Payments({ payments }: { payments: MyPayment[] }) {
           <p className="text-[12.5px] text-faint">Refunds: {pay.refund_policy || "[REFUND POLICY]"}</p>
         </Card>
       ) : null}
-      <div className="overflow-x-auto rounded-xl border border-line bg-card">
+      <div className="overflow-x-auto glass rounded-2xl border">
         <table className="w-full min-w-[640px] text-left text-[13px]">
           <thead className="border-b border-line text-[11.5px] font-extrabold tracking-wide text-faint uppercase">
             <tr><th className="px-3 py-2.5">Item</th><th className="px-3 py-2.5">Amount</th><th className="px-3 py-2.5">Reference</th><th className="px-3 py-2.5">Status</th><th className="px-3 py-2.5">Date</th></tr>

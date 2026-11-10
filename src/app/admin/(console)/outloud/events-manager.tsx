@@ -51,7 +51,7 @@ export function EventsManager({ events, base, mode = "outloud" }: { events: Admi
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-line bg-card">
+      <div className="overflow-x-auto glass rounded-2xl border">
         <table className="w-full min-w-[760px] text-left text-[13px]">
           <thead className="border-b border-line text-[11.5px] font-extrabold tracking-wide text-faint uppercase">
             <tr>

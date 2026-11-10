@@ -20,8 +20,8 @@ export function Chip({
       aria-pressed={pressed}
       onClick={onClick}
       className={cn(
-        "h-9 cursor-pointer rounded-full border px-3 text-[12.5px] font-bold desk:h-[30px]",
-        pressed ? "border-fg bg-fg text-bg" : "border-line2 bg-card text-fg hover:bg-hover",
+        "h-9 cursor-pointer rounded-full border px-3 text-[12.5px] font-bold transition-[transform,box-shadow,background-color] duration-200 motion-reduce:transition-none desk:h-[30px]",
+        pressed ? "border-transparent bg-[linear-gradient(180deg,#0d2526,#071112)] text-white shadow-depth-sm" : "border-line2/70 bg-card/65 text-fg backdrop-blur-md hover:-translate-y-px hover:bg-card hover:shadow-depth-sm",
         className,
       )}
     >

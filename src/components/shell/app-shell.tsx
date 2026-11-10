@@ -19,8 +19,10 @@ function NavLink({ item, pathname, badge }: { item: NavItem; pathname: string; b
       href={item.href}
       aria-current={on ? "page" : undefined}
       className={cn(
-        "flex h-9 shrink-0 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold",
-        on ? "bg-ink2 text-teal" : "text-ink-fg hover:bg-ink2 hover:text-white",
+        "flex h-9 shrink-0 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold transition-[background-color,color,transform] duration-200 motion-reduce:transition-none",
+        on
+          ? "bg-[linear-gradient(90deg,rgb(41_190_156/0.18),rgb(41_190_156/0.04))] text-teal shadow-[inset_2px_0_0_#29be9c]"
+          : "text-ink-fg hover:translate-x-0.5 hover:bg-white/[0.06] hover:text-white motion-reduce:hover:translate-x-0",
       )}
     >
       <Icon size={18} strokeWidth={1.8} aria-hidden="true" className="shrink-0 opacity-90" />
@@ -74,12 +76,12 @@ export function AppShell({
 
   return (
     <div className="min-h-dvh">
-      {open ? <div className="fixed inset-0 z-[49] bg-ink/45 desk:hidden" onClick={() => setOpen(false)} aria-hidden="true" /> : null}
+      {open ? <div className="fixed inset-0 z-[49] bg-ink/35 backdrop-blur-sm desk:hidden" onClick={() => setOpen(false)} aria-hidden="true" /> : null}
 
       <nav
         aria-label="Main"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col gap-px bg-ink text-ink-fg desk:w-[228px] desk:translate-x-0",
+          "glass-ink fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col gap-px text-ink-fg desk:w-[228px] desk:translate-x-0",
           "pt-[calc(18px+env(safe-area-inset-top))] pr-3 pb-[calc(14px+env(safe-area-inset-bottom))] pl-[max(12px,env(safe-area-inset-left))]",
           "overflow-y-auto transition-transform duration-200 desk:overflow-hidden",
           open ? "translate-x-0 shadow-[0_0_40px_rgb(0_0_0/0.35)]" : "-translate-x-full",
@@ -105,13 +107,13 @@ export function AppShell({
       </nav>
 
       <div className="flex min-h-dvh min-w-0 flex-col desk:ml-[228px]">
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-2.5 border-b border-line bg-card pr-[max(16px,env(safe-area-inset-right))] pl-[max(16px,env(safe-area-inset-left))] desk:px-6">
-          <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2 bg-card text-fg hover:bg-hover desk:hidden">
+        <header className="glass-bar sticky top-0 z-40 flex h-14 items-center gap-2.5 border-b pr-[max(16px,env(safe-area-inset-right))] pl-[max(16px,env(safe-area-inset-left))] desk:px-6">
+          <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2/70 bg-card/70 text-fg backdrop-blur-md hover:bg-card desk:hidden">
             <Menu size={18} aria-hidden="true" />
           </button>
           {crumb ? <span className="hidden text-[13px] font-bold whitespace-nowrap text-faint desk:inline">{crumb}</span> : null}
           <form action={searchAction} role="search" className="flex h-9 max-w-[460px] min-w-0 flex-1">
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line2 bg-bg px-3 text-faint focus-within:border-primary">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line2/70 bg-card/60 px-3 text-faint shadow-[inset_0_1px_2px_rgb(7_17_18/0.05)] transition-[border-color,box-shadow,background-color] focus-within:border-primary focus-within:bg-card focus-within:shadow-glow">
               <Search size={16} aria-hidden="true" className="shrink-0" />
               <span className="sr-only">Search</span>
               <input name="q" type="search" maxLength={80} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-[13.5px] text-fg outline-none placeholder:text-faint" placeholder={searchPlaceholder} />
@@ -132,12 +134,12 @@ export function AppShell({
       </div>
 
       {tabBar ? (
-        <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-card px-1 pb-[calc(4px+env(safe-area-inset-bottom))] pt-1 desk:hidden">
+        <nav aria-label="Quick" className="glass-bar fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t px-1 pb-[calc(4px+env(safe-area-inset-bottom))] pt-1 desk:hidden">
           {tabBar.map((t) => {
             const on = isActive(pathname, t.href);
             const Icon = t.icon;
             return (
-              <Link key={t.href} href={t.href} aria-current={on ? "page" : undefined} className={cn("flex min-h-[50px] flex-col items-center justify-center gap-0.5 text-[10.5px] font-bold", on ? "text-link" : "text-faint")}>
+              <Link key={t.href} href={t.href} aria-current={on ? "page" : undefined} className={cn("flex min-h-[50px] flex-col items-center justify-center gap-0.5 text-[10.5px] font-bold transition-colors", on ? "text-link" : "text-faint active:text-fg")}>
                 <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
                 {t.label}
               </Link>
