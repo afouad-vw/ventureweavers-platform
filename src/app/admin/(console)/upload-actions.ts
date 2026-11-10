@@ -46,7 +46,7 @@ export async function finishUpload(
   const ext = extOf(path);
   if (blob.size > UPLOAD_RULES[target].maxBytes || !contentMatches(ext, sniff(head))) {
     await bucket.remove([path]);
-    return { ok: false, error: UPLOAD_RULES[target].public ? "That file isn't a real JPG, PNG or WebP image." : "That file isn't a real PDF, Office or ZIP file." };
+    return { ok: false, error: `That file isn't really ${UPLOAD_RULES[target].kind}.` };
   }
   await audit(admin.userId, "upload", target, { entityId: path, after: { size: blob.size } });
   const url = UPLOAD_RULES[target].public ? bucket.getPublicUrl(path).data.publicUrl : null;

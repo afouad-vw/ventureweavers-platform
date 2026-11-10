@@ -2,6 +2,7 @@ import "server-only";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import type { Person, Session } from "@/lib/details";
 import type { ApplicationStatus, EnrolmentStatus, ProgramStatus } from "./format";
 
 export type Program = {
@@ -18,8 +19,59 @@ export type Program = {
   banner_url: string | null;
   status: ProgramStatus;
   sort: number;
+  short_description: string;
+  details: string;
+  audience: string;
+  outline: Session[];
+  prerequisites: string[];
+  activities: string[];
+  hosts: Person[];
+  guests: Person[];
+  brochure_url: string | null;
 };
-export const PROGRAM_COLS = "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort";
+export const PROGRAM_COLS =
+  "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort, short_description, details, audience, outline, prerequisites, activities, hosts, guests, brochure_url";
+
+/** What members may see about a cohort (never the Meet link). */
+export type PublicCohort = {
+  id: string;
+  program_id: string;
+  label: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  format: "Online" | "In person" | null;
+  location: string | null;
+  capacity: number | null;
+  price_piasters: number | null;
+  status: string;
+  seats_left: number | null;
+};
+
+/** Upcoming and running cohorts per program, earliest first. Read on the server with only public columns. */
+export async function publicCohorts(programIds: string[]): Promise<Map<string, PublicCohort[]>> {
+  const out = new Map<string, PublicCohort[]>();
+  if (!supabaseConfigured || !programIds.length) return out;
+  const svc = createServiceClient();
+  const [{ data }, { data: ens }] = await Promise.all([
+    svc.from("cohorts").select("id, program_id, label, starts_on, ends_on, format, location, capacity, price_piasters, status").in("program_id", programIds).in("status", ["planned", "running"]),
+    svc.from("enrolments").select("cohort_id").in("status", ["offered", "confirmed"]),
+  ]);
+  const taken = new Map<string, number>();
+  for (const e of (ens ?? []) as { cohort_id: string }[]) taken.set(e.cohort_id, (taken.get(e.cohort_id) ?? 0) + 1);
+  const rows = ((data ?? []) as Omit<PublicCohort, "seats_left">[])
+    .map((c) => ({ ...c, seats_left: c.capacity == null ? null : Math.max(0, c.capacity - (taken.get(c.id) ?? 0)) }))
+    .sort((a, b) => (a.starts_on ?? "9999").localeCompare(b.starts_on ?? "9999"));
+  for (const c of rows) out.set(c.program_id, [...(out.get(c.program_id) ?? []), c]);
+  return out;
+}
+
+/** One program members can see, by its address. */
+export async function getProgram(slug: string): Promise<Program | null> {
+  if (!supabaseConfigured || !/^[a-z0-9-]{1,80}$/.test(slug)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("programs").select(PROGRAM_COLS).eq("slug", slug).in("status", ["open", "in_development"]).maybeSingle();
+  return (data as Program | null) ?? null;
+}
 
 export type MyApplication = { id: string; program_id: string; status: ApplicationStatus; created_at: string; programs: { name: string } | null };
 export type MyEnrolment = {
@@ -79,7 +131,21 @@ export type AdminApplication = {
   program: string;
   price_piasters: number | null;
 };
-export type Cohort = { id: string; program_id: string; label: string; starts_on: string | null; capacity: number | null; status: string; program: string; taken: number };
+export type Cohort = {
+  id: string;
+  program_id: string;
+  label: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  format: "Online" | "In person" | null;
+  location: string | null;
+  capacity: number | null;
+  price_piasters: number | null;
+  status: string;
+  program: string;
+  taken: number;
+  meet_url: string | null;
+};
 export type AdminEnrolment = {
   id: string;
   member_id: string;
@@ -150,15 +216,17 @@ export async function adminCohorts(): Promise<Cohort[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
   const [{ data }, { data: ens }] = await Promise.all([
-    supabase.from("cohorts").select("id, program_id, label, starts_on, capacity, status, programs(name)").order("created_at", { ascending: false }),
+    supabase.from("cohorts").select("id, program_id, label, starts_on, ends_on, format, location, capacity, price_piasters, status, programs(name), cohort_links(meet_url)").order("created_at", { ascending: false }),
     supabase.from("enrolments").select("cohort_id, status").in("status", ["offered", "confirmed"]),
   ]);
   const taken = new Map<string, number>();
   for (const e of (ens ?? []) as { cohort_id: string }[]) taken.set(e.cohort_id, (taken.get(e.cohort_id) ?? 0) + 1);
-  return ((data ?? []) as unknown as (Omit<Cohort, "program" | "taken"> & { programs: { name: string } | null })[]).map(({ programs, ...c }) => ({
+  type Row = Omit<Cohort, "program" | "taken" | "meet_url"> & { programs: { name: string } | null; cohort_links: { meet_url: string | null } | { meet_url: string | null }[] | null };
+  return ((data ?? []) as unknown as Row[]).map(({ programs, cohort_links, ...c }) => ({
     ...c,
     program: programs?.name ?? "Program",
     taken: taken.get(c.id) ?? 0,
+    meet_url: (Array.isArray(cohort_links) ? cohort_links[0]?.meet_url : cohort_links?.meet_url) ?? null,
   }));
 }
 

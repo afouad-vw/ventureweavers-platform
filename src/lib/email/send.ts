@@ -3,13 +3,13 @@ import "server-only";
 const FROM = "VentureWeavers <no-reply@mail.ventureweavers.com>";
 
 /** Send a transactional email through Resend. Does nothing until RESEND_API_KEY is set. */
-export async function sendEmail(to: string, subject: string, html: string) {
+export async function sendEmail(to: string, subject: string, html: string, opts: { replyTo?: string } = {}) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { skipped: true as const };
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+    body: JSON.stringify({ from: FROM, to: [to], subject, html, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
   });
   if (!res.ok) throw new Error(`Email failed: ${res.status}`);
   return { skipped: false as const };

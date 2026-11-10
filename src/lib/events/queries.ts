@@ -1,4 +1,5 @@
 import "server-only";
+import type { Person, Session } from "@/lib/details";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { BookingStatus, EventType } from "./format";
@@ -21,6 +22,17 @@ export type EventRow = {
   created_at: string;
   space: string;
   format: string | null;
+  short_description: string;
+  details: string;
+  audience: string;
+  outline: Session[];
+  prerequisites: string[];
+  activities: string[];
+  host_list: Person[];
+  guest_list: Person[];
+  ends_at: string | null;
+  brochure_url: string | null;
+  gallery: string[];
 };
 
 /** Meet links for events where the member holds a confirmed ticket (row level security returns only those). */
@@ -45,7 +57,8 @@ export type MyBooking = {
   tickets: { code: string; checked_in_at: string | null } | null;
 };
 
-const EVENT_COLS = "id, slug, title, type, starts_at, venue, capacity, price_piasters, hosts, guest, description, banner, banner_url, status, created_at, space, format";
+const EVENT_COLS =
+  "id, slug, title, type, starts_at, venue, capacity, price_piasters, hosts, guest, description, banner, banner_url, status, created_at, space, format, short_description, details, audience, outline, prerequisites, activities, host_list, guest_list, ends_at, brochure_url, gallery";
 
 async function withSeats(rows: EventRow[]): Promise<EventWithSeats[]> {
   const supabase = await createClient();

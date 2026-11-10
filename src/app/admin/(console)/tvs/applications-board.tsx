@@ -116,8 +116,7 @@ export function ApplicationsBoard({ applications, cohorts }: { applications: Adm
                 run(() => offerSeat(offer.id, String(fd.get("cohort_id")), String(fd.get("amount"))), () => setOffer(null));
               }}
             >
-              <SelectField label="Cohort" name="cohort_id" defaultValue={offerCohorts[0].id} options={offerCohorts.map((c) => ({ value: c.id, label: `${c.label} · ${c.taken}${c.capacity ? ` of ${c.capacity}` : ""} seats` }))} />
-              <TextField label="Amount (EGP)" name="amount" inputMode="decimal" required defaultValue={offer.price_piasters != null ? String(offer.price_piasters / 100) : ""} hint="0 for a sponsored seat (confirmed at once). Otherwise the member pays by bank transfer and you mark it paid in Learners." />
+              <OfferFields cohorts={offerCohorts} fallback={offer.price_piasters} />
               <p className="text-[12.5px] text-faint">The application moves to Won and {offer.member} gets an email with the amount and payment reference.</p>
               {error ? <p role="alert" className="rounded-lg bg-bad-bg px-3 py-2 text-[13px] font-bold text-bad-fg">{error}</p> : null}
             </form>
@@ -140,6 +139,22 @@ export function ApplicationsBoard({ applications, cohorts }: { applications: Adm
       >
         <p className="text-[13.5px]"><b>{del?.member}</b>&apos;s application is removed for good. To keep a record, Decline it instead.</p>
       </Modal>
+    </>
+  );
+}
+
+/** Cohort choice; the amount follows the chosen cohort's price per seat (editable). */
+function OfferFields({ cohorts, fallback }: { cohorts: Cohort[]; fallback: number | null }) {
+  const priceOf = (id: string) => {
+    const p = cohorts.find((c) => c.id === id)?.price_piasters ?? fallback;
+    return p != null ? String(p / 100) : "";
+  };
+  const [cohort, setCohort] = useState(cohorts[0].id);
+  const [amount, setAmount] = useState(priceOf(cohorts[0].id));
+  return (
+    <>
+      <SelectField label="Cohort" name="cohort_id" value={cohort} onChange={(e) => { setCohort(e.target.value); setAmount(priceOf(e.target.value)); }} options={cohorts.map((c) => ({ value: c.id, label: `${c.label} · ${c.taken}${c.capacity ? ` of ${c.capacity}` : ""} seats` }))} />
+      <TextField label="Amount (EGP)" name="amount" inputMode="decimal" required value={amount} onChange={(e) => setAmount(e.target.value)} hint="Defaults to the cohort's price per seat. 0 for a sponsored seat (confirmed at once). Otherwise the member pays by bank transfer and you mark it paid." />
     </>
   );
 }

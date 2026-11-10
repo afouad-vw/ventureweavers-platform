@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { EVENT_TYPES, formatDateTime, formatEGP, isoToCairoLocal, MASTERCLASS_FORMATS, typeLabel } from "@/lib/events/format";
 import type { AdminEvent } from "@/lib/events/admin-queries";
 import { deleteEvent, duplicateEvent, saveEvent, setEventStatus, type ActionResult } from "./actions";
+import { BrochureField, GalleryField, MarkdownField, OutlineEditor, PeopleEditor, TbaField } from "@/components/admin/detail-fields";
 import { ImageField } from "@/components/admin/image-field";
 
 const priceInput = (p: number | null) => (p == null ? "" : (p / 100).toString());
@@ -112,6 +113,7 @@ export function EventsManager({ events, base, mode = "outloud" }: { events: Admi
         onClose={() => setEditing(null)}
         eyebrow="Outloud · Events"
         title={mc ? (e ? "Edit masterclass" : "New masterclass") : e ? "Edit event" : "New event"}
+        wide
         footer={
           <>
             <Button variant="secondary" onClick={() => setEditing(null)}>Cancel</Button>
@@ -134,31 +136,36 @@ export function EventsManager({ events, base, mode = "outloud" }: { events: Admi
             <TextField label="Title" name="title" defaultValue={e?.title ?? ""} required minLength={3} maxLength={140} />
             <div className="grid grid-cols-2 gap-3">
               {mc ? (
-                <>
-                  <input type="hidden" name="type" value="masterclass" />
-                  <SelectField label="Format" name="format" defaultValue={e?.format ?? "Online"} options={MASTERCLASS_FORMATS} />
-                </>
+                <input type="hidden" name="type" value="masterclass" />
               ) : (
                 <SelectField label="Type" name="type" defaultValue={e?.type ?? "public_show"} options={EVENT_TYPES} />
               )}
               <SelectField label="Status" name="status" defaultValue={e?.status ?? "draft"} options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
             </div>
-            <TextField label="Date and time (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint={mc ? undefined : "Leave empty for private sessions."} />
-            <TextField label="Venue" name="venue" defaultValue={e?.venue ?? (mc ? "Online" : "")} placeholder="[VENUE], Cairo" maxLength={160} />
-            {mc ? (
-              <TextField label="Google Meet link" name="meet_url" type="url" defaultValue={e?.meet_url ?? ""} placeholder="https://meet.google.com/…" hint="Shown only to members with a confirmed ticket. Create it in Google Calendar and paste it here." />
-            ) : null}
             <div className="grid grid-cols-2 gap-3">
-              <TextField label="Capacity" name="capacity" type="number" min={0} max={10000} defaultValue={e?.capacity ?? (mc ? 40 : 80)} />
+              <TextField label="Starts (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint={mc ? undefined : "Leave empty for private sessions."} />
+              <TextField label="Ends (Cairo)" name="ends_at" type="datetime-local" defaultValue={e?.ends_at ? isoToCairoLocal(e.ends_at) : ""} />
+            </div>
+            {mc ? <MasterclassPlace e={e} /> : <TbaField name="venue" label="Location" initial={e?.venue ?? null} placeholder="[VENUE], Cairo" />}
+            <div className="grid grid-cols-2 gap-3">
+              <TextField label="Capacity (attendees)" name="capacity" type="number" min={0} max={10000} defaultValue={e?.capacity ?? (mc ? 40 : 80)} />
               <TextField label="Price per seat (EGP)" name="price" inputMode="decimal" defaultValue={priceInput(e?.price_piasters ?? null)} placeholder="Empty = [PRICE]" hint="Booking opens once a price is set." />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <TextField label={mc ? "Host" : "Hosts"} name="hosts" defaultValue={e?.hosts ?? "Fouad & Karim"} maxLength={160} />
-              <TextField label="Guest" name="guest" defaultValue={e?.guest ?? ""} placeholder="[GUEST NAME]" maxLength={160} />
-            </div>
+            <TextArea label="Short description" name="short_description" rows={2} defaultValue={e?.short_description || (e?.description ?? "").split("\n")[0].slice(0, 300)} maxLength={300} hint="Shown on the card. Up to 300 characters." />
+            <MarkdownField name="details" label={mc ? "Masterclass details" : "Show details"} initial={e?.details || e?.description || ""} hint="Shown on the details page." />
+            <TextArea label="Target audience" name="audience" rows={2} defaultValue={e?.audience ?? ""} maxLength={300} />
+            {mc ? <OutlineEditor name="outline" initial={e?.outline ?? []} /> : null}
+            {mc ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <TextArea label="Pre-requisites (one per line)" name="prerequisites" rows={3} defaultValue={e?.prerequisites.join("\n") ?? ""} />
+                <TextArea label="Activities (one per line)" name="activities" rows={3} defaultValue={e?.activities.join("\n") ?? ""} />
+              </div>
+            ) : null}
+            <PeopleEditor name="host_list" label="Hosts" addLabel="Add host" initial={e?.host_list?.length ? e.host_list : e ? [] : [{ name: "Ahmed Fouad", title: "Co-founder, VentureWeavers" }, { name: "Karim Hemdan", title: "Co-founder, VentureWeavers" }]} />
+            <PeopleEditor name="guest_list" label="Guests" addLabel="Add guest" initial={e?.guest_list ?? []} />
             <ImageField name="banner_url" target="event-banners" initial={e?.banner_url ?? null} />
             <SelectField label="Photo or pattern (used when no image is uploaded)" name="banner" defaultValue={e?.banner ?? "Stage"} options={BANNER_OPTIONS} />
-            <TextArea label="Description" name="description" rows={5} defaultValue={e?.description ?? ""} maxLength={4000} />
+            {mc ? <BrochureField name="brochure_url" initial={e?.brochure_url ?? null} /> : <GalleryField name="gallery" initial={e?.gallery ?? []} />}
             {error ? <p role="alert" className="rounded-lg bg-bad-bg px-3 py-2 text-[13px] font-bold text-bad-fg">{error}</p> : null}
           </form>
         ) : null}
@@ -186,5 +193,20 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
     <button type="button" title={label} aria-label={label} onClick={onClick} className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-fg hover:bg-hover">
       {children}
     </button>
+  );
+}
+
+/** Masterclass format with location (in person) or Meet link (online); either can be TBA. */
+function MasterclassPlace({ e }: { e: AdminEvent | null }) {
+  const [format, setFormat] = useState<string>(e?.format ?? "Online");
+  return (
+    <>
+      <SelectField label="Format" name="format" value={format} onChange={(ev) => setFormat(ev.target.value)} options={MASTERCLASS_FORMATS} />
+      {format === "In person" ? (
+        <TbaField key="venue" name="venue" label="Location" initial={e?.venue && e.venue !== "Online" ? e.venue : null} placeholder="[VENUE], Cairo" />
+      ) : (
+        <TbaField key="meet" name="meet_url" label="Google Meet link" initial={e?.meet_url ?? null} placeholder="https://meet.google.com/…" type="url" hint="Shown only to members with a confirmed ticket." />
+      )}
+    </>
   );
 }

@@ -46,12 +46,17 @@ export default async function BrickrPage() {
                   banner={s.banner as BannerChoice}
                   bannerSrc={s.banner_url}
                   bannerLabel={s.name}
-                  bannerChip={s.audience}
+                  bannerChip={s.audience.length <= 24 ? s.audience : s.tags[0]}
                   title={s.name}
-                  description={s.description}
+                  description={s.short_description || s.description}
                   tags={s.tags}
-                  meta={s.format}
-                  cta={<RequestButton service={s} days={days} signedIn={!!member} />}
+                  meta={s.offerings.length ? `${s.offerings.length} offerings${s.format ? ` · ${s.format}` : ""}` : s.format}
+                  cta={
+                    <span className="flex flex-wrap justify-end gap-1.5">
+                      <LinkButton href={`/brickr/services/${s.slug}`} size="sm" variant="secondary">View details</LinkButton>
+                      <RequestButton service={s} days={days} signedIn={!!member} />
+                    </span>
+                  }
                 />
               ))}
             </div>

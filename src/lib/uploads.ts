@@ -1,6 +1,6 @@
 /** Upload rules shared by the browser (early checks) and the server (the checks that count). */
 
-export type UploadTarget = "event-banners" | "content-images" | "library-files" | "cohort-files";
+export type UploadTarget = "event-banners" | "content-images" | "library-files" | "cohort-files" | "brochures" | "event-gallery";
 
 export const IMAGE_TYPES: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
 export const LIBRARY_TYPES: Record<string, string> = {
@@ -14,11 +14,17 @@ export const LIBRARY_TYPES: Record<string, string> = {
   zip: "application/zip",
 };
 
-export const UPLOAD_RULES: Record<UploadTarget, { maxBytes: number; types: Record<string, string>; public: boolean }> = {
-  "event-banners": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true },
-  "content-images": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true },
-  "library-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false },
-  "cohort-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false },
+export const PDF_TYPES: Record<string, string> = { pdf: "application/pdf" };
+
+const IMAGES = "a JPG, PNG or WebP image";
+const DOCS = "a PDF, Word, Excel, PowerPoint or ZIP file";
+export const UPLOAD_RULES: Record<UploadTarget, { maxBytes: number; types: Record<string, string>; public: boolean; kind: string }> = {
+  "event-banners": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
+  "content-images": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
+  "event-gallery": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
+  brochures: { maxBytes: 10 * 1024 * 1024, types: PDF_TYPES, public: true, kind: "a PDF" },
+  "library-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false, kind: DOCS },
+  "cohort-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false, kind: DOCS },
 };
 
 export const extOf = (name: string) => (/\.([A-Za-z0-9]{1,5})$/.exec(name)?.[1] ?? "").toLowerCase();
@@ -27,7 +33,7 @@ export const extOf = (name: string) => (/\.([A-Za-z0-9]{1,5})$/.exec(name)?.[1] 
 export function checkUpload(target: UploadTarget, name: string, size: number): string | null {
   const rule = UPLOAD_RULES[target];
   const ext = extOf(name);
-  if (!rule.types[ext]) return rule.public ? "Use a JPG, PNG or WebP image." : "Use a PDF, Word, Excel, PowerPoint or ZIP file.";
+  if (!rule.types[ext]) return `Use ${rule.kind}.`;
   if (!Number.isFinite(size) || size <= 0) return "That file is empty.";
   if (size > rule.maxBytes) return `The file is larger than ${rule.maxBytes / 1024 / 1024} MB.`;
   return null;

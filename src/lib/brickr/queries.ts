@@ -17,8 +17,20 @@ export type Service = {
   banner_url: string | null;
   status: "draft" | "published";
   sort: number;
+  short_description: string;
+  offerings: string[];
+  prerequisites: string[];
+  brochure_url: string | null;
 };
-export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort";
+export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url";
+
+/** One published service, by its address. */
+export async function getService(slug: string): Promise<Service | null> {
+  if (!supabaseConfigured || !/^[a-z0-9-]{1,80}$/.test(slug)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("slug", slug).eq("status", "published").maybeSingle();
+  return (data as Service | null) ?? null;
+}
 
 export type MyRequest = {
   id: string;

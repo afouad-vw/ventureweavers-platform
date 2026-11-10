@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen, CalendarDays, GraduationCap } from "lucide-react";
 import { BookButton } from "@/components/events/book-button";
-import { ApplyButton, DatesButton, NotifyButton } from "@/components/tvs/program-buttons";
+import { CustomProgramButton } from "@/components/tvs/custom-program";
+import { ProgramCta } from "@/components/tvs/program-cta";
 import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -15,8 +16,7 @@ import { getMember } from "@/lib/auth/guards";
 import { myHomeProfile } from "@/lib/content/queries";
 import { formatDate, formatEGP, formatTime, MASTERCLASS_FORMATS } from "@/lib/events/format";
 import { listUpcomingEvents, myActiveEventIds, paymentInstructions } from "@/lib/events/queries";
-import { applicationLabel, programCardState, type EnrolmentStatus } from "@/lib/tvs/format";
-import { listPrograms, myTvs } from "@/lib/tvs/queries";
+import { listPrograms, myTvs, publicCohorts } from "@/lib/tvs/queries";
 
 export const metadata: Metadata = { title: "The Venture School" };
 
@@ -73,35 +73,20 @@ async function Programs({
   signedIn: boolean;
   memberId: string | null;
 }) {
-  const profile = memberId ? await myHomeProfile(memberId) : null;
-  const enrolledPrograms = new Map<string, EnrolmentStatus>();
-  for (const e of mine.enrolments) {
-    const pid = e.cohorts?.program_id;
-    if (pid && e.status !== "cancelled" && enrolledPrograms.get(pid) !== "confirmed") enrolledPrograms.set(pid, e.status);
-  }
-  const state = { applications: mine.applications, enrolledPrograms, interests: mine.interests };
+  const [profile, cohorts, me] = await Promise.all([memberId ? myHomeProfile(memberId) : null, publicCohorts(programs.map((p) => p.id)), getMember()]);
 
   return (
     <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-[18px]">
       {programs.length ? (
-        <div className="grid min-w-0 content-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
+        <div className="grid min-w-0 content-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
           {programs.map((p) => {
-            const st = programCardState(p, state);
             const foundation = p.kind === "Foundation";
-            const cta =
-              st.kind === "apply" ? (
-                <ApplyButton programId={p.id} programName={p.name} signedIn={signedIn} defaults={{ role: profile?.role, stage: profile?.stage }} />
-              ) : st.kind === "applied" ? (
-                <Link href="/my-space?tab=learning"><StatusPill tone="blue">Applied · {applicationLabel(st.status)}</StatusPill></Link>
-              ) : st.kind === "offered" ? (
-                <LinkButton href="/my-space?tab=learning" size="sm">Confirm your seat</LinkButton>
-              ) : st.kind === "enrolled" ? (
-                <LinkButton href="/tvs/classroom" size="sm">Open classroom</LinkButton>
-              ) : st.kind === "notify" ? (
-                <NotifyButton programId={p.id} on={st.on} signedIn={signedIn} />
-              ) : (
-                <DatesButton name={p.name} />
-              );
+            const next = cohorts.get(p.id)?.[0];
+            const meta = p.status === "in_development"
+              ? "In development"
+              : next
+                ? `${next.starts_on ? formatDate(`${next.starts_on}T12:00:00Z`) : "[DATE]"} · ${next.format ?? "Format TBA"} · ${formatEGP(next.price_piasters)}`
+                : `${p.weeks} weeks · next cohort [DATE]`;
             return (
               <ContentCard
                 key={p.id}
@@ -113,11 +98,16 @@ async function Programs({
                 bannerChipRight={foundation ? "Start here" : p.status === "in_development" ? "In development" : undefined}
                 title={p.name}
                 subtitle={p.kind}
-                description={p.description}
+                description={p.short_description || p.description}
                 tags={p.tags}
-                tagsBefore={p.requires_tvac && !foundation ? <span className="inline-flex h-5 items-center rounded-[5px] bg-tvs-bg px-[7px] text-[11px] font-bold text-tvs-fg">Requires TVAC</span> : undefined}
-                meta={`${p.weeks} weeks · ${formatEGP(p.price_piasters)}`}
-                cta={cta}
+                tagsBefore={p.requires_tvac && !foundation ? <span className="inline-flex h-5 items-center rounded-full bg-tvs-bg px-[8px] text-[11px] font-bold text-tvs-fg">Requires TVAC</span> : undefined}
+                meta={meta}
+                cta={
+                  <span className="flex flex-wrap justify-end gap-1.5">
+                    <LinkButton href={`/tvs/programs/${p.slug}`} size="sm" variant="secondary">View details</LinkButton>
+                    <ProgramCta p={p} mine={mine} signedIn={signedIn} profile={profile} />
+                  </span>
+                }
               />
             );
           })}
@@ -142,18 +132,10 @@ async function Programs({
             ))}
           </ol>
         </Card>
-        <Card>
-          <CardHeader title="Built for" />
-          <div className="flex flex-wrap gap-1">
-            {["Founders", "Career professionals", "Intrapreneurs", "Angels", "Experts & mentors"].map((x) => (
-              <span key={x} className="inline-flex h-5 items-center rounded-[5px] bg-hover px-[7px] text-[11px] font-bold text-muted">{x}</span>
-            ))}
-          </div>
-        </Card>
-        <Card tone="soft">
-          <h2 className="text-[15px] font-extrabold">Train your team</h2>
-          <span className="text-[13px] text-muted">Co-delivered, hosted or sponsored cohorts for companies and partners.</span>
-          <Link href="/brickr" className="text-[13px] font-bold text-link">Talk to us</Link>
+        <Card tone="ink" className="gap-2.5">
+          <h2 className="text-[15px] font-bold text-white">Custom programs</h2>
+          <span className="text-[13.5px]">For teams, portfolios, cohorts and organisations. Tell us what you need and we&apos;ll shape a program around it.</span>
+          <CustomProgramButton defaults={{ name: me?.name ?? "", email: me?.email ?? "" }} />
         </Card>
       </aside>
     </div>
@@ -181,18 +163,21 @@ async function Masterclasses({ classes, format, signedIn }: { classes: Awaited<R
               bannerChip={e.starts_at ? <span className="inline-flex items-center gap-1"><CalendarDays size={12} aria-hidden="true" />{formatDate(e.starts_at)}</span> : undefined}
               bannerChipRight={e.format ?? undefined}
               title={e.title}
-              description={e.description ?? undefined}
+              description={e.short_description || e.description || undefined}
               meta={
                 <>
-                  {e.starts_at ? formatTime(e.starts_at) : ""} · {e.hosts || "Fouad & Karim"} · {e.seats_left} seats left · {formatEGP(e.price_piasters)}
+                  {e.starts_at ? formatTime(e.starts_at) : ""} · {e.seats_left} seats left · {formatEGP(e.price_piasters)}
                 </>
               }
               cta={
-                booked.has(e.id) ? (
-                  <StatusPill tone="ok">Booked</StatusPill>
-                ) : (
-                  <BookButton event={e} signedIn={signedIn} booked={false} bankDetails={pay.bank_details} size="sm" label="Book" />
-                )
+                <span className="flex flex-wrap justify-end gap-1.5">
+                  <LinkButton href={`/tvs/masterclasses/${e.slug}`} size="sm" variant="secondary">View details</LinkButton>
+                  {booked.has(e.id) ? (
+                    <StatusPill tone="ok">Booked</StatusPill>
+                  ) : (
+                    <BookButton event={e} signedIn={signedIn} booked={false} bankDetails={pay.bank_details} size="sm" label="Book" />
+                  )}
+                </span>
               }
             />
           ))}

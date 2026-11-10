@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { namesOf, parseList, parseOutline, parsePeople } from "@/lib/details";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { cairoLocalToISO, EVENT_TYPES, slugify, toPiasters, type EventType, MASTERCLASS_FORMATS } from "@/lib/events/format";
@@ -59,17 +60,48 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
   const status = s("status") === "published" ? "published" : "draft";
   const banner_url = s("banner_url") || null;
   if (banner_url && !banner_url.startsWith(BANNER_PREFIX())) return { ok: false, error: "That banner image isn't from the upload folder." };
+  const storage = `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
+  const brochure_url = s("brochure_url") || null;
+  if (brochure_url && !(brochure_url.startsWith(storage + "brochures/") && brochure_url.endsWith(".pdf"))) return { ok: false, error: "That brochure isn't from the upload folder." };
+  let gallery: string[] = [];
+  try {
+    const g = JSON.parse(s("gallery") || "[]");
+    gallery = Array.isArray(g) ? g.map(String).filter((u) => u.startsWith(storage + "event-gallery/")).slice(0, 12) : [];
+  } catch {
+    gallery = [];
+  }
+  let ends_at: string | null = null;
+  try {
+    ends_at = s("ends_at") ? cairoLocalToISO(s("ends_at")) : null;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+  if (ends_at && starts_at && ends_at < starts_at) return { ok: false, error: "The end time is before the start time." };
+  const host_list = parsePeople(s("host_list"));
+  const guest_list = parsePeople(s("guest_list"));
+  const short = s("short_description").replace(/\s+/g, " ").slice(0, 300);
 
   const row = {
     title: title.slice(0, 140),
     type,
     starts_at,
-    venue: s("venue").slice(0, 160) || null,
+    venue: format === "Online" ? "Online" : s("venue").slice(0, 160) || null,
     capacity,
     price_piasters,
-    hosts: s("hosts").slice(0, 160) || null,
-    guest: s("guest").slice(0, 160) || null,
-    description: s("description").slice(0, 4000) || null,
+    hosts: namesOf(host_list).slice(0, 160) || null,
+    guest: namesOf(guest_list).slice(0, 160) || null,
+    host_list,
+    guest_list,
+    short_description: short,
+    description: (s("details") || short).slice(0, 4000) || null,
+    details: s("details").slice(0, 20000),
+    audience: s("audience").replace(/\s+/g, " ").slice(0, 300),
+    outline: parseOutline(s("outline")),
+    prerequisites: parseList(s("prerequisites")),
+    activities: parseList(s("activities")),
+    ends_at,
+    brochure_url,
+    gallery,
     banner,
     banner_url,
     status,
@@ -124,6 +156,16 @@ export async function duplicateEvent(id: string): Promise<ActionResult> {
     hosts: e.hosts,
     guest: e.guest,
     description: e.description,
+    short_description: e.short_description,
+    details: e.details,
+    audience: e.audience,
+    outline: e.outline,
+    prerequisites: e.prerequisites,
+    activities: e.activities,
+    host_list: e.host_list,
+    guest_list: e.guest_list,
+    ends_at: e.ends_at,
+    brochure_url: e.brochure_url,
     banner: e.banner,
     banner_url: e.banner_url,
     status: "draft",

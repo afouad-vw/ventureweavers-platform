@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { parseList } from "@/lib/details";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { parseTags } from "@/lib/content/format";
@@ -9,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort";
+const COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url";
 const STORAGE = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
 
 function refresh() {
@@ -36,13 +37,22 @@ export async function saveService(form: FormData): Promise<ActionResult> {
   if (s("name").length < 2) return { ok: false, error: "Add a name." };
   const banner_url = s("banner_url") || null;
   if (banner_url && !banner_url.startsWith(STORAGE() + "content-images/") && !banner_url.startsWith(STORAGE() + "event-banners/")) return { ok: false, error: "That banner image isn't from the upload folder." };
+  const short = s("short_description").replace(/\s+/g, " ");
+  if (!short) return { ok: false, error: "Add a short description (shown on the card)." };
+  if (short.length > 300) return { ok: false, error: "Keep the short description under 300 characters." };
+  const brochure_url = s("brochure_url") || null;
+  if (brochure_url && !(brochure_url.startsWith(STORAGE() + "brochures/") && brochure_url.endsWith(".pdf"))) return { ok: false, error: "That brochure isn't from the upload folder." };
   const sort = Number(s("sort") || 100);
   const row = {
     name: s("name").slice(0, 100),
     space: s("space") === "Outloud" ? "Outloud" : "BRICKR",
-    audience: s("audience").slice(0, 60) || "Founders",
+    audience: s("audience").replace(/\s+/g, " ").slice(0, 300) || "Founders",
     format: s("format").slice(0, 80),
-    description: s("description").slice(0, 600),
+    short_description: short,
+    description: short,
+    offerings: parseList(s("offerings")),
+    prerequisites: parseList(s("prerequisites")),
+    brochure_url,
     tags: parseTags(s("tags")),
     banner: (BANNER_OPTIONS as readonly string[]).includes(s("banner")) ? s("banner") : "Round",
     banner_url,

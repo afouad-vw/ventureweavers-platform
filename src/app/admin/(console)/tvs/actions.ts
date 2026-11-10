@@ -5,6 +5,7 @@ import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { parseTags } from "@/lib/content/format";
 import { sendEnrolmentConfirmed, sendSeatOffered } from "@/lib/email/tvs";
+import { parseList, parseOutline, parsePeople } from "@/lib/details";
 import { slugify, toPiasters } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -14,7 +15,9 @@ export type ActionResult = { ok: true; message?: string } | { ok: false; error: 
 
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const STORAGE = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
-const PROGRAM_COLS = "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort";
+const PROGRAM_COLS =
+  "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort, short_description, details, audience, outline, prerequisites, activities, hosts, guests, brochure_url";
+const MEET = /^https:\/\/[^\s<>"]{3,290}$/;
 
 function refresh() {
   revalidatePath("/tvs", "layout");
@@ -47,21 +50,28 @@ export async function saveProgram(form: FormData): Promise<ActionResult> {
   if (id && !ID.test(id)) return { ok: false, error: "Unknown program." };
   const name = s("name");
   if (name.length < 2) return { ok: false, error: "Add a name." };
-  let price_piasters: number | null;
-  try {
-    price_piasters = toPiasters(s("price"));
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
+  const short = s("short_description").replace(/\s+/g, " ");
+  if (!short) return { ok: false, error: "Add a short description (shown on the card)." };
+  if (short.length > 300) return { ok: false, error: "Keep the short description under 300 characters." };
   const banner_url = s("banner_url") || null;
   if (banner_url && !banner_url.startsWith(STORAGE() + "content-images/") && !banner_url.startsWith(STORAGE() + "event-banners/")) return { ok: false, error: "That banner image isn't from the upload folder." };
+  const brochure_url = s("brochure_url") || null;
+  if (brochure_url && !(brochure_url.startsWith(STORAGE() + "brochures/") && brochure_url.endsWith(".pdf"))) return { ok: false, error: "That brochure isn't from the upload folder." };
   const sort = Number(s("sort") || 100);
   const row = {
     name: name.slice(0, 80),
     kind: (PROGRAM_KINDS as readonly string[]).includes(s("kind")) ? s("kind") : "360 program",
-    description: s("description").slice(0, 600),
+    short_description: short,
+    description: short,
+    details: s("details").slice(0, 20000),
+    audience: s("audience").replace(/\s+/g, " ").slice(0, 300),
+    outline: parseOutline(s("outline")),
+    prerequisites: parseList(s("prerequisites")),
+    activities: parseList(s("activities")),
+    hosts: parsePeople(s("hosts")),
+    guests: parsePeople(s("guests")),
+    brochure_url,
     weeks: (s("weeks") || "[N]").slice(0, 20),
-    price_piasters,
     requires_tvac: form.get("requires_tvac") === "on",
     tags: parseTags(s("tags")),
     banner: (BANNER_OPTIONS as readonly string[]).includes(s("banner")) ? s("banner") : "Room",
@@ -82,7 +92,7 @@ export async function saveProgram(form: FormData): Promise<ActionResult> {
     await audit(admin.userId, "program.create", "programs", { entityId: data.id, after: row });
   }
   refresh();
-  return { ok: true, message: id ? "Program saved" : "Program created" };
+  return { ok: true, message: id ? "Program saved" : "Program created. Add a cohort with dates and price in Cohorts." };
 }
 
 export async function duplicateProgram(id: string): Promise<ActionResult> {
@@ -134,19 +144,36 @@ export async function saveCohort(form: FormData): Promise<ActionResult> {
   if (id && !ID.test(id)) return { ok: false, error: "Unknown cohort." };
   if (!ID.test(s("program_id"))) return { ok: false, error: "Choose a program." };
   const startsOn = s("starts_on");
+  const endsOn = s("ends_on");
   if (startsOn && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn)) return { ok: false, error: "Choose a start date." };
+  if (endsOn && !/^\d{4}-\d{2}-\d{2}$/.test(endsOn)) return { ok: false, error: "Choose an end date." };
+  if (startsOn && endsOn && endsOn < startsOn) return { ok: false, error: "The end date is before the start date." };
   const cap = s("capacity") ? Number(s("capacity")) : null;
   if (cap !== null && (!Number.isInteger(cap) || cap < 1 || cap > 1000)) return { ok: false, error: "Capacity must be a whole number from 1." };
+  let price_piasters: number | null;
+  try {
+    price_piasters = toPiasters(s("price"));
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+  const format = s("format") === "Online" || s("format") === "In person" ? s("format") : null;
+  const meet = s("meet_url");
+  if (meet && !MEET.test(meet)) return { ok: false, error: "The Meet link should start with https://" };
   const row = {
     program_id: s("program_id"),
     label: (s("label") || "Cohort [NO.]").slice(0, 60),
     starts_on: startsOn || null,
+    ends_on: endsOn || null,
+    format,
+    location: format === "In person" ? s("location").slice(0, 160) || null : null,
     capacity: cap,
+    price_piasters,
     status: COHORT_STATUSES.some((x) => x.value === s("status")) ? s("status") : "planned",
   };
   const supabase = await createClient();
+  let cohortId = id;
   if (id) {
-    const { data: before } = await supabase.from("cohorts").select("id, program_id, label, starts_on, capacity, status").eq("id", id).maybeSingle();
+    const { data: before } = await supabase.from("cohorts").select("id, program_id, label, starts_on, ends_on, format, location, capacity, price_piasters, status").eq("id", id).maybeSingle();
     if (!before) return { ok: false, error: "That cohort no longer exists." };
     if (cap !== null) {
       const { count } = await supabase.from("enrolments").select("id", { count: "exact", head: true }).eq("cohort_id", id).in("status", ["offered", "confirmed"]);
@@ -158,8 +185,12 @@ export async function saveCohort(form: FormData): Promise<ActionResult> {
   } else {
     const { data, error } = await supabase.from("cohorts").insert(row).select("id").single();
     if (error || !data) return { ok: false, error: "Couldn't create the cohort." };
+    cohortId = data.id as string;
     await audit(admin.userId, "cohort.create", "cohorts", { entityId: data.id, after: row });
   }
+  // The Meet link (online only) is kept apart so only enrolled learners can read it. Empty = TBA.
+  const { error: linkErr } = await supabase.from("cohort_links").upsert({ cohort_id: cohortId, meet_url: format === "Online" ? meet || null : null });
+  if (linkErr) return { ok: false, error: "Saved, but the Meet link didn't save. Try again." };
   refresh();
   return { ok: true, message: id ? "Cohort saved" : "Cohort created" };
 }
