@@ -32,7 +32,8 @@ export async function EventDetails({ e }: { e: EventWithSeats }) {
     ? `${formatDateTime(e.starts_at)}${e.ends_at ? (cairoDay(e.starts_at) === cairoDay(e.ends_at) ? `–${formatTime(e.ends_at)}` : ` – ${formatDateTime(e.ends_at)}`) : ""}`
     : "Scheduled with you";
   const place = e.format === "Online" ? "Online (Google Meet)" : e.venue || "Location TBA";
-  const details = e.details || e.description || "";
+  // Older events only have one text; don't repeat it under "About" when it's the short description.
+  const details = e.details || (e.description && e.description.trim() !== (e.short_description ?? "").trim() ? e.description : "");
 
   return (
     <>
