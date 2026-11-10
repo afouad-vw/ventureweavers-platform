@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { WeaveHero } from "@/components/ui/weave";
 import { Briefcase, Lock } from "lucide-react";
 import { MeetingButton } from "@/components/brickr/meeting-button";
 import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ContentCard } from "@/components/ui/content-card";
-import { EmptyState, PageHeader } from "@/components/ui/misc";
+import { EmptyState } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { listServices, myRequests } from "@/lib/brickr/queries";
@@ -21,7 +22,8 @@ export default async function BrickrPage() {
 
   return (
     <>
-      <PageHeader
+      <WeaveHero
+        id="brickr-weave"
         above={<ThreadTag thread="BRICKR" />}
         title="BRICKR"
         description="Fractional leadership from two operators. Pick what you need and book a first conversation."

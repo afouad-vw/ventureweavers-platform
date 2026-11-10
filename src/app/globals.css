@@ -303,3 +303,36 @@ h3 {
 @layer base {
   tbody tr { transition: background-color 0.15s ease; }
 }
+
+/* The weave (brand pattern): fine threads that drift and cross. */
+@keyframes weave-drift { to { stroke-dashoffset: -400; } }
+@keyframes weave-draw { from { stroke-dashoffset: 900; } to { stroke-dashoffset: 0; } }
+.weave path { fill: none; stroke-linecap: round; }
+.weave .t { stroke-dasharray: 220 180; animation: weave-drift 14s linear infinite; }
+.weave .t:nth-child(2n) { animation-duration: 19s; animation-direction: reverse; }
+.weave .t:nth-child(3n) { animation-duration: 23s; }
+.weave .s { stroke-dasharray: 900; animation: weave-draw 2.4s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Progress ring: set --p (0–100). */
+.vw-ring { --p: 0; background: conic-gradient(#29be9c calc(var(--p) * 1%), rgb(2 104 111 / .12) 0); }
+
+/* Tiles rise in on load, one after another. */
+@keyframes vw-rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.vw-rise { animation: vw-rise .6s cubic-bezier(.2,.8,.2,1) both; }
+.vw-rise:nth-child(2) { animation-delay: .04s; }
+.vw-rise:nth-child(3) { animation-delay: .08s; }
+.vw-rise:nth-child(4) { animation-delay: .12s; }
+.vw-rise:nth-child(5) { animation-delay: .16s; }
+.vw-rise:nth-child(n+6) { animation-delay: .2s; }
+
+/* Loading shimmer */
+@keyframes vw-shimmer { to { background-position: -200% 0; } }
+.vw-shimmer {
+  background: linear-gradient(90deg, rgb(2 104 111 / .06) 25%, rgb(2 104 111 / .13) 37%, rgb(2 104 111 / .06) 63%);
+  background-size: 200% 100%;
+  animation: vw-shimmer 1.4s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weave .t, .weave .s, .vw-rise, .vw-shimmer { animation: none !important; }
+}

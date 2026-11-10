@@ -7,7 +7,20 @@ import { cn } from "@/lib/cn";
 import { MAX_QUESTION_LENGTH, MAX_QUESTIONS, momentLabel, pollPercents, type LiveState } from "@/lib/live/format";
 import { askQuestion, fetchLiveState, upvote, votePoll } from "@/app/(member)/live/actions";
 import { suggestTopic } from "@/app/(member)/content-actions";
+import { Weave } from "@/components/ui/weave";
 import { useLiveUpdates } from "./use-live";
+
+/** The dark stage every Live mode view sits on, with the weave across the top. */
+function Stage({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative isolate overflow-hidden rounded-[24px] border border-white/[0.06] bg-[radial-gradient(900px_500px_at_50%_-10%,#11393a,#071112_70%)] text-ink-fg shadow-depth-lg">
+      <Weave id="live-weave" className="absolute inset-x-0 top-0 -z-10 h-[260px] w-full" opacity={0.5} />
+      {children}
+    </div>
+  );
+}
+
+const panel = "rounded-[20px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl desk:p-5";
 
 export function LivePill() {
   return (
@@ -29,19 +42,22 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
 
   if (!state.open) {
     return (
-      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
-        <section className="flex flex-col gap-3.5 rounded-[20px] border border-white/[0.06] bg-[linear-gradient(160deg,#0f2b2c,#071112_60%)] p-[18px] text-ink-fg shadow-depth-lg">
+      <Stage>
+        <div className="flex min-h-[360px] flex-col items-center justify-center gap-4 px-5 py-10 text-center">
           <b className="text-[13.5px] text-white">{title}</b>
           {state.ended ? (
             <>
-              <h2 className="font-display text-[18px] font-semibold text-white">Thanks for coming.</h2>
-              <VoiceForm />
+              <h2 className="font-display text-[28px] font-semibold text-white desk:text-[34px]">Thanks for coming.</h2>
+              <div className={cn(panel, "w-full max-w-[520px] text-left")}><VoiceForm /></div>
             </>
           ) : (
-            <p className="text-[13.5px]">Live mode opens when doors open. Keep this page open; it updates on its own.</p>
+            <>
+              <h2 className="font-display text-[28px] font-semibold text-white desk:text-[34px]">Live mode opens when doors open.</h2>
+              <p className="max-w-[46ch] text-[14px]">Keep this page open. It updates on its own, and you&apos;ll be able to ask, vote and follow the show from here.</p>
+            </>
           )}
-        </section>
-      </div>
+        </div>
+      </Stage>
     );
   }
 
@@ -49,47 +65,49 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
   const pct = pollPercents(state.poll?.options.map((o) => o.votes) ?? []);
   const voted = Boolean(state.poll?.my_vote);
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
-      <section className="flex flex-col gap-3.5 rounded-[20px] border border-white/[0.06] bg-[linear-gradient(160deg,#0f2b2c,#071112_60%)] p-[18px] text-ink-fg shadow-depth-lg" aria-live="polite">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <LivePill />
-          <b className="text-[13.5px] text-white">{title}</b>
-        </div>
-        <div className="flex flex-col gap-1 rounded-xl bg-ink2 p-3.5">
-          <span className="text-[11px] font-extrabold tracking-[1.2px] text-teal uppercase">On stage now · {momentLabel(state.moment)}</span>
-          <b className="font-display text-[18px] leading-[1.3] text-white">
-            {state.picked ? `“${state.picked.text}”` : "Waiting for the hosts to pick the first question."}
-          </b>
-          {state.picked ? <span className="text-[12.5px] text-ink-muted">Asked by {state.picked.who}</span> : null}
+    <Stage>
+      <div className="grid gap-4 p-4 desk:grid-cols-[1.3fr_1fr] desk:gap-5 desk:p-6">
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <LivePill />
+            <b className="text-[13.5px] text-white">{title}</b>
+          </div>
+          <section aria-live="polite" className="relative min-h-[200px] overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.05] p-5 shadow-[0_30px_60px_-30px_rgb(41_190_156/.45)] backdrop-blur-xl desk:min-h-[240px] desk:p-7">
+            <span className="text-[11.5px] font-extrabold tracking-[2px] text-teal uppercase">On stage now · {momentLabel(state.moment)}</span>
+            <p key={state.picked?.text ?? "waiting"} className="vw-rise mt-3 font-display text-[24px] leading-tight font-semibold text-white desk:text-[32px]">
+              {state.picked ? `“${state.picked.text}”` : "Waiting for the hosts to pick the first question."}
+            </p>
+            {state.picked ? <span className="mt-2 block text-[13px] text-ink-muted">Asked by {state.picked.who}</span> : null}
+          </section>
+
+          {state.poll ? (
+            <section className={cn(panel, "flex flex-col gap-2")}>
+              <div className="flex items-baseline justify-between gap-2">
+                <h2 className="text-[15.5px] font-bold text-white">{state.poll.question}</h2>
+                <span className="shrink-0 text-[12px] text-ink-muted">{voted ? `${total} ${total === 1 ? "vote" : "votes"}` : "Tap to vote"}</span>
+              </div>
+              {state.poll.options.map((o, i) => (
+                <PollOption key={o.id} label={o.label} percent={voted ? pct[i] : null} lead={voted && pct[i] === Math.max(...pct)} chosen={state.poll!.my_vote === o.id} onVote={() => votePoll(o.id).then(refresh)} />
+              ))}
+              {voted ? <span className="text-[11.5px] text-ink-muted">Tap your choice again to take it back.</span> : null}
+            </section>
+          ) : state.moment === 4 ? (
+            <section className={cn(panel, "flex flex-col gap-2")}>
+              <h2 className="text-[15.5px] font-bold text-white">Your voice</h2>
+              <VoiceForm />
+            </section>
+          ) : null}
         </div>
 
-        {state.poll ? (
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-[15px] font-bold text-white">{state.poll.question}</h2>
-              <span className="text-[11.5px] text-ink-muted">{voted ? "Thanks for voting" : "Tap to vote"}</span>
-            </div>
-            {state.poll.options.map((o, i) => (
-              <PollOption key={o.id} label={o.label} percent={voted ? pct[i] : null} chosen={state.poll!.my_vote === o.id} onVote={() => votePoll(o.id).then(refresh)} />
-            ))}
-            {voted ? <span className="text-[11.5px] text-ink-muted">{total} {total === 1 ? "vote" : "votes"} · tap your choice again to take it back</span> : null}
-          </div>
-        ) : state.moment === 4 ? (
-          <div className="flex flex-col gap-2 rounded-xl bg-ink2 p-3.5">
-            <h2 className="text-[15px] font-bold text-white">Your voice</h2>
-            <VoiceForm />
-          </div>
-        ) : null}
-
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[15px] font-bold text-white">Questions from the room</h2>
-            <span className="text-[11.5px] text-ink-muted">Top voted</span>
+        <section className={cn(panel, "flex min-w-0 flex-col gap-2.5")}>
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-[15.5px] font-bold text-white">Questions from the room</h2>
+            <span className="text-[12px] text-ink-muted">Top voted</span>
           </div>
           {state.questions.length ? (
             state.questions.map((q) => (
-              <div key={q.id} className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5 backdrop-blur-sm transition-colors hover:bg-white/[0.06]">
-                <span className="min-w-0 flex-1 text-[13.5px] text-white">
+              <div key={q.id} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5 transition-colors hover:bg-white/[0.06]">
+                <span className="min-w-0 flex-1 text-[14px] text-white">
                   {q.text}
                   {q.status === "waiting" ? <span className="block text-[11.5px] font-bold text-[#F2C27A]">Waiting for approval</span> : null}
                 </span>
@@ -100,8 +118,8 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
                     aria-label={q.voted ? `Remove your upvote (${q.votes})` : `Upvote (${q.votes})`}
                     onClick={() => upvote(q.id).then(refresh)}
                     className={cn(
-                      "flex min-h-10 min-w-11 cursor-pointer flex-col items-center justify-center rounded-lg border text-[12px] font-bold",
-                      q.voted ? "border-teal bg-teal text-ink" : "border-ink-line text-ink-fg hover:border-teal",
+                      "flex min-h-11 min-w-12 cursor-pointer flex-col items-center justify-center rounded-lg border text-[12px] font-bold transition-transform active:scale-90",
+                      q.voted ? "border-teal bg-teal text-ink" : "border-white/15 text-ink-fg hover:border-teal",
                     )}
                   >
                     <ArrowUp size={14} strokeWidth={2.4} aria-hidden="true" />
@@ -113,15 +131,16 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
           ) : (
             <p className="text-[13px] text-ink-muted">No questions on the floor yet. Ask the first one.</p>
           )}
-        </div>
-
-        <AskForm eventId={eventId} left={MAX_QUESTIONS - state.asked} onSent={refresh} />
-      </section>
-    </div>
+          <div className="mt-auto pt-2">
+            <AskForm eventId={eventId} left={MAX_QUESTIONS - state.asked} onSent={refresh} />
+          </div>
+        </section>
+      </div>
+    </Stage>
   );
 }
 
-function PollOption({ label, percent, chosen, onVote }: { label: string; percent: number | null; chosen: boolean; onVote: () => Promise<unknown> }) {
+function PollOption({ label, percent, lead, chosen, onVote }: { label: string; percent: number | null; lead: boolean; chosen: boolean; onVote: () => Promise<unknown> }) {
   const [pending, start] = useTransition();
   return (
     <button
@@ -130,11 +149,11 @@ function PollOption({ label, percent, chosen, onVote }: { label: string; percent
       disabled={pending}
       onClick={() => start(async () => void (await onVote()))}
       className={cn(
-        "relative flex min-h-11 cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-[10px] border px-3 text-left text-[13.5px] font-semibold text-white",
-        chosen ? "border-teal" : "border-ink-line hover:border-teal",
+        "relative flex min-h-12 cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-xl border px-4 text-left text-[14px] font-semibold text-white",
+        chosen || lead ? "border-teal" : "border-white/10 hover:border-teal",
       )}
     >
-      <i className="absolute inset-y-0 left-0 bg-teal/25 transition-[width]" style={{ width: `${percent ?? 0}%` }} aria-hidden="true" />
+      <i className="absolute inset-y-0 left-0 rounded-xl bg-[linear-gradient(90deg,rgb(41_190_156/.45),rgb(41_190_156/.15))] transition-[width] duration-700 ease-out" style={{ width: `${percent ?? 0}%` }} aria-hidden="true" />
       <span className="relative">{label}</span>
       <span className="relative font-display">{percent === null ? "" : `${percent}%`}</span>
     </button>
@@ -171,9 +190,9 @@ function AskForm({ eventId, left, onSent }: { eventId: string; left: number; onS
           maxLength={MAX_QUESTION_LENGTH}
           required
           placeholder="Ask the floor a question"
-          className="h-[42px] min-w-0 flex-1 rounded-lg border border-ink-line bg-ink2 px-3 text-[14px] text-white placeholder:text-ink-muted focus:border-teal focus:outline-none"
+          className="h-12 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-[14px] text-white placeholder:text-ink-muted focus:border-teal focus:outline-none"
         />
-        <button type="submit" disabled={pending || !text.trim()} aria-label="Send question" className="inline-flex h-[42px] w-[42px] shrink-0 cursor-pointer items-center justify-center rounded-lg bg-teal text-ink disabled:opacity-50">
+        <button type="submit" disabled={pending || !text.trim()} aria-label="Send question" className="inline-flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-teal text-ink disabled:opacity-50">
           <Send size={17} strokeWidth={2.2} aria-hidden="true" />
         </button>
       </div>

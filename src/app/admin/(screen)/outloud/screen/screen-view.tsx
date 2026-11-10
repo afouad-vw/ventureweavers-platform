@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { LivePill } from "@/components/live/live-room";
+import { Weave } from "@/components/ui/weave";
 import { useLiveUpdates } from "@/components/live/use-live";
 import { momentLabel, pollPercents } from "@/lib/live/format";
 
@@ -24,7 +25,8 @@ export function ScreenView({ eventId, title, open, moment, picked, poll }: Props
   const pct = pollPercents(poll?.options.map((o) => o.votes) ?? []);
   const total = poll?.options.reduce((n, o) => n + o.votes, 0) ?? 0;
   return (
-    <div className="flex min-h-dvh flex-col gap-[4vh] p-[5vw]">
+    <div className="relative isolate flex min-h-dvh flex-col gap-[4vh] overflow-hidden bg-[radial-gradient(1200px_700px_at_50%_-10%,#11393a,#071112_70%)] p-[5vw]">
+      <Weave id="screen-weave" className="absolute inset-x-0 top-0 -z-10 h-[40vh] w-full" opacity={0.45} />
       <header className="flex flex-wrap items-center justify-between gap-4">
         <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={240} height={18} priority />
         <div className="flex items-center gap-3">
@@ -34,13 +36,13 @@ export function ScreenView({ eventId, title, open, moment, picked, poll }: Props
       </header>
       <main className="flex flex-1 flex-col justify-center gap-[3vh]">
         <span className="text-[clamp(14px,1.4vw,24px)] font-extrabold tracking-[2px] text-teal uppercase">{open ? momentLabel(moment) : "Open Floor"}</span>
-        <p className="font-display text-[clamp(28px,4.4vw,84px)] leading-[1.15] font-semibold text-white">
+        <p key={picked?.text ?? (open ? "open" : "soon")} className="vw-rise font-display text-[clamp(28px,4.4vw,84px)] leading-[1.15] font-semibold text-white">
           {picked ? `“${picked.text}”` : open ? "Ask your question from your phone: My space › Live mode." : "Live mode opens soon."}
         </p>
         {picked ? <span className="text-[clamp(16px,1.6vw,28px)] text-ink-muted">Asked by {picked.who}</span> : null}
       </main>
       {poll ? (
-        <section className="flex flex-col gap-[1.6vh] rounded-2xl bg-ink2 p-[2.4vw]" aria-label="Poll results">
+        <section className="flex flex-col gap-[1.6vh] rounded-[24px] border border-white/10 bg-white/[0.05] p-[2.4vw] backdrop-blur-xl" aria-label="Poll results">
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="font-display text-[clamp(18px,2vw,36px)] font-semibold text-white">{poll.question}</h2>
             <span className="text-[clamp(13px,1.2vw,22px)] text-ink-muted">{total} {total === 1 ? "vote" : "votes"}</span>
@@ -48,7 +50,7 @@ export function ScreenView({ eventId, title, open, moment, picked, poll }: Props
           {poll.options.map((o, i) => (
             <div key={o.id} className="flex flex-col gap-1">
               <span className="flex justify-between gap-4 text-[clamp(15px,1.5vw,28px)] font-bold text-white"><span>{o.label}</span><span className="font-display">{pct[i]}%</span></span>
-              <span className="h-[1.4vh] min-h-2 overflow-hidden rounded-full bg-ink" aria-hidden="true"><span className="block h-full rounded-full bg-teal transition-[width] duration-500" style={{ width: `${pct[i]}%` }} /></span>
+              <span className="h-[1.4vh] min-h-2 overflow-hidden rounded-full bg-ink" aria-hidden="true"><span className="block h-full rounded-full bg-[linear-gradient(90deg,#02686f,#29be9c)] transition-[width] duration-700 ease-out" style={{ width: `${pct[i]}%` }} /></span>
             </div>
           ))}
         </section>

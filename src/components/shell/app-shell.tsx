@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { isActive, type NavItem } from "@/lib/nav";
@@ -66,7 +66,23 @@ export function AppShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const searchRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => setOpen(false), [pathname]);
+  // ⌘K / Ctrl+K, or "/" outside a text field, jumps to search.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      const typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+      if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") || (e.key === "/" && !typing)) {
+        e.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -116,7 +132,8 @@ export function AppShell({
             <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line2/70 bg-card/60 px-3 text-faint shadow-[inset_0_1px_2px_rgb(7_17_18/0.05)] transition-[border-color,box-shadow,background-color] focus-within:border-primary focus-within:bg-card focus-within:shadow-glow">
               <Search size={16} aria-hidden="true" className="shrink-0" />
               <span className="sr-only">Search</span>
-              <input name="q" type="search" maxLength={80} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-[13.5px] text-fg outline-none placeholder:text-faint" placeholder={searchPlaceholder} />
+              <input ref={searchRef} name="q" type="search" maxLength={80} enterKeyHint="search" aria-keyshortcuts="Control+K Meta+K /" className="min-w-0 flex-1 bg-transparent text-[13.5px] text-fg outline-none placeholder:text-faint" placeholder={searchPlaceholder} />
+              <kbd className="hidden shrink-0 rounded-md border border-line2 bg-bg px-1.5 font-sans text-[11px] font-bold text-faint desk:inline" title="Press / or Ctrl+K">/</kbd>
             </label>
           </form>
           <span className="flex-1" />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WeaveHero } from "@/components/ui/weave";
 import Link from "next/link";
 import { BookOpen, CalendarDays, GraduationCap } from "lucide-react";
 import { BookButton } from "@/components/events/book-button";
@@ -13,7 +14,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { ContentCard } from "@/components/ui/content-card";
 import { LinkTabs } from "@/components/ui/link-tabs";
-import { EmptyState, PageHeader } from "@/components/ui/misc";
+import { EmptyState } from "@/components/ui/misc";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { myHomeProfile } from "@/lib/content/queries";
@@ -32,7 +33,8 @@ export default async function TvsPage({ searchParams }: { searchParams: Promise<
 
   return (
     <>
-      <PageHeader
+      <WeaveHero
+        id="tvs-weave"
         title="The Venture School"
         above={<ThreadTag thread="TVS" />}
         description="Learn it in practice. Lead it in motion. Programs and masterclasses built from real ventures."

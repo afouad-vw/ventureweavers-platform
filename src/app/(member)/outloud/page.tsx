@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WeaveHero } from "@/components/ui/weave";
 import Link from "next/link";
 import { CheckCircle2, MessageSquare } from "lucide-react";
 import { MeetingButton } from "@/components/brickr/meeting-button";
@@ -15,7 +16,7 @@ import { Banner, type BannerChoice } from "@/components/ui/banner";
 import { buttonClass } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
-import { DateBox, EmptyState, Eyebrow, PageHeader } from "@/components/ui/misc";
+import { DateBox, EmptyState, Eyebrow } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { cairoDay, formatDateTime, formatEGP, formatTime, typeLabel } from "@/lib/events/format";
@@ -34,7 +35,8 @@ export default async function OutloudPage({ searchParams }: { searchParams: Prom
   const tab = TABS.some((t) => t.value === raw) ? raw! : "shows";
   return (
     <>
-      <PageHeader
+      <WeaveHero
+        id="outloud-weave"
         above={<ThreadTag thread="Outloud" />}
         title="Outloud"
         description="Shows and events, digital content from the floor, and the blog."

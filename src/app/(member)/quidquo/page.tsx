@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { WeaveHero } from "@/components/ui/weave";
 import { CopyInviteButton, JoinedMark, LeaveWaitlistButton, WaitlistForm } from "@/components/brickr/brickr-client";
 import { Card, CardHeader } from "@/components/ui/card";
-import { EmptyState, PageHeader } from "@/components/ui/misc";
+import { EmptyState } from "@/components/ui/misc";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
 import { cn } from "@/lib/cn";
 import { getMember } from "@/lib/auth/guards";
@@ -19,7 +20,8 @@ export default async function QuidQuoPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader
+      <WeaveHero
+        id="quidquo-weave"
         above={<ThreadTag thread="QuidQuo" label="QuidQuo · building now" />}
         title="QuidQuo"
         description="AI for raising capital, built in the open. Follow every stage and be first in when it opens."
