@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { checkUpload, cleanFileName, contentMatches, extOf, sniff, UPLOAD_RULES, type UploadTarget } from "@/lib/uploads";
 
 const TARGETS = Object.keys(UPLOAD_RULES) as UploadTarget[];
-const PATH = /^\d{4}-\d{2}\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/;
+const PATH = /^(files\/)?\d{4}-\d{2}\/[0-9a-f-]{36}\.[a-z0-9]{1,5}$/;
 
 /**
  * Step 1: a one-time upload link for one file. The browser sends the file straight to storage,
@@ -21,7 +21,7 @@ export async function startUpload(
   const bad = checkUpload(target, name, size);
   if (bad) return { ok: false, error: bad };
   const ext = extOf(name) === "jpeg" ? "jpg" : extOf(name);
-  const path = `${new Date().toISOString().slice(0, 7)}/${crypto.randomUUID()}.${ext}`;
+  const path = `${target === "cohort-files" ? "files/" : ""}${new Date().toISOString().slice(0, 7)}/${crypto.randomUUID()}.${ext}`;
   const { data, error } = await createServiceClient().storage.from(target).createSignedUploadUrl(path);
   if (error || !data) return { ok: false, error: "Couldn't start the upload. Please try again." };
   return { ok: true, path, url: data.signedUrl, contentType: UPLOAD_RULES[target].types[extOf(name)] };
@@ -46,7 +46,7 @@ export async function finishUpload(
   const ext = extOf(path);
   if (blob.size > UPLOAD_RULES[target].maxBytes || !contentMatches(ext, sniff(head))) {
     await bucket.remove([path]);
-    return { ok: false, error: target === "library-files" ? "That file isn't a real PDF, Office or ZIP file." : "That file isn't a real JPG, PNG or WebP image." };
+    return { ok: false, error: UPLOAD_RULES[target].public ? "That file isn't a real JPG, PNG or WebP image." : "That file isn't a real PDF, Office or ZIP file." };
   }
   await audit(admin.userId, "upload", target, { entityId: path, after: { size: blob.size } });
   const url = UPLOAD_RULES[target].public ? bucket.getPublicUrl(path).data.publicUrl : null;

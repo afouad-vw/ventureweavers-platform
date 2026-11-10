@@ -18,4 +18,5 @@ done
 bash supabase/tests/race.sh "${PSQL[@]}" -d t
 # Seed files must load cleanly too.
 for f in supabase/seed/*.sql; do [ -e "$f" ] && "${PSQL[@]}" -d t -f "$f"; done
+"${PSQL[@]}" -d t -c "select count(*) || ' modules, ' || (select count(*) from public.module_steps) || ' steps, ' || (select count(*) from public.assignments) || ' assignments seeded' from public.modules"
 echo "SEED OK"

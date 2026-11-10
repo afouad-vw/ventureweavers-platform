@@ -38,3 +38,12 @@ export function sendEnrolmentConfirmed(to: string, o: { program: string; cohort:
     ], learning),
   );
 }
+
+export function sendClassroomReminder(to: string, items: { kind: "assignment" | "session"; title: string; when: string; meet?: string | null }[]) {
+  const lines = items.map((i) =>
+    i.kind === "assignment"
+      ? `Assignment due: <b>${esc(i.title)}</b>, ${esc(i.when)}.`
+      : `Live session: <b>${esc(i.title)}</b>, ${esc(i.when)}${i.meet ? ` · <a href="${esc(i.meet)}" style="color:#02686F">Join on Google Meet</a>` : ""}.`,
+  );
+  return sendEmail(to, items.length === 1 ? (items[0].kind === "assignment" ? `Due soon: ${items[0].title}` : `Tomorrow: ${items[0].title}`) : "Coming up in your classroom", emailFrame("Coming up in your classroom", lines, { label: "Open the classroom", href: `${APP}/tvs/classroom` }));
+}

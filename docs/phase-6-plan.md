@@ -1,6 +1,6 @@
 # Phase 6 plan: TVS (programs, masterclasses, classroom)
 
-Status: **approved 2026-11-10**. Building 6a, then 6b.
+Status: **approved 2026-11-10**. 6a and 6b built.
 
 Spec: `reference/prototype.html` → TVS (Programs, Masterclasses), TVAC classroom, My space › My learning, Admin › TVS (Programs, Masterclasses, Classroom, Learners, Applications).
 
@@ -36,7 +36,7 @@ Spec: `reference/prototype.html` → TVS (Programs, Masterclasses), TVAC classro
 - **Assignments**: due date, status (Locked, Due, Submitted, Reviewed); upload a file (PDF, Word, PowerPoint, Excel, ZIP up to 20 MB, private); replace until reviewed; feedback from the partners shown under it.
 - **Live sessions**: next session card with **Join with Google Meet**, Add to calendar, upcoming and past sessions with recordings.
 - **Documents & recordings**: files for the cohort (private, 5-minute download links) and recordings.
-- **Reminders** rail: assignments due (day before) and live sessions (1 hour before), by email now; WhatsApp and push come with Phase 10.
+- **Reminders** rail: assignments due and live sessions in the next 24 hours, by email each morning (the daily job; hourly reminders need a paid Vercel plan or a different scheduler); WhatsApp and push come with Phase 10.
 - **Cohort discussion**: one thread per cohort; learners and hosts post; host posts are highlighted; admins can remove posts.
 - Library items marked **TVS learners** unlock for enrolled learners.
 

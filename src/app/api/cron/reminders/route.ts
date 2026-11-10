@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sendEventReminder } from "@/lib/email/booking";
+import { sendClassroomReminder } from "@/lib/email/tvs";
+import { formatDateTime } from "@/lib/events/format";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
@@ -28,5 +30,42 @@ export async function GET(req: NextRequest) {
       }
     }
   }
-  return NextResponse.json({ events: events?.length ?? 0, sent });
+  const classroom = await classroomReminders(svc);
+  return NextResponse.json({ events: events?.length ?? 0, sent, classroom });
+}
+
+/**
+ * Classroom: assignments due and live sessions starting in the next 24 hours, one email per learner.
+ * Work already handed in is skipped.
+ */
+async function classroomReminders(svc: ReturnType<typeof createServiceClient>) {
+  const now = new Date().toISOString();
+  const soon = new Date(Date.now() + 24 * 3_600_000).toISOString();
+  const [{ data: work }, { data: sessions }] = await Promise.all([
+    svc.from("assignments").select("id, title, due_at, modules(cohort_id, opens_at)").gt("due_at", now).lte("due_at", soon),
+    svc.from("class_sessions").select("id, cohort_id, title, starts_at, meet_url").gt("starts_at", now).lte("starts_at", soon),
+  ]);
+  type Item = { kind: "assignment" | "session"; title: string; when: string; meet?: string | null };
+  const byCohort = new Map<string, { item: Item; assignmentId?: string }[]>();
+  for (const a of (work ?? []) as unknown as { id: string; title: string; due_at: string; modules: { cohort_id: string; opens_at: string | null } | null }[]) {
+    if (!a.modules?.opens_at || new Date(a.modules.opens_at).getTime() > Date.now()) continue;
+    byCohort.set(a.modules.cohort_id, [...(byCohort.get(a.modules.cohort_id) ?? []), { item: { kind: "assignment", title: a.title, when: formatDateTime(a.due_at) }, assignmentId: a.id }]);
+  }
+  for (const s of (sessions ?? []) as { cohort_id: string; title: string; starts_at: string; meet_url: string | null }[]) {
+    byCohort.set(s.cohort_id, [...(byCohort.get(s.cohort_id) ?? []), { item: { kind: "session", title: s.title, when: formatDateTime(s.starts_at), meet: s.meet_url } }]);
+  }
+  let emails = 0;
+  for (const [cohortId, entries] of byCohort) {
+    const { data: ens } = await svc.from("enrolments").select("member_id").eq("cohort_id", cohortId).eq("status", "confirmed");
+    const ids = entries.map((e) => e.assignmentId).filter(Boolean) as string[];
+    const { data: subs } = ids.length ? await svc.from("submissions").select("assignment_id, member_id").in("assignment_id", ids) : { data: [] };
+    const handed = new Set(((subs ?? []) as { assignment_id: string; member_id: string }[]).map((x) => `${x.member_id}:${x.assignment_id}`));
+    for (const { member_id } of (ens ?? []) as { member_id: string }[]) {
+      const items = entries.filter((e) => !e.assignmentId || !handed.has(`${member_id}:${e.assignmentId}`)).map((e) => e.item);
+      if (!items.length) continue;
+      const { data: u } = await svc.auth.admin.getUserById(member_id);
+      if (u?.user?.email) await sendClassroomReminder(u.user.email, items).then(() => emails++, () => {});
+    }
+  }
+  return emails;
 }

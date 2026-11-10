@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { Download, FileUp, Lock, Trash2 } from "lucide-react";
 import { ConfirmDelete, EditorDrawer, IconBtn, ListBar, RowActions, TableBox, td, useRunner } from "@/components/admin/crud";
-import { uploadFile } from "@/components/admin/upload";
+import { uploadFile } from "@/lib/upload-client";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";

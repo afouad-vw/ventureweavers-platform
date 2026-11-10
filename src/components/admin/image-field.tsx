@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { uploadFile } from "./upload";
+import { uploadFile } from "@/lib/upload-client";
 
 const MIN_W = 1200;
 const MIN_H = 675;

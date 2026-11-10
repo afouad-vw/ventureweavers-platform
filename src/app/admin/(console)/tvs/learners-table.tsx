@@ -33,7 +33,7 @@ export function LearnersTable({ enrolments }: { enrolments: AdminEnrolment[] }) 
           </tr>
         ))}
       </TableBox>
-      <p className="text-[12.5px] text-faint">Progress and Review work arrive with the classroom (Phase 6b).</p>
+      <p className="text-[12.5px] text-faint">Progress and Review work for each cohort are in the Classroom tab.</p>
       <Modal
         open={ask !== null}
         onClose={() => setAsk(null)}
