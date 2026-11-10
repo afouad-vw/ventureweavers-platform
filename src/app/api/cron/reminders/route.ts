@@ -31,7 +31,9 @@ export async function GET(req: NextRequest) {
     }
   }
   const classroom = await classroomReminders(svc);
-  return NextResponse.json({ events: events?.length ?? 0, sent, classroom });
+  // Notifications are kept for 90 days.
+  const { count: purged } = await svc.from("notifications").delete({ count: "exact" }).lt("created_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
+  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0 });
 }
 
 /**

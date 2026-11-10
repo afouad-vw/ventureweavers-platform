@@ -16,7 +16,7 @@ export default async function SetPasswordPage() {
   const { data } = await (await createClient()).auth.getClaims();
   if (!data?.claims?.sub) redirect(to);
   return (
-    <GateFrame title="Set your password" description="Choose a password only you know, at least 12 characters. Next you'll set up 2-step verification.">
+    <GateFrame title="Set your password" description="Choose a password only you know, at least 12 characters.">
       <SetPasswordForm />
     </GateFrame>
   );

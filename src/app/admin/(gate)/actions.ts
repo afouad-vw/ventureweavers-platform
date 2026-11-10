@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { audit, currentAdminBase } from "@/lib/auth/guards";
 import { NOT_SWITCHED_ON, type FormState } from "@/lib/auth/form-state";
 import { clientIp, isLockedOut, LOCKOUT, normalizeUsername, PASSWORD_MIN, USERNAME_RE } from "@/lib/auth/policy";
+import { sendAdminSignInAlert } from "@/lib/email/admin";
 import { adminHref } from "@/lib/hosts";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -18,7 +19,7 @@ async function isListedAdmin(userId: string) {
   return Boolean(data);
 }
 
-/** Step 1: username and password. Then on to the 2-step code. */
+/** Admin sign-in: username and password (2-step removed in Phase 10). Emails the admin a sign-in alert. */
 export async function adminSignIn(_: FormState, form: FormData): Promise<FormState> {
   if (!supabaseConfigured) return { error: NOT_SWITCHED_ON };
   const username = normalizeUsername(String(form.get("username") ?? ""));
@@ -56,29 +57,16 @@ export async function adminSignIn(_: FormState, form: FormData): Promise<FormSta
     return { error: GENERIC };
   }
   await record(true);
-  redirect(await to("/admin/verify"));
-}
-
-/** Step 2: the 6-digit code from the authenticator app (also finishes first-time setup). */
-export async function adminVerify(_: FormState, form: FormData): Promise<FormState> {
-  if (!supabaseConfigured) return { error: NOT_SWITCHED_ON };
-  const factorId = String(form.get("factorId") ?? "");
-  const code = String(form.get("code") ?? "").replace(/\s/g, "");
-  if (!/^\d{6}$/.test(code)) return { error: "Enter the 6-digit code from your authenticator app." };
-
-  const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  const userId = claims?.claims?.sub;
-  if (!userId || !(await isListedAdmin(userId))) redirect(await to("/admin/sign-in"));
-
-  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
-  if (error) return { error: "That code didn't work. Codes change every 30 seconds; try the current one." };
-
-  await audit(userId, "admin.sign_in", "admin_session");
+  const { data: signedIn } = await supabase.auth.getClaims();
+  const userId = signedIn?.claims?.sub;
+  if (userId) {
+    await audit(userId, "admin.sign_in", "admin_session");
+    await sendAdminSignInAlert(email, { username, ip, userAgent: (await headers()).get("user-agent") }).catch(() => {});
+  }
   redirect(await to("/admin"));
 }
 
-/** First visit from the invite email: set a password, then set up the authenticator app. */
+/** First visit from the invite email: set a password, then straight into the console. */
 export async function adminSetPassword(_: FormState, form: FormData): Promise<FormState> {
   if (!supabaseConfigured) return { error: NOT_SWITCHED_ON };
   const password = String(form.get("password") ?? "");
@@ -96,7 +84,7 @@ export async function adminSetPassword(_: FormState, form: FormData): Promise<Fo
     return { error: "We couldn't save the password. Open the invite link again or ask for a new invite." };
   }
   await audit(userId, "admin.password_set", "admin_users", { entityId: userId });
-  redirect(await to("/admin/verify"));
+  redirect(await to("/admin"));
 }
 
 export async function adminSignOut() {

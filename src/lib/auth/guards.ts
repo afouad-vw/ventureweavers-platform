@@ -45,7 +45,7 @@ export async function currentAdminBase() {
 
 /**
  * For every admin page and action. Passes only when the person is signed in, listed in admin_users,
- * has passed 2-step verification in this session, and the session is neither idle nor too old.
+ * and the session is neither idle nor too old. (2-step verification was removed on 2026-11-10, Phase 10.)
  */
 export async function requireAdmin(): Promise<Admin> {
   const base = await currentAdminBase();
@@ -65,7 +65,6 @@ export async function requireAdmin(): Promise<Admin> {
     await supabase.auth.signOut({ scope: "local" });
     redirect(to("/admin/sign-in"));
   }
-  if (claims.aal !== "aal2") redirect(to("/admin/verify"));
 
   const sessionId = String(claims.session_id ?? "");
   if (!sessionId) redirect(to("/admin/sign-in"));

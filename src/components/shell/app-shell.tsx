@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, Menu, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { isActive, type NavItem } from "@/lib/nav";
 import { threadDot } from "@/components/ui/tag";
@@ -150,16 +150,6 @@ export function AppShell({
         </nav>
       ) : null}
     </div>
-  );
-}
-
-/** Notification bell for the top bar. */
-export function BellButton({ count = 0 }: { count?: number }) {
-  return (
-    <button type="button" aria-label={count ? `Notifications, ${count} unread` : "Notifications"} className="relative inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line2 bg-card text-fg hover:bg-hover">
-      <Bell size={18} aria-hidden="true" />
-      {count ? <span className="absolute -top-1 -right-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-card bg-teal px-1 text-[10px] font-extrabold text-ink">{count}</span> : null}
-    </button>
   );
 }
 

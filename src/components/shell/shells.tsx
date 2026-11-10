@@ -10,12 +10,14 @@ import { signOut } from "@/app/(auth)/actions";
 import { adminSignOut } from "@/app/admin/(gate)/actions";
 import { adminHref } from "@/lib/hosts";
 import type { NavItem } from "@/lib/nav";
-import { AppShell, BellButton, Who } from "./app-shell";
+import type { Notice } from "@/lib/notifications/format";
+import { AppShell, Who } from "./app-shell";
+import { NotificationsBell } from "./notifications-bell";
 
 export type ShellMember = { name: string; initials: string; sub: string } | null;
 
 /** Member app layout. Shows the signed-in member, or Sign in and Join. */
-export function MemberShell({ member, live = false, children }: { member: ShellMember; live?: boolean; children: React.ReactNode }) {
+export function MemberShell({ member, live = false, notifications = [], children }: { member: ShellMember; live?: boolean; notifications?: Notice[]; children: React.ReactNode }) {
   return (
     <AppShell
       sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: live ? [memberAccount, memberLive] : [memberAccount] }]}
@@ -27,7 +29,7 @@ export function MemberShell({ member, live = false, children }: { member: ShellM
         <>
           {member ? (
             <>
-              <BellButton count={0} />
+              <NotificationsBell initial={notifications} />
               <Who initials={member.initials} name={member.name} sub={member.sub} href="/my-space" />
             </>
           ) : (

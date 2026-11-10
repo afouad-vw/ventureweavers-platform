@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-/** Dark full-screen frame for admin sign-in, 2-step and first-time password screens. */
+/** Dark full-screen frame for admin sign-in and first-time password screens. */
 export function GateFrame({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-ink px-4 py-10">

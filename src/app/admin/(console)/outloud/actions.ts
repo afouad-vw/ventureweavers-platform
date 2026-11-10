@@ -164,7 +164,7 @@ const bookingErrors: Record<string, string> = {
   already_booked: "This member already has another active booking for the event.",
   not_payable: "This booking can't be marked as paid.",
   not_cancellable: "This booking is already closed.",
-  forbidden: "Your session needs 2-step verification. Sign in again.",
+  forbidden: "Your admin session has ended. Sign in again.",
 };
 const explain = (msg: string) => bookingErrors[Object.keys(bookingErrors).find((k) => msg.includes(k)) ?? ""] ?? "Something went wrong. Please try again.";
 
