@@ -94,6 +94,7 @@ create table public.library_resources (
   file_name    text check (char_length(file_name) <= 200),
   file_size    bigint check (file_size is null or file_size between 1 and 20971520),
   link_url     text check (link_url is null or (char_length(link_url) <= 500 and link_url ~ '^https://[^\s<>"]+$')),
+  ready        boolean generated always as (file_path is not null or link_url is not null) stored,
   status       public.pub_status not null default 'draft',
   created_by   uuid references auth.users (id) on delete set null,
   created_at   timestamptz not null default now(),
@@ -248,7 +249,7 @@ revoke all on public.posts, public.content_items, public.blog_posts, public.libr
 grant select on public.content_items, public.blog_posts to anon, authenticated;
 grant select on public.posts to authenticated;
 -- Members can list resources but not read where they live (file_path, file_name, file_size, link_url).
-grant select (id, title, kind, space, access, description, status, created_at, updated_at) on public.library_resources to authenticated;
+grant select (id, title, kind, space, access, description, ready, status, created_at, updated_at) on public.library_resources to authenticated;
 grant insert, update, delete on public.posts, public.content_items, public.blog_posts, public.library_resources to authenticated;
 grant select, delete on public.topic_suggestions to authenticated;
 grant insert (text) on public.topic_suggestions to authenticated;

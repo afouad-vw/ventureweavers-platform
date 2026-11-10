@@ -16,3 +16,6 @@ for f in supabase/tests/access.sql supabase/tests/events.sql supabase/tests/cont
   [ "${PIPESTATUS[0]}" = "0" ] || exit 1
 done
 bash supabase/tests/race.sh "${PSQL[@]}" -d t
+# Seed files must load cleanly too.
+for f in supabase/seed/*.sql; do [ -e "$f" ] && "${PSQL[@]}" -d t -f "$f"; done
+echo "SEED OK"

@@ -156,7 +156,7 @@ export function parseMarkdown(src: string): Block[] {
 export function markdownText(src: string): string {
   const walk = (c: Inline[]): string => c.map((x) => (x.t === "text" || x.t === "code" ? x.v : walk(x.c))).join("");
   return parseMarkdown(src)
-    .map((b) => (b.t === "hr" ? "" : b.t === "ul" || b.t === "ol" ? b.items.map(walk).join(" ") : walk(b.c)))
+    .map((b) => ("items" in b ? b.items.map(walk).join(" ") : "c" in b ? walk(b.c) : ""))
     .filter(Boolean)
     .join("\n\n");
 }

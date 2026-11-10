@@ -78,6 +78,7 @@ select pg_temp.check((select count(*) from public.posts) = 1, 'member sees publi
 select pg_temp.check((select title from public.posts) = 'Live post', 'scheduled and draft posts are hidden');
 select pg_temp.check((select count(*) from public.blog_posts) = 1, 'member reads published blog posts only');
 select pg_temp.check((select count(*) from public.library_resources) = 4, 'member lists published resources, locked ones included');
+select pg_temp.check((select count(*) from public.library_resources where ready) = 3, 'member sees which resources have a file or link');
 select pg_temp.expect_error($$select file_path from public.library_resources$$, '%permission denied%', 'member cannot read file paths');
 select pg_temp.expect_error($$select link_url from public.library_resources$$, '%permission denied%', 'member cannot read resource links');
 select pg_temp.expect_error($$select * from public.library_resources$$, '%permission denied%', 'select * is refused for members');

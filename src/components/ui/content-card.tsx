@@ -8,6 +8,7 @@ import { TagRow, type TagTone } from "./tag";
 export function ContentCard({
   thread,
   banner = "Pattern",
+  bannerSrc,
   bannerLabel,
   bannerChip,
   bannerChipRight,
@@ -21,6 +22,7 @@ export function ContentCard({
 }: {
   thread: TagTone;
   banner?: BannerChoice;
+  bannerSrc?: string | null;
   bannerLabel?: string;
   bannerChip?: React.ReactNode;
   bannerChipRight?: React.ReactNode;
@@ -34,7 +36,7 @@ export function ContentCard({
 }) {
   return (
     <article className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-card shadow-[0_1px_2px_rgb(7_17_18/0.05)]">
-      <Banner choice={banner} thread={thread} label={bannerLabel} chip={bannerChip} chipRight={bannerChipRight} />
+      <Banner src={bannerSrc} choice={banner} thread={thread} label={bannerLabel} chip={bannerChip} chipRight={bannerChipRight} />
       <div className="flex flex-1 flex-col gap-2 p-3.5">
         <h3 className="text-[15px] font-extrabold">
           {title}

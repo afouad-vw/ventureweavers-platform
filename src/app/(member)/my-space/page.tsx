@@ -11,6 +11,9 @@ import { requireMember } from "@/lib/auth/guards";
 import { bookingBadge, formatDateTime, formatEGP } from "@/lib/events/format";
 import { myBookings, paymentInstructions, type MyBooking } from "@/lib/events/queries";
 import { createClient } from "@/lib/supabase/server";
+import { ArrowRight } from "lucide-react";
+import { SaveButton } from "@/components/content/member-buttons";
+import { mySavedEntries } from "@/lib/content/queries";
 import { CancelReservation } from "./cancel-button";
 import { ProfileForm, type ProfileValues } from "./profile-form";
 
@@ -54,7 +57,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
       {tab === "tickets" ? <Tickets bookings={bookings} /> : null}
       {tab === "learning" ? <EmptyState>Your programs and masterclasses appear here. <Link className="font-bold text-link" href="/tvs">Explore TVS</Link></EmptyState> : null}
       {tab === "requests" ? <EmptyState>Your meeting requests appear here. <Link className="font-bold text-link" href="/brickr">Book a conversation</Link></EmptyState> : null}
-      {tab === "saved" ? <EmptyState>Save posts, articles and resources to find them here.</EmptyState> : null}
+      {tab === "saved" ? <Saved /> : null}
       {tab === "profile" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
           <Card>
@@ -150,5 +153,24 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
         );
       })}
     </div>
+  );
+}
+
+async function Saved() {
+  const items = await mySavedEntries();
+  if (!items.length) return <EmptyState>Save posts, articles and resources to find them here.</EmptyState>;
+  return (
+    <Card>
+      <ul className="flex flex-col">
+        {items.map((i) => (
+          <li key={`${i.type}:${i.id}`} className="flex items-center gap-3 border-b border-line py-2.5 last:border-b-0">
+            <span className="w-[110px] shrink-0 truncate text-[11px] font-extrabold tracking-[1.2px] text-faint uppercase">{i.label}</span>
+            <Link href={i.href} className="min-w-0 flex-1 truncate text-[14px] font-bold hover:underline">{i.title}</Link>
+            <SaveButton type={i.type} id={i.id} saved signedIn compact />
+            <Link href={i.href} aria-label={`Open ${i.title}`} className="text-faint hover:text-fg"><ArrowRight size={14} aria-hidden="true" /></Link>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }

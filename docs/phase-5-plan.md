@@ -1,6 +1,6 @@
 # Phase 5 plan: Home feed, Outloud content and blog, Library, Publishing
 
-Status: **waiting for approval** (new tables, file storage and access rules).
+Status: **approved 2026-11-09** (Markdown with preview, uploads up to 20 MB plus links, email from Publishing built now, blog public).
 
 Spec: `reference/prototype.html` → Home, Outloud › Digital content and Blog, Library, My space › Saved, Admin › Outloud, Library and Publishing.
 
@@ -40,7 +40,7 @@ Spec: `reference/prototype.html` → Home, Outloud › Digital content and Blog,
 
 ## Access rules (tested)
 
-- Published blog posts and digital content are **public** (good for search and sharing). Drafts and scheduled items only in the admin console.
+- Published blog posts and digital content are **public** (good for search and sharing). Drafts only in the admin console; scheduled content shows as "Coming [date]" without its link.
 - The Home feed, announcements and Library list are for **signed-in members**.
 - Library files sit in **private** storage. A download link is created on the server only after checking the member's level, and it expires after a few minutes, so links can't be passed around.
 - Access levels: **All members** works now. **TVS learners**, **BRICKR clients** and **QuidQuo waitlist** show as locked until those features exist (Phases 6 and 7); admins can already tag resources with them.
@@ -55,7 +55,20 @@ The body is written in a simple format with headings, bold, italics, lists, link
 
 Uses Resend (the `RESEND_API_KEY` you'd add for booking emails). Sent only to members who ticked The Floor Notes, with an unsubscribe link that turns the setting off. Sent in batches; the count is recorded.
 
-## Decisions needed
+## Decisions (answered 2026-11-09)
+
+- Blog: **Markdown with live preview**.
+- Library: **uploads up to 20 MB plus links**.
+- Publishing email: **built now** (needs `RESEND_API_KEY`).
+- Blog and digital content: **public**.
+
+## Build notes
+
+- Files (event banners, blog and post images, Library files) go straight from the browser to Supabase Storage through one-time upload links, then the server checks the file's real type and deletes anything that doesn't match. This avoids Vercel's 4.5 MB request limit.
+- Emails from Publishing need a confirm step, go out right away (feed posts can be scheduled), carry a one-click unsubscribe link, and are counted in the sent history.
+- Sample content from the prototype: `supabase/seed/20261110_content.sql`. Feed posts and announcements start as drafts.
+
+## Original questions
 
 1. **Blog format**: Markdown with preview (recommended), or plain text paragraphs only.
 2. **Library files**: uploads up to 20 MB (PDF, Word, Excel, PowerPoint, ZIP) plus links (recommended), or links only.

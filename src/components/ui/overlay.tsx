@@ -80,6 +80,7 @@ export function Drawer({
   eyebrow,
   children,
   footer,
+  wide,
 }: {
   open: boolean;
   onClose: () => void;
@@ -87,6 +88,8 @@ export function Drawer({
   eyebrow?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** Room for side-by-side editing, such as the blog editor with its preview. */
+  wide?: boolean;
 }) {
   const { ref, onBackdrop } = useDialog(open, onClose);
   return (
@@ -95,7 +98,8 @@ export function Drawer({
       onClick={onBackdrop}
       aria-label={title}
       className={cn(
-        "m-0 ml-auto h-dvh max-h-dvh w-[min(460px,100vw)] max-w-full bg-card p-0 text-fg backdrop:bg-ink/45",
+        "m-0 ml-auto h-dvh max-h-dvh max-w-full bg-card p-0 text-fg backdrop:bg-ink/45",
+        wide ? "w-[min(1040px,100vw)]" : "w-[min(460px,100vw)]",
         "flex-col open:flex",
       )}
     >

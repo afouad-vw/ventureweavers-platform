@@ -39,8 +39,7 @@ const supabaseHost = (() => {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  // Banner uploads are up to 5 MB.
-  experimental: { serverActions: { bodySizeLimit: "6mb" } },
+  // Files go straight from the browser to Supabase Storage (signed upload links), not through server actions.
   images: {
     remotePatterns: supabaseHost ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }] : [],
   },
