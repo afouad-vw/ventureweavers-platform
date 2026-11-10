@@ -1,6 +1,12 @@
 # Phase 11 plan: modern UI, detail pages, richer programs, services and shows
 
-Status: **for approval**. From Ahmed's comments, 2026-11-10.
+Status: **approved 2026-11-10**. From Ahmed's comments, 2026-11-10.
+
+## Decisions (answered 2026-11-10)
+
+- Program **dates, capacity, price per seat, format, location and Meet link live on each cohort** (a program can run several times with different dates and prices). The program editor holds the content; the cohort editor holds the run.
+- **3D means interface depth only** (glass, shadows, tilt); no 3D images.
+- **Custom programs**: a form asking for the key information with a Send button; it emails the custom-programs inbox (set in admin settings, Karim's address) instead of the Requests inbox.
 
 Done already (no approval needed): the pointer cursor now shows on every button, link and control, and "not allowed" on disabled ones.
 

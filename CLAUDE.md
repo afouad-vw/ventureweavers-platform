@@ -35,7 +35,7 @@ VentureWeavers house branding leads; spaces appear as coloured tags.
 - Base text 14px. Compact controls (36px buttons on desktop, 40px+ touch targets on mobile).
 - Never use the words "free" or "Dubai". We are based in Cairo and work across MENA.
 - Do not use "companion" as positioning.
-- No illustrations or 3D. Use photos, brand patterns and icons. Never stretch or squash images (`object-fit: cover`).
+- No illustrations or 3D images. Use photos, brand patterns and icons. Interface depth is welcome: liquid-glass surfaces, layered shadows, gentle card tilt and hover motion (always off for reduced motion). Never stretch or squash images (`object-fit: cover`).
 - Copy is plain and direct. Prices, dates and venues we don't know are placeholders like `[PRICE]`.
 
 ## Layout rules
@@ -75,3 +75,4 @@ Add product decisions here as they are made (prices, refund policy, roles, langu
 - Phase 8 approved (2026-11-10): Live mode for shows. Any confirmed ticket holder joins while an admin has it open; askers choose first name or anonymous; Pick is random from approved, not yet picked; one poll open at a time; ending the show emails the feedback link (opt-ins) and shows it in live mode; admin screen view for the projector; Supabase Realtime with 10-second refresh fallback.
 - Phase 9 approved (2026-11-10): Payments. One admin list of seats, program seats and payment requests (admin-only view), Mark paid / cancel / full refund from the drawer, CSV export. Payment requests (`VWP-` reference, bank transfer, admin marks paid) go to members only and show in My space › Payments; Paymob links replace the transfer step later. Full refunds only until the refund policy is set.
 - Phase 10 approved (2026-11-10): Notifications bell for members (personal events only, written by database triggers, latest 20, kept 90 days). Admin 2-step verification removed at Ahmed's request: admin sign-in is username + password (Turnstile, lockout, 12-character minimum and audit log stay); `is_admin()` no longer requires aal2; every admin sign-in emails that admin an alert with time and IP.
+- Phase 11 approved (2026-11-10): glass and depth UI (shown on Home and TVS first); cards show an overview with View details pages for programs, masterclasses and services; program dates, capacity, price, format, location and Meet link live on each cohort; brochures (PDF 10 MB, public bucket `brochures`); show photo galleries (up to 12, public bucket `event-gallery`); TVS custom programs use a form emailed to the custom-programs inbox set in admin settings; Live mode card on show pages.
