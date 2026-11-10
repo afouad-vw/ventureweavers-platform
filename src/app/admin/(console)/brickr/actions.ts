@@ -45,7 +45,7 @@ export async function saveService(form: FormData): Promise<ActionResult> {
   const sort = Number(s("sort") || 100);
   const row = {
     name: s("name").slice(0, 100),
-    space: s("space") === "Outloud" ? "Outloud" : "BRICKR",
+    space: s("space") === "Outloud" || s("space") === "TVS" ? s("space") : "BRICKR",
     audience: s("audience").replace(/\s+/g, " ").slice(0, 300) || "Founders",
     format: s("format").slice(0, 80),
     short_description: short,

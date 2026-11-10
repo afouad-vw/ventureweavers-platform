@@ -44,7 +44,7 @@ export function ServicesManager({ services }: { services: Service[] }) {
         {s ? <input type="hidden" name="id" value={s.id} /> : null}
         <TextField label="Name" name="name" defaultValue={s?.name ?? ""} required maxLength={100} />
         <div className="grid grid-cols-2 gap-3">
-          <SelectField label="Space" name="space" defaultValue={s?.space ?? "BRICKR"} options={["BRICKR", "Outloud"]} />
+          <SelectField label="Space" name="space" defaultValue={s?.space ?? "BRICKR"} options={["BRICKR", "Outloud", "TVS"]} hint="TVS is only for the custom programs request (not listed)." />
           <SelectField label="Status" name="status" defaultValue={s?.status ?? "draft"} options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
         </div>
         <TextArea label="Short description" name="short_description" rows={2} defaultValue={s?.short_description || s?.description || ""} maxLength={300} required hint="Shown on the card. Up to 300 characters." />

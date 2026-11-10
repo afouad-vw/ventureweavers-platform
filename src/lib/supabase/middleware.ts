@@ -7,9 +7,9 @@ import { supabaseConfigured, supabasePublicKey, supabaseUrl } from "./env";
  * from the current request headers; it is called again if cookies change so the refreshed
  * cookies reach both the page and the browser.
  */
-export async function refreshSession(req: NextRequest, build: () => NextResponse): Promise<NextResponse> {
+export async function refreshSession(req: NextRequest, build: () => NextResponse): Promise<{ res: NextResponse; signedIn: boolean }> {
   let res = build();
-  if (!supabaseConfigured) return res;
+  if (!supabaseConfigured) return { res, signedIn: false };
   const supabase = createServerClient(supabaseUrl, supabasePublicKey, {
     cookies: {
       getAll: () => req.cookies.getAll(),
@@ -20,6 +20,6 @@ export async function refreshSession(req: NextRequest, build: () => NextResponse
       },
     },
   });
-  await supabase.auth.getClaims();
-  return res;
+  const { data } = await supabase.auth.getClaims();
+  return { res, signedIn: Boolean(data?.claims?.sub) };
 }

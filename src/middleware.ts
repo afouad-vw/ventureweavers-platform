@@ -1,8 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { decide, hostConfig, SURFACE_HEADER } from "@/lib/hosts";
+import { isOpenPath } from "@/lib/open-paths";
 import { refreshSession } from "@/lib/supabase/middleware";
 
 const NOT_FOUND = "/__not-found";
+
 
 export async function middleware(req: NextRequest) {
   const d = decide(req.headers.get("host"), req.nextUrl.pathname, hostConfig());
@@ -13,6 +15,8 @@ export async function middleware(req: NextRequest) {
   const headersFor = () => {
     const h = new Headers(req.headers);
     h.delete(SURFACE_HEADER);
+    // Where the member was going, so the app can send them to "About you" and back.
+    h.set("x-vw-path", (req.nextUrl.pathname + req.nextUrl.search).slice(0, 500));
     if (d.kind !== "notfound") h.set(SURFACE_HEADER, d.surface);
     return h;
   };
@@ -31,7 +35,20 @@ export async function middleware(req: NextRequest) {
   };
 
   // The landing page has no accounts; everything else keeps the sign-in session fresh.
-  return d.surface === "site" ? build() : refreshSession(req, build);
+  if (d.surface === "site") return build();
+  const { res, signedIn } = await refreshSession(req, build);
+
+  // Member app: signed-out visitors see the sign-in page, then come back to where they were going.
+  const path = req.nextUrl.pathname;
+  const memberApp = d.surface === "app" || (d.surface === "path" && path !== "/admin" && !path.startsWith("/admin/"));
+  if (memberApp && !signedIn && !isOpenPath(path)) {
+    const to = new URL("/sign-in", req.url);
+    to.searchParams.set("next", path + req.nextUrl.search);
+    const r = NextResponse.redirect(to, 307);
+    r.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return r;
+  }
+  return res;
 }
 
 export const config = {

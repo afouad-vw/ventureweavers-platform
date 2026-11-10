@@ -8,7 +8,7 @@ export type Service = {
   id: string;
   slug: string;
   name: string;
-  space: "BRICKR" | "Outloud";
+  space: "BRICKR" | "Outloud" | "TVS";
   audience: string;
   format: string;
   description: string;
@@ -25,6 +25,14 @@ export type Service = {
 export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url";
 
 /** One published service, by its address. */
+/** The hidden service behind TVS custom program requests. */
+export async function customProgramService(): Promise<Service | null> {
+  if (!supabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("slug", "custom-program").eq("status", "published").maybeSingle();
+  return (data as Service | null) ?? null;
+}
+
 export async function getService(slug: string): Promise<Service | null> {
   if (!supabaseConfigured || !/^[a-z0-9-]{1,80}$/.test(slug)) return null;
   const supabase = await createClient();
@@ -54,7 +62,8 @@ const bySort = (a: Service, b: Service) => a.sort - b.sort || a.name.localeCompa
 export async function listServices(): Promise<Service[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("status", "published").limit(50);
+  // TVS custom programs have a service row for Calendly requests; it isn't listed with BRICKR and Outloud services.
+  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("status", "published").neq("space", "TVS").limit(50);
   return ((data ?? []) as Service[]).sort(bySort);
 }
 
