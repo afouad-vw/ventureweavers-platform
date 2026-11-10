@@ -1,6 +1,6 @@
 # Phase 7 plan: BRICKR services and requests, QuidQuo tracker and waitlist, Requests inbox
 
-Status: **waiting for approval** (new tables, access rules, member data).
+Status: **approved 2026-11-10**.
 
 Spec: `reference/prototype.html` → BRICKR, the "Request a meeting" pop-up, QuidQuo, My space › Requests, Admin › BRICKR, Admin › QuidQuo, Admin › Requests.
 
@@ -40,7 +40,14 @@ Spec: `reference/prototype.html` → BRICKR, the "Request a meeting" pop-up, Qui
 - At most 5 open requests per member, and 10 new requests a day, to keep the inbox useful.
 - BRICKR clients level = a request at Won; QuidQuo waitlist level = on the waitlist. Both are worked out in the database.
 
-## Decisions needed
+## Decisions (answered 2026-11-10)
+
+- Meeting times: **members pick a slot** (next 5 working days, Sunday–Thursday, 10:00–18:00 Cairo); partners confirm and add a Meet link.
+- Waitlist: **signed-in members only** (admins can add people by name and email).
+- **Email alerts** to both partners for new requests, applications and waitlist sign-ups.
+- **Won = BRICKR client**; the full client space stays locked for a later phase.
+
+## Original questions
 
 1. **Meeting times**: members pick a preferred slot from the next 5 working days and you confirm (recommended, as in the prototype), or live availability from your Google Calendar (needs the Calendar setup, later).
 2. **Waitlist**: signed-in members only (recommended: ties into the Library level and stops fake sign-ups), or also visitors with just an email.
