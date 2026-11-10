@@ -1,19 +1,4 @@
-import {
-  BarChart3,
-  BookOpen,
-  Briefcase,
-  Cpu,
-  CreditCard,
-  GraduationCap,
-  House,
-  Inbox,
-  Megaphone,
-  Mic,
-  Radio,
-  User,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { BarChart3, BookOpen, Briefcase, Cpu, CreditCard, GraduationCap, House, Inbox, Megaphone, Mic, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
 
 export type Thread = "Outloud" | "TVS" | "BRICKR" | "QuidQuo";
 
@@ -59,9 +44,13 @@ export const adminSpaces: NavItem[] = [
 export const adminShared: NavItem[] = [
   { href: "/admin/library", label: "Library", icon: BookOpen },
   { href: "/admin/publishing", label: "Publishing", icon: Megaphone },
+  { href: "/admin/check-in", label: "Door check-in", icon: ScanLine },
 ];
 
 /** True when `pathname` is this item's page or one of its sub-pages. */
+/** Super admins only (Phase 14). */
+export const adminTeam: NavItem = { href: "/admin/team", label: "Team & access", icon: ShieldCheck };
+
 export function isActive(pathname: string, href: string) {
   if (href === "/" || href === "/admin") return pathname === href;
   return pathname === href || pathname.startsWith(href + "/");

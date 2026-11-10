@@ -9,7 +9,7 @@ import { SchedulingSettings } from "./scheduling-settings";
 export const metadata: Metadata = { title: "Requests" };
 
 export default async function RequestsPage() {
-  await requireAdmin();
+  const admin = await requireAdmin("requests.view");
   const supabase = await createClient();
   const [items, base, { data: settings }] = await Promise.all([
     adminInbox(),
@@ -21,7 +21,7 @@ export default async function RequestsPage() {
     <>
       <PageHeader title="Requests" description="Every meeting request, private session and application in one place." />
       <RequestsInbox items={items} spaces={["BRICKR", "Outloud", "TVS"]} base={base} />
-      <SchedulingSettings calendly={setting("calendly_url")} inbox={setting("custom_program_email")} keysSet={Boolean(process.env.CALENDLY_TOKEN && process.env.CALENDLY_SIGNING_KEY)} />
+      {admin.isSuper ? <SchedulingSettings calendly={setting("calendly_url")} inbox={setting("custom_program_email")} keysSet={Boolean(process.env.CALENDLY_TOKEN && process.env.CALENDLY_SIGNING_KEY)} /> : null}
     </>
   );
 }

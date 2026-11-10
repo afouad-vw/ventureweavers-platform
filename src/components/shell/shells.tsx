@@ -4,11 +4,12 @@ import { initialsOf } from "@/lib/initials";
 
 import Image from "next/image";
 import Link from "next/link";
-import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberLive, memberSpaces, memberTabBar } from "@/lib/nav";
+import { adminMain, adminShared, adminSpaces, adminTeam, memberAccount, memberHome, memberLive, memberSpaces, memberTabBar } from "@/lib/nav";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import { adminSignOut } from "@/app/admin/(gate)/actions";
 import { adminHref } from "@/lib/hosts";
+import { canAny, PAGE_PERMS, type AdminAccess } from "@/lib/auth/permissions";
 import type { NavItem } from "@/lib/nav";
 import type { Notice } from "@/lib/notifications/format";
 import { AppShell, Who } from "./app-shell";
@@ -72,15 +73,23 @@ export function MemberShell({ member, live = false, notifications = [], children
 }
 
 /** Admin console layout. */
-export function AdminShell({ base, name, children }: { base: string; name: string; children: React.ReactNode }) {
-  const at = (items: NavItem[]) => items.map((i) => ({ ...i, href: adminHref(i.href, base) }));
+export function AdminShell({ base, name, access, children }: { base: string; name: string; access: AdminAccess; children: React.ReactNode }) {
+  // Only what this admin may open (Phase 14 access levels).
+  const allowed = (i: NavItem) => (PAGE_PERMS[i.href] ? canAny(access, PAGE_PERMS[i.href]) : access.isSuper);
+  const at = (items: NavItem[]) => items.filter(allowed).map((i) => ({ ...i, href: adminHref(i.href, base) }));
+  const sections = [
+    { items: at(adminMain) },
+    { label: "Spaces", items: at(adminSpaces) },
+    { label: "Shared", items: at(adminShared) },
+    ...(access.isSuper ? [{ label: "Settings", items: at([adminTeam]) }] : []),
+  ].filter((s) => s.items.length);
   return (
     <AppShell
-      sections={[{ items: at(adminMain) }, { label: "Spaces", items: at(adminSpaces) }, { label: "Shared", items: at(adminShared) }]}
+      sections={sections}
       searchPlaceholder="Search contacts, events, content"
       searchAction={adminHref("/admin/search", base)}
       crumb="Admin console"
-      topRight={<Who initials={initialsOf(name)} name={name} sub="Admin" href={adminHref("/admin", base)} />}
+      topRight={<Who initials={initialsOf(name)} name={name} sub={access.isSuper ? "Super admin" : "Team"} href={adminHref("/admin", base)} />}
       footer={
         <form action={adminSignOut}>
           <button type="submit" className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-semibold text-ink-fg hover:bg-ink2 hover:text-white">

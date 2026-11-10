@@ -7,7 +7,7 @@ import { PublishingBoard } from "./publishing-board";
 export const metadata: Metadata = { title: "Publishing" };
 
 export default async function PublishingPage() {
-  await requireAdmin();
+  await requireAdmin("publishing.manage");
   const [posts, log, subscribers] = await Promise.all([adminPosts(), adminPublishLog(), newsletterCount()]);
   return (
     <>

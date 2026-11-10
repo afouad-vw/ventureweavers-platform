@@ -36,7 +36,7 @@ async function emailOf(memberId: string) {
 
 /** Create or edit a payment request (members only). New requests are emailed to the member. */
 export async function saveRequest(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("payments.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id");
   if (id && !ID.test(id)) return { ok: false, error: "Unknown request." };
@@ -79,7 +79,7 @@ export async function saveRequest(form: FormData): Promise<ActionResult> {
 }
 
 export async function duplicateRequest(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("payments.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown request." };
   const supabase = await createClient();
   const { data: r } = await supabase.from("payment_requests").select("member_id, item, space, amount_piasters, due_on, note").eq("id", id).maybeSingle();
@@ -92,7 +92,7 @@ export async function duplicateRequest(id: string): Promise<ActionResult> {
 }
 
 export async function deleteRequest(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("payments.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown request." };
   const supabase = await createClient();
   const { error } = await supabase.from("payment_requests").delete().eq("id", id);
@@ -104,7 +104,7 @@ export async function deleteRequest(id: string): Promise<ActionResult> {
 
 /** Email the request (again) to the member. */
 export async function sendRequestEmail(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("payments.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown request." };
   if (!process.env.RESEND_API_KEY) return { ok: false, error: "Email isn't switched on yet (RESEND_API_KEY)." };
   const supabase = await createClient();
@@ -118,7 +118,7 @@ export async function sendRequestEmail(id: string): Promise<ActionResult> {
 }
 
 async function requestStatus(id: string, status: "paid" | "cancelled" | "refunded"): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("payments.manage");
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_request_status", { p_request: id, p_status: status });
   if (error) return { ok: false, error: explain(error.message, "Couldn't update the payment.") };
@@ -133,7 +133,7 @@ async function requestStatus(id: string, status: "paid" | "cancelled" | "refunde
 
 /** Mark paid, cancel or refund (full) any payment in the list. */
 export async function changePayment(kind: PayKind, id: string, action: "paid" | "cancel" | "refund"): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("payments.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown payment." };
   let r: ActionResult;
   if (kind === "seat") r = action === "paid" ? await markSeatPaid(id) : await cancelBooking(id, action === "refund");
@@ -151,7 +151,7 @@ export async function changePayment(kind: PayKind, id: string, action: "paid" | 
 }
 
 export async function exportPaymentsCsv(status: string, space: string, q: string): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("payments.manage");
   const rows = filterLedger(await adminLedger(), status, space, q.slice(0, 100));
   await audit(admin.userId, "payments.export", "payments_ledger", { after: { status, space, q, rows: rows.length } });
   const [header, ...body] = ledgerCsvRows(rows);

@@ -11,7 +11,7 @@ import { ServicesManager } from "./services-manager";
 export const metadata: Metadata = { title: "BRICKR admin" };
 
 export default async function AdminBrickrPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  await requireAdmin();
+  await requireAdmin("brickr.view");
   const base = await currentAdminBase();
   const { tab: raw } = await searchParams;
   const tab = raw === "services" ? "services" : "requests";

@@ -25,7 +25,7 @@ const refresh = () => {
 
 /** Add or edit a contact the partners added (members' own details are theirs to change). */
 export async function saveContact(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("contacts.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id") || null;
   if (id && !ID.test(id)) return { ok: false, error: "Unknown contact." };
@@ -57,7 +57,7 @@ export async function saveContact(form: FormData): Promise<ActionResult> {
 }
 
 export async function deleteContact(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("contacts.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown contact." };
   const supabase = await createClient();
   const { error } = await supabase.from("contacts").delete().eq("id", id);
@@ -69,7 +69,7 @@ export async function deleteContact(id: string): Promise<ActionResult> {
 
 /** Private note and admin tags for a member or an added contact. */
 export async function saveNote(target: { memberId?: string | null; contactId?: string | null }, note: string, tags: string[]): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("contacts.manage");
   const memberId = target.memberId && ID.test(target.memberId) ? target.memberId : null;
   const contactId = !memberId && target.contactId && ID.test(target.contactId) ? target.contactId : null;
   if (!memberId && !contactId) return { ok: false, error: "Notes can be added to members and added contacts." };
@@ -89,7 +89,7 @@ export async function saveNote(target: { memberId?: string | null; contactId?: s
 
 /** Import contacts from CSV text (read in the browser). Duplicates by email, members included, are skipped. */
 export async function importContacts(text: string): Promise<{ ok: true; added: number; skipped: { line: number; reason: string }[] } | { ok: false; error: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("contacts.manage");
   if (text.length > 2_000_000) return { ok: false, error: "The file is too large (2 MB at most)." };
   const { contacts } = await loadPeople();
   const existing = new Set(contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
@@ -104,7 +104,7 @@ export async function importContacts(text: string): Promise<{ ok: true; added: n
 }
 
 export async function exportContactsCsv(space: string, q: string): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("contacts.manage");
   const { contacts } = await loadPeople();
   const needle = q.trim().toLowerCase();
   const rows = contacts.filter(
@@ -140,7 +140,7 @@ function dbError(message: string | undefined, fallback: string) {
 
 /** Edit a member's details (the "About you" fields). Their email and newsletter choice stay theirs. */
 export async function updateMember(memberId: string, _state: FormState, form: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("contacts.manage");
   if (!ID.test(memberId)) return { error: "Unknown member." };
   const parsed = parseAbout((k) => form.get(k), (k) => form.getAll(k));
   if (!parsed.ok) return { error: parsed.error.replace("your ", "the ").replace("Add the name.", "Add a name.") };
@@ -163,7 +163,7 @@ export async function updateMember(memberId: string, _state: FormState, form: Fo
 
 /** Email the member a 2-hour link to choose a new password. Nobody else sees or sets it. */
 export async function sendPasswordReset(memberId: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("contacts.manage");
   if (!ID.test(memberId)) return { ok: false, error: "Unknown member." };
   const svc = createServiceClient();
   const { data: u } = await svc.auth.admin.getUserById(memberId);
@@ -192,7 +192,7 @@ export async function sendPasswordReset(memberId: string): Promise<ActionResult>
 
 /** Suspend a member (they're signed out and can't sign in) or lift the suspension. */
 export async function setSuspension(memberId: string, suspend: boolean, reason = ""): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("contacts.manage");
   if (!ID.test(memberId)) return { ok: false, error: "Unknown member." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_set_suspension", { p_member: memberId, p_suspend: suspend, p_reason: reason.slice(0, 500) });

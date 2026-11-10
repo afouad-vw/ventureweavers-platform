@@ -34,7 +34,7 @@ async function uniqueSlug(base: string, exceptId?: string) {
 
 /** Create or update an event from the editor drawer. */
 export async function saveEvent(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(["events.manage", "tvs.manage"]);
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id") || null;
   const type = s("type") as EventType;
@@ -142,7 +142,7 @@ async function saveMeetLink(supabase: Awaited<ReturnType<typeof createClient>>, 
 }
 
 export async function duplicateEvent(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(["events.manage", "tvs.manage"]);
   const supabase = await createClient();
   const { data: e } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
   if (!e) return { ok: false, error: "That event no longer exists." };
@@ -181,7 +181,7 @@ export async function duplicateEvent(id: string): Promise<ActionResult> {
 }
 
 export async function deleteEvent(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(["events.manage", "tvs.manage"]);
   const supabase = await createClient();
   const { data: before } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
   const { error } = await supabase.from("events").delete().eq("id", id);
@@ -194,7 +194,7 @@ export async function deleteEvent(id: string): Promise<ActionResult> {
 }
 
 export async function setEventStatus(id: string, status: "draft" | "published"): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(["events.manage", "tvs.manage"]);
   const supabase = await createClient();
   const { error } = await supabase.from("events").update({ status }).eq("id", id);
   if (error) return { ok: false, error: "Couldn't change the status." };
@@ -213,7 +213,7 @@ const bookingErrors: Record<string, string> = {
 const explain = (msg: string) => bookingErrors[Object.keys(bookingErrors).find((k) => msg.includes(k)) ?? ""] ?? "Something went wrong. Please try again.";
 
 export async function markPaid(bookingId: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin(["payments.manage", "events.manage"]);
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_mark_paid", { p_booking: bookingId });
   if (error) return { ok: false, error: explain(error.message) };
@@ -235,7 +235,7 @@ export async function markPaid(bookingId: string): Promise<ActionResult> {
 }
 
 export async function cancelBooking(bookingId: string, refund: boolean): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin(["events.manage", "payments.manage"]);
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_cancel_booking", { p_booking: bookingId, p_refund: refund });
   if (error) return { ok: false, error: explain(error.message) };
@@ -253,7 +253,7 @@ export type CheckInResult = {
 };
 
 export async function checkIn(code: string): Promise<CheckInResult | { error: string }> {
-  await requireAdmin();
+  await requireAdmin(["checkin.manage", "events.manage"]);
   const clean = code.trim().toUpperCase();
   if (!/^VW-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(clean)) return { result: "not_found", code: clean };
   const supabase = await createClient();
@@ -263,7 +263,7 @@ export async function checkIn(code: string): Promise<CheckInResult | { error: st
 }
 
 export async function saveSettings(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("super");
   const supabase = await createClient();
   for (const key of ["bank_details", "refund_policy"] as const) {
     const value = String(form.get(key) ?? "").slice(0, 2000);

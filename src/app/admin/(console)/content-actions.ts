@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
+import type { Perm } from "@/lib/auth/permissions";
 import {
   ACCESS_LEVELS,
   AUTHORS,
@@ -26,6 +27,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 
 type Table = "posts" | "content_items" | "blog_posts" | "library_resources";
+/** Who may change each kind of item (Phase 14 access levels). */
+const TABLE_PERM: Record<Table, Perm> = { posts: "publishing.manage", content_items: "content.manage", blog_posts: "content.manage", library_resources: "library.manage" };
 const NOUN: Record<Table, string> = { posts: "Post", content_items: "Content", blog_posts: "Blog post", library_resources: "Resource" };
 const ENTITY: Record<Table, string> = { posts: "post", content_items: "content", blog_posts: "blog", library_resources: "resource" };
 const COLS: Record<Table, string> = {
@@ -62,7 +65,7 @@ async function uniqueSlug(base: string, exceptId?: string) {
 // ---------------------------------------------------------------- shared save / duplicate / delete / status
 
 async function save(table: Table, id: string | null, row: Record<string, unknown>): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(TABLE_PERM[table]);
   const supabase = await createClient();
   if (id) {
     if (!ID.test(id)) return { ok: false, error: "Unknown item." };
@@ -81,7 +84,7 @@ async function save(table: Table, id: string | null, row: Record<string, unknown
 }
 
 async function duplicate(table: Table, id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(TABLE_PERM[table]);
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { data } = await supabase.from(table).select(COLS[table]).eq("id", id).maybeSingle();
@@ -106,7 +109,7 @@ async function duplicate(table: Table, id: string): Promise<ActionResult> {
 }
 
 async function remove(table: Table, id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(TABLE_PERM[table]);
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { data: before } = await supabase.from(table).select(COLS[table]).eq("id", id).maybeSingle();
@@ -126,7 +129,7 @@ async function remove(table: Table, id: string): Promise<ActionResult> {
 }
 
 async function setStatus(table: Table, id: string, status: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(TABLE_PERM[table]);
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const allowed = table === "content_items" ? CONTENT_STATUSES.map((s) => s.value) : ["draft", "published"];
   if (!allowed.includes(status as never)) return { ok: false, error: "Unknown status." };
@@ -177,7 +180,7 @@ function postRow(form: FormData): Record<string, unknown> | string {
 }
 
 export async function savePost(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("publishing.manage");
   const row = postRow(form);
   if (typeof row === "string") return { ok: false, error: row };
   return save("posts", String(form.get("id") ?? "") || null, row);
@@ -188,7 +191,7 @@ export async function setPostStatus(id: string, status: "draft" | "published") {
 
 /** Admin › Publishing › New update: to the Home feed, to The Floor Notes by email, or both. */
 export async function publishUpdate(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("publishing.manage");
   const toFeed = form.get("ch_feed") === "on";
   const toEmail = form.get("ch_email") === "on";
   if (!toFeed && !toEmail) return { ok: false, error: "Choose at least one channel." };
@@ -244,7 +247,7 @@ export async function publishUpdate(form: FormData): Promise<ActionResult> {
 // ---------------------------------------------------------------- digital content
 
 export async function saveContent(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("content.manage");
   const s = field(form);
   if (s("title").length < 3) return { ok: false, error: "Add a title (at least 3 characters)." };
   const url = s("url");
@@ -272,7 +275,7 @@ export async function setContentStatus(id: string, status: "draft" | "scheduled"
 // ---------------------------------------------------------------- blog
 
 export async function saveBlog(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("content.manage");
   const s = field(form);
   const id = s("id") || null;
   const title = s("title");
@@ -305,7 +308,7 @@ export async function setBlogStatus(id: string, status: "draft" | "published") {
 // ---------------------------------------------------------------- Library
 
 export async function saveResource(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("library.manage");
   const s = field(form);
   const id = s("id") || null;
   if (s("title").length < 3) return { ok: false, error: "Add a title (at least 3 characters)." };
@@ -345,7 +348,7 @@ export async function setResourceStatus(id: string, status: "draft" | "published
 
 /** Open a Library file from the admin console (any level, drafts too) through a 5-minute link. */
 export async function previewResource(id: string): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
-  await requireAdmin();
+  await requireAdmin("library.view");
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("open_resource", { p_id: id });
@@ -359,7 +362,7 @@ export async function previewResource(id: string): Promise<{ ok: true; url: stri
 // ---------------------------------------------------------------- topic suggestions
 
 export async function setTopicStatus(id: string, status: "new" | "picked" | "archived"): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("content.manage");
   if (!ID.test(id) || !["new", "picked", "archived"].includes(status)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { error } = await supabase.from("topic_suggestions").update({ status }).eq("id", id);
@@ -370,7 +373,7 @@ export async function setTopicStatus(id: string, status: "new" | "picked" | "arc
 }
 
 export async function deleteTopic(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("content.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { error } = await supabase.from("topic_suggestions").delete().eq("id", id);

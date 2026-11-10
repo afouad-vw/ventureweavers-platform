@@ -12,7 +12,7 @@ import { PaymentSettingsForm } from "./settings-form";
 export const metadata: Metadata = { title: "Payments" };
 
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  await requireAdmin();
+  const admin = await requireAdmin("payments.view");
   const { q } = await searchParams;
   const supabase = await createClient();
   const [rows, members, settings, { data: reqs }, { data: admins }] = await Promise.all([
@@ -28,10 +28,12 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
     <>
       <PageHeader title="Payments" description="Tickets, programs, masterclasses and payment requests, paid by bank transfer for now (card, wallet and Fawry once Paymob is live)." />
       <PaymentsBoard initialQuery={(q ?? "").slice(0, 80)} rows={rows} members={members} details={details} admins={adminNames} />
-      <Card className="max-w-[640px]">
-        <CardHeader title="What members see" />
-        <PaymentSettingsForm bankDetails={settings.bank_details} refundPolicy={settings.refund_policy} />
-      </Card>
+      {admin.isSuper ? (
+        <Card className="max-w-[640px]">
+          <CardHeader title="What members see" />
+          <PaymentSettingsForm bankDetails={settings.bank_details} refundPolicy={settings.refund_policy} />
+        </Card>
+      ) : null}
     </>
   );
 }

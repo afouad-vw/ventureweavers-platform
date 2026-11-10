@@ -9,7 +9,7 @@ import { LogManager, StagesManager, WaitlistTable } from "./quidquo-admin";
 export const metadata: Metadata = { title: "QuidQuo admin" };
 
 export default async function AdminQuidQuoPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  await requireAdmin();
+  await requireAdmin("quidquo.view");
   const base = await currentAdminBase();
   const { tab: raw } = await searchParams;
   const tab = raw === "log" || raw === "waitlist" ? raw : "stages";

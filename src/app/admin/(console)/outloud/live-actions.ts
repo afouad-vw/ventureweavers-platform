@@ -16,7 +16,7 @@ function refresh() {
 }
 
 async function call(fn: string, args: Record<string, unknown>, message: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("live.manage");
   const supabase = await createClient();
   const { error } = await supabase.rpc(fn, args);
   if (error) return { ok: false, error: liveError(error.message) };
@@ -40,7 +40,7 @@ export async function pickQuestion(eventId: string) {
 }
 
 export async function setQuestionStatus(id: string, status: "waiting" | "approved" | "hidden"): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("live.manage");
   if (!ID.test(id) || !["waiting", "approved", "hidden"].includes(status)) return { ok: false, error: "Unknown question." };
   const supabase = await createClient();
   const { error } = await supabase.from("live_questions").update({ status }).eq("id", id);
@@ -51,7 +51,7 @@ export async function setQuestionStatus(id: string, status: "waiting" | "approve
 }
 
 export async function deleteQuestion(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("live.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown question." };
   const supabase = await createClient();
   const { error } = await supabase.from("live_questions").delete().eq("id", id);
@@ -63,7 +63,7 @@ export async function deleteQuestion(id: string): Promise<ActionResult> {
 
 /** Create or edit a poll. Options are typed one per line; options that stay keep their votes. */
 export async function savePoll(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("live.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id");
   const eventId = s("event_id");
@@ -103,7 +103,7 @@ export async function savePoll(form: FormData): Promise<ActionResult> {
 }
 
 export async function duplicatePoll(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("live.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown poll." };
   const supabase = await createClient();
   const { data: p } = await supabase.from("live_polls").select("event_id, question, live_poll_options(label, position)").eq("id", id).maybeSingle();
@@ -118,7 +118,7 @@ export async function duplicatePoll(id: string): Promise<ActionResult> {
 }
 
 export async function deletePoll(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("live.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown poll." };
   const supabase = await createClient();
   const { error } = await supabase.from("live_polls").delete().eq("id", id);
@@ -135,7 +135,7 @@ export async function setPollOpen(id: string, open: boolean) {
 
 /** End show: close the poll, move to Your Voice and (once) email the feedback link to opted-in attendees. */
 export async function endShow(eventId: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("live.manage");
   if (!ID.test(eventId)) return { ok: false, error: "Unknown show." };
   const supabase = await createClient();
   const { data: first, error } = await supabase.rpc("admin_live_end", { p_event: eventId });

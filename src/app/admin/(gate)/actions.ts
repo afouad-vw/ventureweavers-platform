@@ -15,8 +15,8 @@ const GENERIC = "That username and password don't match.";
 const to = async (p: string) => adminHref(p, await currentAdminBase());
 
 async function isListedAdmin(userId: string) {
-  const { data } = await createServiceClient().from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
-  return Boolean(data);
+  const { data } = await createServiceClient().from("admin_users").select("user_id, paused_at").eq("user_id", userId).maybeSingle();
+  return Boolean(data && !data.paused_at);
 }
 
 /** Admin sign-in: username and password (2-step removed in Phase 10). Emails the admin a sign-in alert. */
@@ -42,8 +42,9 @@ export async function adminSignIn(_: FormState, form: FormData): Promise<FormSta
     await record(false);
     return { error: GENERIC };
   }
-  const { data: admin } = await svc.from("admin_users").select("user_id").eq("username", username).maybeSingle();
-  const email = admin ? (await svc.auth.admin.getUserById(admin.user_id)).data.user?.email : null;
+  const { data: admin } = await svc.from("admin_users").select("user_id, paused_at").eq("username", username).maybeSingle();
+  // Paused team members get the same message as a wrong password.
+  const email = admin && !admin.paused_at ? (await svc.auth.admin.getUserById(admin.user_id)).data.user?.email : null;
   if (!email) {
     await record(false);
     return { error: GENERIC };

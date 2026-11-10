@@ -6,6 +6,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000a9', 'admin9@test', '{"name":"Admin Nine"}'),
   ('00000000-0000-0000-0000-0000000000c9', 'c9@test', '{"name":"Member C9"}');
 insert into public.admin_users (user_id, username, display_name) values ('00000000-0000-0000-0000-0000000000a9', 'admin.nine', 'Admin Nine');
+update public.admin_users set is_super = true; -- test admins are super admins (Phase 14)
 insert into public.contacts (name, email, tags) values ('Tarek Nabil', 'tarek@example.com', '{BRICKR,QuidQuo}');
 insert into public.contact_notes (member_id, note) values ('00000000-0000-0000-0000-0000000000c9', 'Strong on product.');
 

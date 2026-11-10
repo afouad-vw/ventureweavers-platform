@@ -12,6 +12,7 @@ import { relativeWhen } from "@/lib/content/format";
 import { loadPerson } from "@/lib/contacts/person";
 import { formatDate, formatDateTime, formatEGP } from "@/lib/events/format";
 import { initialsOf } from "@/lib/initials";
+import { can } from "@/lib/auth/permissions";
 import { KIND_LABEL, statusLabel, statusTone, totals } from "@/lib/payments/format";
 import { splitPhone } from "@/lib/profile/about";
 import { waNumber } from "../wa";
@@ -31,7 +32,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 export default async function ContactPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ tab?: string }> }) {
-  await requireAdmin();
+  const admin = await requireAdmin("contacts.view");
+  const manage = can(admin, "contacts.manage");
+  const seePayments = can(admin, "payments.view");
   const [{ key }, { tab: rawTab }, base] = await Promise.all([params, searchParams, currentAdminBase()]);
   const person = await loadPerson(key);
   if (!person) notFound();
@@ -69,7 +72,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
           <div className="flex flex-wrap items-center gap-2">
             {c.email ? <a href={`mailto:${c.email}`} className={buttonClass("secondary")}><Mail size={15} aria-hidden="true" />Email</a> : null}
             {wa ? <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary")}><MessageCircle size={15} aria-hidden="true" />WhatsApp</a> : null}
-            <PersonActions
+            {manage ? <PersonActions
               contact={c}
               base={base}
               member={
@@ -93,7 +96,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                     }
                   : null
               }
-            />
+            /> : null}
           </div>
         </div>
         {a?.suspended ? (
@@ -112,7 +115,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
           { value: "activity", label: "Activity", count: timeline.length },
           ...(c.memberId ? [{ value: "requests", label: "Requests & meetings", count: requests.length }] : []),
           { value: "notes", label: "Notes & tags" },
-          ...(c.memberId ? [{ value: "payments", label: "Payments", count: payments.length }] : []),
+          ...(c.memberId && seePayments ? [{ value: "payments", label: "Payments", count: payments.length }] : []),
         ]}
       />
 
@@ -176,7 +179,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
 
       {tab === "notes" ? (
         <div className="max-w-[720px]">
-          <NotesCard contact={c} />
+          <NotesCard contact={c} readOnly={!manage} />
         </div>
       ) : null}
 
@@ -229,7 +232,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
         )
       ) : null}
 
-      {tab === "payments" ? (
+      {tab === "payments" && seePayments ? (
         payments.length ? (
           <Card>
             <CardHeader title="Payments" action={<span className="font-normal text-faint">Paid {formatEGP(sums.collected)} · pending {formatEGP(sums.pending)}</span>} />

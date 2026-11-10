@@ -8,6 +8,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000b2', 'm2@test', '{"name":"Member Two"}'),
   ('00000000-0000-0000-0000-0000000000b3', 'm3@test', '{"name":"Member Three"}');
 insert into public.admin_users (user_id, username, display_name) values ('00000000-0000-0000-0000-0000000000a1', 'admin.two', 'Admin');
+update public.admin_users set is_super = true; -- test admins are super admins (Phase 14)
 
 insert into public.events (id, slug, title, type, starts_at, venue, capacity, price_piasters, status) values
   ('10000000-0000-0000-0000-000000000001', 'show-01', 'Open Floor Show 01', 'public_show', now() + interval '10 days', 'Cairo', 3, 45000, 'published'),

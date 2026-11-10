@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { adminSessionVerdict, clientIp } from "./policy";
+import { canAny, type Perm } from "./permissions";
 
 /** Local development only: open the admin console without Supabase. Ignored in production builds. */
 const devOpen = process.env.NODE_ENV !== "production" && process.env.DEV_OPEN_ADMIN === "1";
@@ -41,7 +42,7 @@ export async function requireMember(here: string): Promise<Member> {
   return m;
 }
 
-export type Admin = { userId: string; username: string; displayName: string; sessionId: string };
+export type Admin = { userId: string; username: string; displayName: string; sessionId: string; isSuper: boolean; perms: string[] };
 
 /** Where admin links point on this request (no /admin prefix on the admin host). */
 export async function currentAdminBase() {
@@ -49,14 +50,25 @@ export async function currentAdminBase() {
 }
 
 /**
- * For every admin page and action. Passes only when the person is signed in, listed in admin_users,
- * and the session is neither idle nor too old. (2-step verification was removed on 2026-11-10, Phase 10.)
+ * For every admin page and action. Passes only when the person is signed in, listed in admin_users
+ * (not paused), and the session is neither idle nor too old. With `need`, the admin must also hold one of
+ * those permissions (Phase 14); "super" means super admins only. Pages without the right go to the
+ * admin home; server actions should catch NEXT_REDIRECT naturally (the redirect ends the request).
+ * (2-step verification was removed on 2026-11-10, Phase 10.)
  */
-export async function requireAdmin(): Promise<Admin> {
+export async function requireAdmin(need?: Perm | readonly Perm[] | "super"): Promise<Admin> {
+  const admin = await requireAdminSession();
+  if (!need) return admin;
+  const ok = need === "super" ? admin.isSuper : canAny(admin, need);
+  if (!ok) redirect(adminHref("/admin?denied=1", await currentAdminBase()));
+  return admin;
+}
+
+async function requireAdminSession(): Promise<Admin> {
   const base = await currentAdminBase();
   const to = (p: string) => adminHref(p, base);
 
-  if (devOpen) return { userId: "dev", username: "dev", displayName: "Local dev", sessionId: "dev" };
+  if (devOpen) return { userId: "dev", username: "dev", displayName: "Local dev", sessionId: "dev", isSuper: true, perms: [] };
   if (!supabaseConfigured) redirect(to("/admin/sign-in"));
 
   const supabase = await createClient();
@@ -65,8 +77,8 @@ export async function requireAdmin(): Promise<Admin> {
   if (!claims?.sub) redirect(to("/admin/sign-in"));
 
   const svc = createServiceClient();
-  const { data: admin } = await svc.from("admin_users").select("username, display_name").eq("user_id", claims.sub).maybeSingle();
-  if (!admin) {
+  const { data: admin } = await svc.from("admin_users").select("username, display_name, is_super, permissions, paused_at").eq("user_id", claims.sub).maybeSingle();
+  if (!admin || admin.paused_at) {
     await supabase.auth.signOut({ scope: "local" });
     redirect(to("/admin/sign-in"));
   }
@@ -93,7 +105,7 @@ export async function requireAdmin(): Promise<Admin> {
     }
   }
 
-  return { userId: claims.sub, username: admin.username, displayName: admin.display_name, sessionId };
+  return { userId: claims.sub, username: admin.username, displayName: admin.display_name, sessionId, isSuper: Boolean(admin.is_super), perms: (admin.permissions ?? []) as string[] };
 }
 
 /** Record an admin change. Call from every server action that creates, edits or deletes something. */

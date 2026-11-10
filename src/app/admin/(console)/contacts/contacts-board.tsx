@@ -19,7 +19,7 @@ import { waNumber } from "./wa";
 
 const SPACES: Space[] = ["Outloud", "TVS", "BRICKR", "QuidQuo"];
 
-export function ContactsBoard({ contacts, base, initialQuery = "" }: { contacts: Contact[]; base: string; initialQuery?: string }) {
+export function ContactsBoard({ contacts, base, canManage = true, initialQuery = "" }: { contacts: Contact[]; base: string; canManage?: boolean; initialQuery?: string }) {
   const [seg, setSeg] = useState<"All" | Space>("All");
   const [q, setQ] = useState(initialQuery);
   const [adding, setAdding] = useState(false);
@@ -46,7 +46,7 @@ export function ContactsBoard({ contacts, base, initialQuery = "" }: { contacts:
             );
           })}
         </nav>
-        <div className="flex flex-wrap gap-2">
+        {canManage ? <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
             onClick={async () => {
@@ -68,7 +68,7 @@ export function ContactsBoard({ contacts, base, initialQuery = "" }: { contacts:
             <Plus size={15} aria-hidden="true" />
             Add contact
           </Button>
-        </div>
+        </div> : null}
       </div>
 
       <label className="relative flex w-full max-w-[340px] items-center">

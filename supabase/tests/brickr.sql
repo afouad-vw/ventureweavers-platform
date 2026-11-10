@@ -7,6 +7,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000f1', 'f1@test', '{"name":"Founder F1"}'),
   ('00000000-0000-0000-0000-0000000000f2', 'f2@test', '{"name":"Founder F2"}');
 insert into public.admin_users (user_id, username, display_name) values ('00000000-0000-0000-0000-0000000000a8', 'admin.eight', 'Admin Eight');
+update public.admin_users set is_super = true; -- test admins are super admins (Phase 14)
 
 insert into public.services (id, slug, name, space, status) values
   ('60000000-0000-0000-0000-000000000001', 'diagnostic', 'Growth diagnostic', 'BRICKR', 'published'),

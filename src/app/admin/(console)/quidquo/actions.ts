@@ -18,7 +18,7 @@ function refresh() {
 }
 
 async function write(table: string, id: string | null, row: Record<string, unknown>, noun: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("quidquo.manage");
   const supabase = await createClient();
   if (id) {
     if (!ID.test(id)) return { ok: false, error: "Unknown item." };
@@ -35,7 +35,7 @@ async function write(table: string, id: string | null, row: Record<string, unkno
 }
 
 async function remove(table: string, id: string, noun: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("quidquo.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { error } = await supabase.from(table).delete().eq("id", id);
@@ -46,7 +46,7 @@ async function remove(table: string, id: string, noun: string): Promise<ActionRe
 }
 
 export async function saveStage(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("quidquo.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   if (s("name").length < 2) return { ok: false, error: "Add a name." };
   const progress = Number(s("progress") || 0);
@@ -57,14 +57,14 @@ export async function saveStage(form: FormData): Promise<ActionResult> {
 export async function deleteStage(id: string) { return remove("qq_stages", id, "Stage"); }
 
 export async function saveLog(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("quidquo.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   if (s("title").length < 3) return { ok: false, error: "Add a title." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s("entry_date"))) return { ok: false, error: "Choose a date." };
   return write("qq_log", s("id") || null, { title: s("title").slice(0, 160), body: s("body").slice(0, 1000), entry_date: s("entry_date"), status: s("status") === "published" ? "published" : "draft" }, "Entry");
 }
 export async function duplicateLog(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("quidquo.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown entry." };
   const supabase = await createClient();
   const { data } = await supabase.from("qq_log").select("entry_date, title, body").eq("id", id).maybeSingle();
@@ -78,7 +78,7 @@ export async function setLogStatus(id: string, status: "draft" | "published"): P
 export async function deleteLog(id: string) { return remove("qq_log", id, "Entry"); }
 
 export async function addToWaitlist(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("quidquo.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const email = s("email").toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: "Add a valid email." };
@@ -88,7 +88,7 @@ export async function addToWaitlist(form: FormData): Promise<ActionResult> {
 export async function removeFromWaitlist(id: string) { return remove("waitlist", id, "Person"); }
 
 export async function exportWaitlistCsv(): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("quidquo.manage");
   const rows = await adminWaitlist();
   await audit(admin.userId, "export", "waitlist", { after: { rows: rows.length } });
   return {

@@ -8,6 +8,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000c', 'other@test', '{}');
 insert into public.admin_users (user_id, username, display_name)
   values ('00000000-0000-0000-0000-00000000000a', 'admin.one', 'Admin One');
+update public.admin_users set is_super = true; -- test admins are super admins (Phase 14)
 
 create function pg_temp.check(ok boolean, label text) returns void language plpgsql as $$
 begin

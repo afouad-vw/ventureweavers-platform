@@ -118,7 +118,7 @@ export function PersonActions({ contact, member, base }: { contact: Contact; mem
 }
 
 /** The partners' private note and space tags. */
-export function NotesCard({ contact: c }: { contact: Contact }) {
+export function NotesCard({ contact: c, readOnly = false }: { contact: Contact; readOnly?: boolean }) {
   const [note, setNote] = useState(c.note);
   const [tags, setTags] = useState<Space[]>(c.adminTags);
   const r = useRunner();
@@ -131,9 +131,18 @@ export function NotesCard({ contact: c }: { contact: Contact }) {
       </Card>
     );
   }
+  if (readOnly) {
+    return (
+      <Card className="gap-3">
+        <CardHeader title="Notes and tags" action={<span className="font-normal text-faint">View only</span>} />
+        <p className="text-[13.5px] whitespace-pre-line text-muted">{c.note || "No note yet."}</p>
+        {c.adminTags.length ? <div className="flex flex-wrap gap-1">{c.adminTags.map((t) => <ThreadTag key={t} thread={t} />)}</div> : null}
+      </Card>
+    );
+  }
   return (
     <Card className="gap-3">
-      <CardHeader title="Notes and tags" action={<span className="font-normal text-faint">Partners only</span>} />
+      <CardHeader title="Notes and tags" action={<span className="font-normal text-faint">Team only</span>} />
       <label className="sr-only" htmlFor="note">Private note</label>
       <textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} rows={4} maxLength={4000} placeholder="Visible to partners only" className="resize-y rounded-lg border border-line2 bg-card px-2.5 py-2 text-[13.5px] text-fg placeholder:text-faint focus:border-primary focus:outline-none" />
       {c.memberId ? (

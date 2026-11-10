@@ -1,6 +1,7 @@
 "use server";
 
 import { audit, requireAdmin } from "@/lib/auth/guards";
+import { UPLOAD_PERMS } from "@/lib/auth/permissions";
 import { createServiceClient } from "@/lib/supabase/service";
 import { checkUpload, cleanFileName, contentMatches, extOf, sniff, UPLOAD_RULES, type UploadTarget } from "@/lib/uploads";
 
@@ -16,7 +17,7 @@ export async function startUpload(
   name: string,
   size: number,
 ): Promise<{ ok: true; path: string; url: string; contentType: string } | { ok: false; error: string }> {
-  await requireAdmin();
+  await requireAdmin(UPLOAD_PERMS);
   if (!TARGETS.includes(target)) return { ok: false, error: "Unknown upload." };
   const bad = checkUpload(target, name, size);
   if (bad) return { ok: false, error: bad };
@@ -36,7 +37,7 @@ export async function finishUpload(
   path: string,
   originalName: string,
 ): Promise<{ ok: true; url: string | null; path: string; fileName: string; size: number } | { ok: false; error: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(UPLOAD_PERMS);
   if (!TARGETS.includes(target) || !PATH.test(path)) return { ok: false, error: "Unknown upload." };
   const svc = createServiceClient();
   const bucket = svc.storage.from(target);

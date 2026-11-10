@@ -13,7 +13,7 @@ import { bookingBadge, formatDateTime, formatEGP } from "@/lib/events/format";
 export const metadata: Metadata = { title: "Bookings" };
 
 export default async function EventBookingsPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdmin();
+  await requireAdmin(["events.view", "tvs.view"]);
   const base = await currentAdminBase();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();

@@ -21,7 +21,7 @@ const field = (form: FormData) => (k: string) => String(form.get(k) ?? "").trim(
 const cairo = (v: string, time = "00:00") => (v ? cairoLocalToISO(v.includes("T") ? v : `${v}T${time}`) : null);
 
 async function write(table: string, id: string | null, row: Record<string, unknown>, noun: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("classroom.manage");
   const supabase = await createClient();
   if (id) {
     if (!ID.test(id)) return { ok: false, error: "Unknown item." };
@@ -38,7 +38,7 @@ async function write(table: string, id: string | null, row: Record<string, unkno
 }
 
 async function remove(table: string, id: string, noun: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
   const { error } = await supabase.from(table).delete().eq("id", id);
@@ -51,7 +51,7 @@ async function remove(table: string, id: string, noun: string): Promise<ActionRe
 // ---------------------------------------------------------------- modules and steps
 
 export async function saveModule(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   const s = field(form);
   if (!ID.test(s("cohort_id"))) return { ok: false, error: "Choose a cohort." };
   if (s("title").length < 2) return { ok: false, error: "Add a title." };
@@ -68,7 +68,7 @@ export async function saveModule(form: FormData): Promise<ActionResult> {
 export async function deleteModule(id: string) { return remove("modules", id, "Module"); }
 
 export async function saveStep(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   const s = field(form);
   if (!ID.test(s("module_id"))) return { ok: false, error: "Choose a module." };
   if (s("title").length < 2) return { ok: false, error: "Add a title." };
@@ -88,7 +88,7 @@ export async function deleteStep(id: string) { return remove("module_steps", id,
 
 /** Copy modules, steps and assignments from one cohort to another (dates left empty to set again). */
 export async function copyCurriculum(fromCohort: string, toCohort: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("classroom.manage");
   if (!ID.test(fromCohort) || !ID.test(toCohort) || fromCohort === toCohort) return { ok: false, error: "Choose another cohort to copy from." };
   const supabase = await createClient();
   const { data: mods } = await supabase.from("modules").select("id, position, title, summary").eq("cohort_id", fromCohort).order("position");
@@ -111,7 +111,7 @@ export async function copyCurriculum(fromCohort: string, toCohort: string): Prom
 // ---------------------------------------------------------------- assignments and review
 
 export async function saveAssignment(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   const s = field(form);
   if (!ID.test(s("module_id"))) return { ok: false, error: "Choose a module." };
   if (s("title").length < 2) return { ok: false, error: "Add a title." };
@@ -126,7 +126,7 @@ export async function saveAssignment(form: FormData): Promise<ActionResult> {
 export async function deleteAssignment(id: string) { return remove("assignments", id, "Assignment"); }
 
 export async function reviewSubmission(id: string, feedback: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown submission." };
   if (feedback.trim().length < 2) return { ok: false, error: "Write some feedback first." };
   const supabase = await createClient();
@@ -146,7 +146,7 @@ export async function reviewSubmission(id: string, feedback: string): Promise<Ac
 }
 
 export async function reopenSubmission(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown submission." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_reopen_submission", { p_submission: id });
@@ -156,7 +156,7 @@ export async function reopenSubmission(id: string): Promise<ActionResult> {
 }
 
 export async function openSubmissionAdmin(id: string): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown submission." };
   const supabase = await createClient();
   const { data } = await supabase.from("submissions").select("file_path, file_name").eq("id", id).maybeSingle();
@@ -168,7 +168,7 @@ export async function openSubmissionAdmin(id: string): Promise<{ ok: true; url: 
 // ---------------------------------------------------------------- live sessions
 
 export async function saveSession(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   const s = field(form);
   if (!ID.test(s("cohort_id"))) return { ok: false, error: "Choose a cohort." };
   if (s("title").length < 2) return { ok: false, error: "Add a title." };
@@ -195,7 +195,7 @@ export async function deleteSession(id: string) { return remove("class_sessions"
 // ---------------------------------------------------------------- documents
 
 export async function saveCohortFile(form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   const s = field(form);
   if (!ID.test(s("cohort_id"))) return { ok: false, error: "Choose a cohort." };
   if (s("title").length < 2) return { ok: false, error: "Add a title." };
@@ -207,7 +207,7 @@ export async function saveCohortFile(form: FormData): Promise<ActionResult> {
 }
 
 export async function deleteCohortFile(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown document." };
   const supabase = await createClient();
   const { data } = await supabase.from("cohort_files").select("file_path").eq("id", id).maybeSingle();
@@ -217,7 +217,7 @@ export async function deleteCohortFile(id: string): Promise<ActionResult> {
 }
 
 export async function openCohortFileAdmin(id: string): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
-  await requireAdmin();
+  await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown document." };
   const supabase = await createClient();
   const { data } = await supabase.from("cohort_files").select("file_path, file_name").eq("id", id).maybeSingle();
@@ -229,7 +229,7 @@ export async function openCohortFileAdmin(id: string): Promise<{ ok: true; url: 
 // ---------------------------------------------------------------- discussion
 
 export async function setPostHidden(id: string, hidden: boolean): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("classroom.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown post." };
   const supabase = await createClient();
   const { error } = await supabase.from("cohort_posts").update({ removed_at: hidden ? new Date().toISOString() : null }).eq("id", id);

@@ -21,7 +21,7 @@ function refresh() {
 }
 
 export async function moveRequest(id: string, status: ApplicationStatus): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("requests.manage");
   if (!ID.test(id) || !APPLICATION_STATUSES.some((s) => s.value === status)) return { ok: false, error: "Unknown stage." };
   const supabase = await createClient();
   const { data: before } = await supabase.from("requests").select("status").eq("id", id).maybeSingle();
@@ -34,7 +34,7 @@ export async function moveRequest(id: string, status: ApplicationStatus): Promis
 }
 
 export async function setRequestOwner(id: string, owner: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("requests.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown request." };
   const clean = owner.trim().slice(0, 60) || null;
   const supabase = await createClient();
@@ -47,7 +47,7 @@ export async function setRequestOwner(id: string, owner: string): Promise<Action
 
 /** Confirm the intro call: time (Cairo) and Meet link. Moves New to Intro call and emails the member. */
 export async function confirmMeeting(id: string, whenLocal: string, url: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("requests.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown request." };
   let at: string;
   try {
@@ -72,7 +72,7 @@ export async function confirmMeeting(id: string, whenLocal: string, url: string)
 }
 
 export async function addRequestNote(id: string, body: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("requests.manage");
   const text = body.trim();
   if (!ID.test(id) || !text) return { ok: false, error: "Write a note first." };
   const supabase = await createClient();
@@ -83,7 +83,7 @@ export async function addRequestNote(id: string, body: string): Promise<ActionRe
 }
 
 export async function deleteRequestNote(noteId: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("requests.manage");
   if (!ID.test(noteId)) return { ok: false, error: "Unknown note." };
   const supabase = await createClient();
   const { error } = await supabase.from("request_notes").delete().eq("id", noteId);
@@ -93,7 +93,7 @@ export async function deleteRequestNote(noteId: string): Promise<ActionResult> {
 }
 
 export async function deleteRequest(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("requests.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown request." };
   const supabase = await createClient();
   const { error } = await supabase.from("requests").delete().eq("id", id);
@@ -104,7 +104,7 @@ export async function deleteRequest(id: string): Promise<ActionResult> {
 }
 
 export async function exportInboxCsv(): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("requests.manage");
   const items = await adminInbox();
   await audit(admin.userId, "export", "requests", { after: { rows: items.length } });
   return {

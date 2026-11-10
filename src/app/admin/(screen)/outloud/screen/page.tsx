@@ -6,7 +6,7 @@ import { ScreenView } from "./screen-view";
 export const metadata: Metadata = { title: "Screen" };
 
 export default async function ScreenPage({ searchParams }: { searchParams: Promise<{ event?: string }> }) {
-  await requireAdmin();
+  await requireAdmin("live.manage");
   const { event } = await searchParams;
   const data = await adminLive(event);
   const picked = data.questions.find((q) => q.id === data.session?.picked_question);

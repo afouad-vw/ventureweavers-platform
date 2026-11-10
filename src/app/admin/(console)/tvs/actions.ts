@@ -44,7 +44,7 @@ async function uniqueSlug(base: string, exceptId?: string) {
 // ---------------------------------------------------------------- programs
 
 export async function saveProgram(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id") || null;
   if (id && !ID.test(id)) return { ok: false, error: "Unknown program." };
@@ -98,7 +98,7 @@ export async function saveProgram(form: FormData): Promise<ActionResult> {
 }
 
 export async function duplicateProgram(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown program." };
   const supabase = await createClient();
   const { data } = await supabase.from("programs").select(PROGRAM_COLS).eq("id", id).maybeSingle();
@@ -115,7 +115,7 @@ export async function duplicateProgram(id: string): Promise<ActionResult> {
 }
 
 export async function deleteProgram(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown program." };
   const supabase = await createClient();
   const { data: before } = await supabase.from("programs").select(PROGRAM_COLS).eq("id", id).maybeSingle();
@@ -127,7 +127,7 @@ export async function deleteProgram(id: string): Promise<ActionResult> {
 }
 
 export async function setProgramStatus(id: string, status: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id) || !PROGRAM_STATUSES.some((x) => x.value === status)) return { ok: false, error: "Unknown status." };
   const supabase = await createClient();
   const { error } = await supabase.from("programs").update({ status }).eq("id", id);
@@ -140,7 +140,7 @@ export async function setProgramStatus(id: string, status: string): Promise<Acti
 // ---------------------------------------------------------------- cohorts
 
 export async function saveCohort(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id") || null;
   if (id && !ID.test(id)) return { ok: false, error: "Unknown cohort." };
@@ -198,7 +198,7 @@ export async function saveCohort(form: FormData): Promise<ActionResult> {
 }
 
 export async function deleteCohort(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown cohort." };
   const supabase = await createClient();
   const { error } = await supabase.from("cohorts").delete().eq("id", id);
@@ -211,7 +211,7 @@ export async function deleteCohort(id: string): Promise<ActionResult> {
 // ---------------------------------------------------------------- applications
 
 export async function moveApplication(id: string, status: ApplicationStatus): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id) || !APPLICATION_STATUSES.some((x) => x.value === status)) return { ok: false, error: "Unknown stage." };
   if (status === "won") return { ok: false, error: "Offer a seat to move an application to Won." };
   const supabase = await createClient();
@@ -226,7 +226,7 @@ export async function moveApplication(id: string, status: ApplicationStatus): Pr
 }
 
 export async function setApplicationOwner(id: string, owner: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown application." };
   const clean = owner.trim().slice(0, 60) || null;
   const supabase = await createClient();
@@ -238,7 +238,7 @@ export async function setApplicationOwner(id: string, owner: string): Promise<Ac
 }
 
 export async function deleteApplication(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tvs.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown application." };
   const supabase = await createClient();
   const { error } = await supabase.from("applications").delete().eq("id", id);
@@ -250,7 +250,7 @@ export async function deleteApplication(id: string): Promise<ActionResult> {
 
 /** Offer a seat in a cohort (moves the application to Won). Zero means a sponsored seat, confirmed at once. */
 export async function offerSeat(applicationId: string, cohortId: string, amountEGP: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin("tvs.manage");
   if (!ID.test(applicationId) || !ID.test(cohortId)) return { ok: false, error: "Choose a cohort." };
   let amount: number | null;
   try {
@@ -285,7 +285,7 @@ export async function offerSeat(applicationId: string, cohortId: string, amountE
 // ---------------------------------------------------------------- enrolments
 
 export async function confirmEnrolment(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin(["tvs.manage", "payments.manage"]);
   if (!ID.test(id)) return { ok: false, error: "Unknown enrolment." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_confirm_enrolment", { p_enrolment: id });
@@ -301,7 +301,7 @@ export async function confirmEnrolment(id: string): Promise<ActionResult> {
 }
 
 export async function cancelEnrolment(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdmin(["tvs.manage", "payments.manage"]);
   if (!ID.test(id)) return { ok: false, error: "Unknown enrolment." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_cancel_enrolment", { p_enrolment: id });

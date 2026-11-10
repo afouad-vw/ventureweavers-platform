@@ -3,6 +3,7 @@ import { LinkTabs } from "@/components/ui/link-tabs";
 import { PageHeader } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
+import { can } from "@/lib/auth/permissions";
 import { adminListEvents } from "@/lib/events/admin-queries";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { EmptyState } from "@/components/ui/misc";
@@ -18,11 +19,13 @@ import { ProgramsManager } from "./programs-manager";
 export const metadata: Metadata = { title: "TVS admin" };
 
 export default async function AdminTvsPage({ searchParams }: { searchParams: Promise<{ tab?: string; cohort?: string }> }) {
-  await requireAdmin();
+  const admin = await requireAdmin(["tvs.view", "classroom.view"]);
   const base = await currentAdminBase();
   const { tab: raw, cohort: cohortParam } = await searchParams;
-  const tabs = ["programs", "classes", "classroom", "cohorts", "learners", "apps"];
-  const tab = tabs.includes(raw ?? "") ? raw! : "programs";
+  // Program managers see every tab; classroom-only staff see the classroom (Phase 14 access levels).
+  const tabs = can(admin, "tvs.view") ? ["programs", "classes", "classroom", "cohorts", "learners", "apps"] : ["classroom"];
+  if (!can(admin, "classroom.view")) tabs.splice(tabs.indexOf("classroom"), 1);
+  const tab = tabs.includes(raw ?? "") ? raw! : tabs[0];
 
   const [programs, classes, cohorts, enrolments, applications] = await Promise.all([
     tab === "programs" || tab === "cohorts" ? adminPrograms() : [],
@@ -68,7 +71,7 @@ export default async function AdminTvsPage({ searchParams }: { searchParams: Pro
           { value: "cohorts", label: "Cohorts" },
           { value: "learners", label: "Learners" },
           { value: "apps", label: "Applications", count: newApps || null },
-        ]}
+        ].filter((t) => tabs.includes(t.value))}
       />
       {tab === "programs" ? <ProgramsManager programs={programs} /> : null}
       {tab === "classes" ? <EventsManager events={classes} base={base} mode="masterclasses" /> : null}

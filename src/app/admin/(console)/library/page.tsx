@@ -7,7 +7,7 @@ import { LibraryManager } from "./library-manager";
 export const metadata: Metadata = { title: "Library admin" };
 
 export default async function AdminLibraryPage() {
-  await requireAdmin();
+  await requireAdmin("library.view");
   const items = await adminLibrary();
   return (
     <>

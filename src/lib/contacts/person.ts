@@ -12,7 +12,7 @@ import { auditItem, sortTimeline, type TimelineItem } from "./timeline";
  * One person for the contact page. Read with the service key, so callers must pass requireAdmin() first.
  * URL slugs are the list keys with "-" for ":" (m-<member id>, c-<contact id>, w-<waitlist id>).
  */
-export const slugOf = (key: string) => key.replace(":", "-");
+export { slugOf } from "./slug";
 const keyOf = (slug: string) => (/^[mcw]-[0-9a-f-]{36}$/.test(slug) ? slug.replace("-", ":") : null);
 
 export type MemberAccount = {

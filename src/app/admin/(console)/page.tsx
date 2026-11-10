@@ -5,7 +5,11 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
 import { threadDot, type TagTone } from "@/components/ui/tag";
 import { cn } from "@/lib/cn";
-import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
+import { redirect } from "next/navigation";
+import { currentAdminBase, requireAdmin, type Admin } from "@/lib/auth/guards";
+import { can, canAny, describePerms, PAGE_PERMS } from "@/lib/auth/permissions";
+import { adminHref } from "@/lib/hosts";
+import { adminMain, adminShared, adminSpaces } from "@/lib/nav";
 import { relativeWhen } from "@/lib/content/format";
 import { attentionCounts, loadPeople } from "@/lib/contacts/queries";
 import { adminListEvents } from "@/lib/events/admin-queries";
@@ -15,9 +19,36 @@ export const metadata: Metadata = { title: "Overview" };
 const SPACES: TagTone[] = ["Outloud", "TVS", "BRICKR", "QuidQuo"];
 const BAR: Record<TagTone, string> = { Outloud: "bg-out", TVS: "bg-tvs", BRICKR: "bg-brk", QuidQuo: "bg-qq", House: "bg-teal" };
 
-export default async function AdminOverviewPage() {
-  await requireAdmin();
+/** Admin home for team members without Overview: the areas they can open (one area opens directly). */
+async function AccessHome({ admin, base, denied }: { admin: Admin; base: string; denied: boolean }) {
+  const items = [...adminMain, ...adminSpaces, ...adminShared].filter((i) => PAGE_PERMS[i.href] && canAny(admin, PAGE_PERMS[i.href]));
+  if (items.length === 1 && !denied) redirect(adminHref(items[0].href, base));
+  return (
+    <>
+      <PageHeader title={`Welcome, ${admin.displayName.split(" ")[0]}`} description={`Your access: ${describePerms(admin.perms)}.`} />
+      {denied ? <p role="alert" className="rounded-lg bg-warn-bg px-3 py-2 text-[13.5px] font-bold text-warn-fg">You don&apos;t have access to that. Ask Ahmed or Karim if you need it.</p> : null}
+      {items.length ? (
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+          {items.map((i) => (
+            <Link key={i.href} href={adminHref(i.href, base)} className="glass vw-surface vw-lift flex items-center gap-3 border p-4 hover:[&_b]:underline">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-soft text-primary"><i.icon size={18} aria-hidden="true" /></span>
+              <b className="flex-1 text-[14px]">{i.label}</b>
+              <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <EmptyState>You don&apos;t have access to any area yet. Ask Ahmed or Karim to set it up.</EmptyState>
+      )}
+    </>
+  );
+}
+
+export default async function AdminOverviewPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
+  const admin = await requireAdmin();
   const base = await currentAdminBase();
+  const { denied } = await searchParams;
+  if (!can(admin, "overview.view")) return <AccessHome admin={admin} base={base} denied={denied === "1"} />;
   const [{ contacts, activity }, counts, shows, classes] = await Promise.all([loadPeople(), attentionCounts(), adminListEvents("outloud"), adminListEvents("masterclasses")]);
   const now = Date.now();
   const upcoming = [...shows, ...classes]
@@ -48,6 +79,7 @@ export default async function AdminOverviewPage() {
   return (
     <>
       <PageHeader title="Overview" description="Key numbers, what needs attention, and recent activity from the member app." />
+      {denied === "1" ? <p role="alert" className="rounded-lg bg-warn-bg px-3 py-2 text-[13.5px] font-bold text-warn-fg">You don&apos;t have access to that. Ask Ahmed or Karim if you need it.</p> : null}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
         {kpis.map(([l, v, dot]) => (
           <div key={l} className="glass rounded-2xl border p-3.5">

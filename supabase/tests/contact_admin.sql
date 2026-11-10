@@ -7,6 +7,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000d2', 'member.d2@test', '{"name":"Dee Two"}'),
   ('00000000-0000-0000-0000-0000000000da', 'admin.da@test', '{"name":"Admin Da"}');
 insert into public.admin_users (user_id, username, display_name) values ('00000000-0000-0000-0000-0000000000da', 'admin.da', 'Admin Da');
+update public.admin_users set is_super = true; -- test admins are super admins (Phase 14)
 insert into auth.sessions (user_id) values ('00000000-0000-0000-0000-0000000000d1'), ('00000000-0000-0000-0000-0000000000d1');
 
 create function pg_temp.check(ok boolean, label text) returns void language plpgsql as $$

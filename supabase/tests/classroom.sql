@@ -9,6 +9,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000e3', 'e3@test', '{"name":"Other cohort E3"}'),
   ('00000000-0000-0000-0000-0000000000e4', 'e4@test', '{"name":"Member E4"}');
 insert into public.admin_users (user_id, username, display_name) values ('00000000-0000-0000-0000-0000000000a7', 'admin.seven', 'Admin Seven');
+update public.admin_users set is_super = true; -- test admins are super admins (Phase 14)
 
 insert into public.programs (id, slug, name, kind, status) values ('50000000-0000-0000-0000-000000000001', 'tvac-t', 'TVAC', 'Foundation', 'open');
 insert into public.cohorts (id, program_id, label) values

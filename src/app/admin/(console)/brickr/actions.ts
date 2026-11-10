@@ -30,7 +30,7 @@ async function uniqueSlug(base: string, exceptId?: string) {
 }
 
 export async function saveService(form: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("brickr.manage");
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id") || null;
   if (id && !ID.test(id)) return { ok: false, error: "Unknown service." };
@@ -76,7 +76,7 @@ export async function saveService(form: FormData): Promise<ActionResult> {
 }
 
 export async function duplicateService(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("brickr.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown service." };
   const supabase = await createClient();
   const { data } = await supabase.from("services").select(COLS).eq("id", id).maybeSingle();
@@ -93,7 +93,7 @@ export async function duplicateService(id: string): Promise<ActionResult> {
 }
 
 export async function deleteService(id: string): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("brickr.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown service." };
   const supabase = await createClient();
   const { error } = await supabase.from("services").delete().eq("id", id);
@@ -104,7 +104,7 @@ export async function deleteService(id: string): Promise<ActionResult> {
 }
 
 export async function setServiceStatus(id: string, status: "draft" | "published"): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("brickr.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown service." };
   const supabase = await createClient();
   const { error } = await supabase.from("services").update({ status }).eq("id", id);

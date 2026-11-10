@@ -10,7 +10,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** Calendly link (meeting requests) and the custom programs inbox. */
 export async function saveSchedulingSettings(form: FormData): Promise<Result> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("super");
   const rawCal = String(form.get("calendly_url") ?? "").trim();
   const cal = rawCal ? cleanCalendlyUrl(rawCal) : "";
   if (rawCal && !cal) return { ok: false, error: "That isn't a Calendly scheduling link. It looks like calendly.com/your-name." };
@@ -32,7 +32,7 @@ export async function saveSchedulingSettings(form: FormData): Promise<Result> {
  * so cancellations and changes in Calendly reach the Requests inbox.
  */
 export async function connectCalendly(): Promise<Result> {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("super");
   const token = process.env.CALENDLY_TOKEN;
   const signingKey = process.env.CALENDLY_SIGNING_KEY;
   if (!token || !signingKey) return { ok: false, error: "Add CALENDLY_TOKEN and CALENDLY_SIGNING_KEY in Vercel first, then redeploy." };
