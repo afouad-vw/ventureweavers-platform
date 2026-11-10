@@ -88,9 +88,9 @@ insert into public.applications (program_id, role, building) values ('40000000-0
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000d3');
 insert into public.applications (program_id, role, building) values ('40000000-0000-0000-0000-000000000001', 'Founder', 'Climate venture for agriculture in Upper Egypt');
 
--- ---------------------------------------------------------------- admin without 2-step
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a6', 'aal1');
-select pg_temp.expect_error($$select public.admin_offer_seat((select id from public.applications limit 1), '41000000-0000-0000-0000-000000000001', 0)$$, '%forbidden%', 'admin without 2-step cannot offer seats');
+-- ---------------------------------------------------------------- a 2-step user who is not an admin
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.expect_error($$select public.admin_offer_seat((select id from public.applications limit 1), '41000000-0000-0000-0000-000000000001', 0)$$, '%forbidden%', 'a 2-step user who is not an admin cannot offer seats');
 
 -- ---------------------------------------------------------------- admin
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a6', 'aal2');

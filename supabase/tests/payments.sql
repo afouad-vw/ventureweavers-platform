@@ -49,9 +49,9 @@ select pg_temp.as_user('00000000-0000-0000-0000-0000000000c1');
 select pg_temp.expect_error($$insert into public.payment_requests (member_id, item, amount_piasters) values ('00000000-0000-0000-0000-0000000000c1', 'Self-made', 100)$$, '%row-level security%', 'members cannot create payment requests');
 select pg_temp.check((select count(*) from public.payments_ledger) = 0, 'members see nothing in the payments list');
 
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000aa');
-select pg_temp.expect_error($$insert into public.payment_requests (member_id, item, amount_piasters) values ('00000000-0000-0000-0000-0000000000c1', 'No 2-step', 100)$$, '%row-level security%', 'admins without 2-step cannot create requests');
-select pg_temp.check((select count(*) from public.payments_ledger) = 0, 'admins without 2-step see nothing in the list');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.expect_error($$insert into public.payment_requests (member_id, item, amount_piasters) values ('00000000-0000-0000-0000-0000000000c1', 'No 2-step', 100)$$, '%row-level security%', '2-step users who are not admins cannot create requests');
+select pg_temp.check((select count(*) from public.payments_ledger) = 0, '2-step users who are not admins see nothing in the list');
 
 -- ---------------------------------------------------------------- admins create requests
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000aa', 'aal2');

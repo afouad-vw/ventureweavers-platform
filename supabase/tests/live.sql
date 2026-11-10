@@ -47,8 +47,8 @@ select pg_temp.check((public.live_state('80000000-0000-0000-0000-000000000001') 
 select pg_temp.expect_error($$select public.live_ask('80000000-0000-0000-0000-000000000001', 'Too early?', false)$$, '%live_closed%', 'no questions before live opens');
 select pg_temp.expect_error($$select public.admin_live_open('80000000-0000-0000-0000-000000000001', true)$$, '%not_admin%', 'members cannot open live mode');
 
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a9');
-select pg_temp.expect_error($$select public.admin_live_open('80000000-0000-0000-0000-000000000001', true)$$, '%not_admin%', 'admins without 2-step cannot open live mode');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.expect_error($$select public.admin_live_open('80000000-0000-0000-0000-000000000001', true)$$, '%not_admin%', '2-step users who are not admins cannot open live mode');
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a9', 'aal2');
 select pg_temp.expect_error($$select public.admin_live_open('80000000-0000-0000-0000-000000000002', true)$$, '%not_a_show%', 'private sessions have no live mode');
 select public.admin_live_open('80000000-0000-0000-0000-000000000001', true);

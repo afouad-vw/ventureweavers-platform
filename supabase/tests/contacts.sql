@@ -44,9 +44,9 @@ select pg_temp.check((select count(*) from public.contacts) = 0, 'members see no
 select pg_temp.check((select count(*) from public.contact_notes) = 0, 'members never see notes, even about themselves');
 select pg_temp.expect_error($$insert into public.contacts (name) values ('Me')$$, '%row-level security%', 'members cannot add contacts');
 
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a9', 'aal1');
-select pg_temp.check((select count(*) from public.contacts) = 0, 'admins without 2-step see no contacts');
-select pg_temp.expect_error($$insert into public.contacts (name) values ('No 2-step')$$, '%row-level security%', 'admins without 2-step cannot add contacts');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.check((select count(*) from public.contacts) = 0, '2-step users who are not admins see no contacts');
+select pg_temp.expect_error($$insert into public.contacts (name) values ('No 2-step')$$, '%row-level security%', '2-step users who are not admins cannot add contacts');
 
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a9', 'aal2');
 select pg_temp.check((select count(*) from public.contacts) = 1, 'admins see contacts');

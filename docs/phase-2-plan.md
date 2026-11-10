@@ -28,7 +28,7 @@ Security headers (CSP, HSTS, frame blocking, nosniff, referrer and permissions p
 - Two accounts: Ahmed and Karim. No public sign-up; no Google/LinkedIn for admins.
 - Created by invite to each partner's email. Each sets their own password on first visit; nobody else sees it.
 - Sign in with **username + password** at `admin.ventureweavers.com/sign-in`. The server looks the username up in `admin_users`; wrong username and wrong password give the same message.
-- **2-step verification required** (authenticator app, Supabase MFA). No admin page or action works until the session has passed it (`aal2`).
+- ~~2-step verification required~~ Removed 2026-11-10 at Ahmed's request (Phase 10): admin sign-in is username + password; every sign-in emails that admin an alert.
 - Separate sessions: cookies are host-only, so being signed in on the app never signs you in to admin, and the reverse.
 - Lockout: 5 failed attempts per username or IP in 15 minutes blocks further tries for 15 minutes. Attempts are recorded.
 - Idle timeout: admin sessions end after 12 hours without activity; absolute limit 7 days.

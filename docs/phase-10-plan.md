@@ -1,6 +1,12 @@
 # Phase 10 plan: Notifications bell, and admin sign-in without 2-step
 
-Status: **for approval**.
+Status: **approved 2026-11-10**.
+
+## Decisions (answered 2026-11-10)
+
+- Admin 2-step **removed**: username and password only (bot check, lockout, 12-character passwords and the audit log stay).
+- **Sign-in alert email** to the admin on every admin sign-in.
+- Bell shows **personal events only** (no feed announcements).
 
 Spec: `reference/prototype.html` → member top bar (bell, panel, "Mark all read").
 

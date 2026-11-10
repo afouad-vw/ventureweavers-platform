@@ -62,10 +62,13 @@ select pg_temp.check(not public.is_admin(), 'member is not admin');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","aal":"aal2"}', true);
 select pg_temp.check(not public.is_admin(), 'member with 2-step is still not admin');
 
--- ---------- admin without 2-step
+-- ---------- admin signed in with password only (2-step removed in Phase 10)
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","aal":"aal1"}', true);
-select pg_temp.check(not public.is_admin(), 'admin without 2-step is not admin');
-select pg_temp.check((select count(*) from public.profiles) = 1, 'admin without 2-step sees only own profile');
+select pg_temp.check(public.is_admin(), 'listed admin is admin without 2-step');
+select pg_temp.check((select count(*) from public.profiles) > 1, 'admin reads all profiles');
+-- ---------- someone not in admin_users is never admin, 2-step or not
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000ee","aal":"aal2"}', true);
+select pg_temp.check(not public.is_admin(), 'unlisted user with 2-step is not admin');
 
 -- ---------- admin with 2-step
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","aal":"aal2"}', true);

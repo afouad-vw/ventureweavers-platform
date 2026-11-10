@@ -91,8 +91,8 @@ delete from public.waitlist;
 select pg_temp.check(not ('quidquo_waitlist' = any (public.my_access_levels())), 'leaving the waitlist removes the level');
 
 -- ---------------------------------------------------------------- admins
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a8', 'aal1');
-select pg_temp.check((select count(*) from public.requests) = 0, 'admins without 2-step see no requests');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.check((select count(*) from public.requests) = 0, '2-step users who are not admins see no requests');
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a8', 'aal2');
 select pg_temp.check((select count(*) from public.requests) = 6, 'admins see every request');
 select pg_temp.check((select count(*) from public.services) = 3, 'admins see draft services');

@@ -120,8 +120,8 @@ select pg_temp.as_user('00000000-0000-0000-0000-0000000000e4');
 select pg_temp.check((select count(*) from public.modules) + (select count(*) from public.class_sessions) + (select count(*) from public.assignments) = 0, 'members outside the cohort see nothing');
 
 -- ---------------------------------------------------------------- admin
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a7', 'aal1');
-select pg_temp.check((select count(*) from public.modules) = 0, 'admins without 2-step see nothing');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.check((select count(*) from public.modules) = 0, '2-step users who are not admins see nothing');
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a7', 'aal2');
 select pg_temp.check((select count(*) from public.modules) = 3, 'admins see every cohort');
 select pg_temp.check((select count(*) from public.submissions) = 1, 'admins see all work');

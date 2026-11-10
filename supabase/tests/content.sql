@@ -113,10 +113,10 @@ select pg_temp.expect_error($$insert into public.topic_suggestions (text) values
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000c2');
 select pg_temp.check((select count(*) from public.topic_suggestions) = 0, 'members see only their own topics');
 
--- ---------------------------------------------------------------- admin without 2-step verification
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a5', 'aal1');
-select pg_temp.check((select count(*) from public.posts) = 1, 'admin without 2-step sees only what members see');
-select pg_temp.expect_error($$insert into public.posts (title) values ('No 2-step')$$, '%row-level security%', 'admin without 2-step cannot post');
+-- ---------------------------------------------------------------- not a listed admin
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.check((select count(*) from public.posts) = 1, 'a 2-step user who is not an admin sees only what members see');
+select pg_temp.expect_error($$insert into public.posts (title) values ('No 2-step')$$, '%row-level security%', 'a 2-step user who is not an admin cannot post');
 
 -- ---------------------------------------------------------------- admin
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a5', 'aal2');

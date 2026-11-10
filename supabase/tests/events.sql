@@ -108,8 +108,8 @@ select pg_temp.as_user('00000000-0000-0000-0000-0000000000b3');
 select pg_temp.expect_error($$select public.cancel_my_booking((select id from public.bookings b where b.member_id <> auth.uid() limit 1))$$, '%not_cancellable%', 'cannot cancel someone else''s booking');
 
 -- ---------- admin: needs 2-step
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1', 'aal1');
-select pg_temp.expect_error($$select public.admin_mark_paid('00000000-0000-0000-0000-000000000000')$$, '%forbidden%', 'admin without 2-step cannot mark paid');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.expect_error($$select public.admin_mark_paid('00000000-0000-0000-0000-000000000000')$$, '%forbidden%', 'a 2-step user who is not an admin cannot mark paid');
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1', 'aal2');
 select pg_temp.check((select count(*) from public.events) = 6, 'admin sees drafts');
 select pg_temp.check((select count(*) from public.bookings) = 3, 'admin sees all bookings');
@@ -157,8 +157,8 @@ select pg_temp.check((select count(*) from public.saved_items) = 0, 'saved items
 -- ---------- banner uploads (storage)
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000b1');
 select pg_temp.expect_error($$insert into storage.objects (bucket_id, name) values ('event-banners', 'x/hack.jpg')$$, '%row-level security%', 'member cannot upload a banner');
-select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1', 'aal1');
-select pg_temp.expect_error($$insert into storage.objects (bucket_id, name) values ('event-banners', 'x/a.jpg')$$, '%row-level security%', 'admin without 2-step cannot upload');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
+select pg_temp.expect_error($$insert into storage.objects (bucket_id, name) values ('event-banners', 'x/a.jpg')$$, '%row-level security%', 'a 2-step user who is not an admin cannot upload');
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1', 'aal2');
 insert into storage.objects (bucket_id, name) values ('event-banners', 'x/ok.jpg');
 select pg_temp.check(true, 'admin with 2-step can upload a banner');
