@@ -3,7 +3,7 @@
 export const TZ = "Africa/Cairo";
 export const MAX_SEATS = 2;
 
-export type EventType = "public_show" | "workshop" | "private_session";
+export type EventType = "public_show" | "workshop" | "private_session" | "masterclass";
 export type BookingStatus = "reserved" | "confirmed" | "cancelled" | "expired" | "refunded";
 
 export const EVENT_TYPES: { value: EventType; label: string }[] = [
@@ -11,7 +11,8 @@ export const EVENT_TYPES: { value: EventType; label: string }[] = [
   { value: "workshop", label: "Workshop" },
   { value: "private_session", label: "Private session" },
 ];
-export const typeLabel = (t: EventType) => EVENT_TYPES.find((x) => x.value === t)?.label ?? t;
+export const typeLabel = (t: EventType) => (t === "masterclass" ? "Masterclass" : EVENT_TYPES.find((x) => x.value === t)?.label ?? t);
+export const MASTERCLASS_FORMATS = ["Online", "In person"] as const;
 
 /** Money is stored in piasters. null means the price isn't set yet. */
 export function formatEGP(piasters: number | null | undefined) {

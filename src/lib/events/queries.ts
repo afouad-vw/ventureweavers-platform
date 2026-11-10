@@ -19,7 +19,17 @@ export type EventRow = {
   banner_url: string | null;
   status: "draft" | "published";
   created_at: string;
+  space: string;
+  format: string | null;
 };
+
+/** Meet links for events where the member holds a confirmed ticket (row level security returns only those). */
+export async function myMeetLinks(): Promise<Map<string, string>> {
+  if (!supabaseConfigured) return new Map();
+  const supabase = await createClient();
+  const { data } = await supabase.from("event_links").select("event_id, meet_url");
+  return new Map(((data ?? []) as { event_id: string; meet_url: string | null }[]).filter((x) => x.meet_url).map((x) => [x.event_id, x.meet_url!]));
+}
 
 export type EventWithSeats = EventRow & { seats_left: number };
 
@@ -35,7 +45,7 @@ export type MyBooking = {
   tickets: { code: string; checked_in_at: string | null } | null;
 };
 
-const EVENT_COLS = "id, slug, title, type, starts_at, venue, capacity, price_piasters, hosts, guest, description, banner, banner_url, status, created_at";
+const EVENT_COLS = "id, slug, title, type, starts_at, venue, capacity, price_piasters, hosts, guest, description, banner, banner_url, status, created_at, space, format";
 
 async function withSeats(rows: EventRow[]): Promise<EventWithSeats[]> {
   const supabase = await createClient();
@@ -47,17 +57,21 @@ async function withSeats(rows: EventRow[]): Promise<EventWithSeats[]> {
   );
 }
 
-/** Published events from now on, soonest first; private sessions (no date) last. */
-export async function listUpcomingEvents(): Promise<EventWithSeats[]> {
+/**
+ * Published events from now on, soonest first; private sessions (no date) last.
+ * "outloud" leaves out masterclasses, "masterclasses" keeps only those, "all" keeps everything.
+ */
+export async function listUpcomingEvents(which: "outloud" | "masterclasses" | "all" = "outloud"): Promise<EventWithSeats[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  const { data } = await supabase
+  let q = supabase
     .from("events")
     .select(EVENT_COLS)
     .eq("status", "published")
-    .or(`starts_at.gte.${new Date().toISOString()},type.eq.private_session`)
-    .order("starts_at", { ascending: true, nullsFirst: false })
-    .limit(50);
+    .or(`starts_at.gte.${new Date().toISOString()},type.eq.private_session`);
+  if (which === "outloud") q = q.neq("type", "masterclass");
+  if (which === "masterclasses") q = q.eq("type", "masterclass");
+  const { data } = await q.order("starts_at", { ascending: true, nullsFirst: false }).limit(50);
   return withSeats((data ?? []) as EventRow[]);
 }
 

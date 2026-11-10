@@ -26,7 +26,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const space = raw && isSpace(raw) ? raw : "All";
   const member = await getMember();
   const [events, profile, bookings, booked, posts, saved] = await Promise.all([
-    listUpcomingEvents(),
+    listUpcomingEvents("all"),
     member ? myHomeProfile(member.id) : null,
     member ? myBookings() : [],
     member ? myActiveEventIds() : new Set<string>(),

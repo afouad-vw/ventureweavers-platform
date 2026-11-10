@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
-import { cairoLocalToISO, EVENT_TYPES, slugify, toPiasters, type EventType } from "@/lib/events/format";
+import { cairoLocalToISO, EVENT_TYPES, slugify, toPiasters, type EventType, MASTERCLASS_FORMATS } from "@/lib/events/format";
 import { sendBookingConfirmed } from "@/lib/email/booking";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -16,6 +16,9 @@ const refresh = () => {
   revalidatePath("/admin/outloud", "layout");
   revalidatePath("/outloud", "layout");
   revalidatePath("/my-space");
+  revalidatePath("/admin/tvs", "layout");
+  revalidatePath("/tvs", "layout");
+  revalidatePath("/", "page");
 };
 
 async function uniqueSlug(base: string, exceptId?: string) {
@@ -34,7 +37,10 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
   const s = (k: string) => String(form.get(k) ?? "").trim();
   const id = s("id") || null;
   const type = s("type") as EventType;
-  if (!EVENT_TYPES.some((t) => t.value === type)) return { ok: false, error: "Choose a type." };
+  if (type !== "masterclass" && !EVENT_TYPES.some((t) => t.value === type)) return { ok: false, error: "Choose a type." };
+  const format = type === "masterclass" ? (MASTERCLASS_FORMATS as readonly string[]).includes(s("format")) ? s("format") : "Online" : null;
+  const meetUrl = s("meet_url");
+  if (meetUrl && !/^https:\/\/[^\s<>"]+$/.test(meetUrl)) return { ok: false, error: "The Meet link must start with https://" };
   const title = s("title");
   if (title.length < 3) return { ok: false, error: "Add a title (at least 3 characters)." };
 
@@ -67,6 +73,8 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     banner,
     banner_url,
     status,
+    space: type === "masterclass" ? "TVS" : "Outloud",
+    format,
   };
 
   const supabase = await createClient();
@@ -79,15 +87,24 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     if (capacity < taken) return { ok: false, error: `${taken} seats are already taken. Capacity can't be lower than that.` };
     const { error } = await supabase.from("events").update(row).eq("id", id);
     if (error) return { ok: false, error: "Couldn't save. Please try again." };
-    await audit(admin.userId, "event.update", "events", { entityId: id, before, after: row });
+    await saveMeetLink(supabase, id, meetUrl);
+    await audit(admin.userId, "event.update", "events", { entityId: id, before, after: { ...row, meet_url: meetUrl || null } });
   } else {
     const slug = await uniqueSlug(slugify(title));
     const { data, error } = await supabase.from("events").insert({ ...row, slug, created_by: admin.userId }).select("id").single();
     if (error || !data) return { ok: false, error: "Couldn't create the event. Please try again." };
-    await audit(admin.userId, "event.create", "events", { entityId: data.id, after: row });
+    await saveMeetLink(supabase, data.id, meetUrl);
+    await audit(admin.userId, "event.create", "events", { entityId: data.id, after: { ...row, meet_url: meetUrl || null } });
   }
   refresh();
-  return { ok: true, message: id ? "Event saved" : "Event created" };
+  const noun = type === "masterclass" ? "Masterclass" : "Event";
+  return { ok: true, message: id ? `${noun} saved` : `${noun} created` };
+}
+
+/** The Meet link lives in its own table so only confirmed ticket holders can read it. */
+async function saveMeetLink(supabase: Awaited<ReturnType<typeof createClient>>, eventId: string, url: string) {
+  if (url) await supabase.from("event_links").upsert({ event_id: eventId, meet_url: url });
+  else await supabase.from("event_links").delete().eq("event_id", eventId);
 }
 
 export async function duplicateEvent(id: string): Promise<ActionResult> {

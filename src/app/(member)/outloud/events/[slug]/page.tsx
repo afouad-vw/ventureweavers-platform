@@ -21,21 +21,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function EventPage({ params }: Props) {
   const e = await getEventBySlug((await params).slug);
   if (!e) notFound();
+  const mc = e.type === "masterclass";
   const member = await getMember();
   const [booked, pay] = member ? await Promise.all([myActiveEventIds(), paymentInstructions()]) : [new Set<string>(), { bank_details: "", refund_policy: "" }];
   const past = e.starts_at ? new Date(e.starts_at) < new Date() : false;
 
   return (
     <>
-      <Link href="/outloud" className="inline-flex items-center gap-1 self-start text-[13px] font-bold text-link hover:underline">
+      <Link href={mc ? "/tvs?tab=masterclasses" : "/outloud"} className="inline-flex items-center gap-1 self-start text-[13px] font-bold text-link hover:underline">
         <ArrowLeft size={15} aria-hidden="true" />
-        Shows & events
+        {mc ? "Masterclasses" : "Shows & events"}
       </Link>
       <Card as="article" className="overflow-hidden !p-0 !gap-0">
-        <Banner src={e.banner_url} choice={e.banner as BannerChoice} thread="Outloud" height={220} />
+        <Banner src={e.banner_url} choice={e.banner as BannerChoice} thread={mc ? "TVS" : "Outloud"} height={220} />
         <div className="flex flex-col gap-3 p-5">
           <div className="flex flex-wrap gap-2">
-            <ThreadTag thread="Outloud" />
+            <ThreadTag thread={mc ? "TVS" : "Outloud"} />
             <span className="inline-flex h-[22px] items-center rounded-md bg-hover px-2 text-[11.5px] font-bold text-muted">{typeLabel(e.type)}</span>
           </div>
           <h1 className="font-display text-[22px] font-semibold desk:text-[26px]">{e.title}</h1>

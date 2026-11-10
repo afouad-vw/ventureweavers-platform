@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, Video } from "lucide-react";
 import { buttonClass, LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
@@ -8,12 +8,14 @@ import { EmptyState, TicketQR } from "@/components/ui/misc";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
 import { initialsOf } from "@/lib/initials";
 import { requireMember } from "@/lib/auth/guards";
-import { bookingBadge, formatDateTime, formatEGP } from "@/lib/events/format";
-import { myBookings, paymentInstructions, type MyBooking } from "@/lib/events/queries";
+import { bookingBadge, formatDate, formatDateTime, formatEGP } from "@/lib/events/format";
+import { myBookings, myMeetLinks, paymentInstructions, type MyBooking } from "@/lib/events/queries";
 import { createClient } from "@/lib/supabase/server";
 import { ArrowRight } from "lucide-react";
 import { SaveButton } from "@/components/content/member-buttons";
 import { mySavedEntries } from "@/lib/content/queries";
+import { applicationLabel, enrolmentLabel } from "@/lib/tvs/format";
+import { myTvs } from "@/lib/tvs/queries";
 import { CancelReservation } from "./cancel-button";
 import { ProfileForm, type ProfileValues } from "./profile-form";
 
@@ -55,7 +57,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
       <LinkTabs label="My space sections" items={tabs} value={tab} hrefFor={(v) => (v === "tickets" ? "/my-space" : `/my-space?tab=${v}`)} />
 
       {tab === "tickets" ? <Tickets bookings={bookings} /> : null}
-      {tab === "learning" ? <EmptyState>Your programs and masterclasses appear here. <Link className="font-bold text-link" href="/tvs">Explore TVS</Link></EmptyState> : null}
+      {tab === "learning" ? <Learning /> : null}
       {tab === "requests" ? <EmptyState>Your meeting requests appear here. <Link className="font-bold text-link" href="/brickr">Book a conversation</Link></EmptyState> : null}
       {tab === "saved" ? <Saved /> : null}
       {tab === "profile" ? (
@@ -100,7 +102,7 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
       </EmptyState>
     );
   }
-  const pay = await paymentInstructions();
+  const [pay, meet] = await Promise.all([paymentInstructions(), myMeetLinks()]);
   return (
     <div className="flex flex-col gap-3">
       {bookings.map((b) => {
@@ -111,7 +113,7 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
           <Card key={b.id} as="article" className="overflow-hidden !p-0 !gap-0 sm:flex-row">
             <div className="flex flex-[999_1_280px] flex-col gap-2.5 p-4">
               <div className="flex items-center justify-between gap-2">
-                <ThreadTag thread="Outloud" />
+                <ThreadTag thread={e?.type === "masterclass" ? "TVS" : "Outloud"} />
                 <StatusPill tone={badge.tone}>{badge.label}</StatusPill>
               </div>
               <h3 className="text-base font-extrabold">
@@ -137,6 +139,12 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
                   <a href={`/api/tickets/${b.tickets.code}/calendar`} className={buttonClass("secondary")}>
                     <CalendarPlus size={15} aria-hidden="true" />
                     Add to calendar
+                  </a>
+                ) : null}
+                {e && meet.get(e.id) && badge.label === "Confirmed" ? (
+                  <a href={meet.get(e.id)} target="_blank" rel="noopener noreferrer" className={buttonClass("primary")}>
+                    <Video size={15} aria-hidden="true" />
+                    Join with Google Meet
                   </a>
                 ) : null}
                 {badge.label === "Awaiting payment" && e ? <CancelReservation bookingId={b.id} title={e.title} /> : null}
@@ -172,5 +180,64 @@ async function Saved() {
         ))}
       </ul>
     </Card>
+  );
+}
+
+async function Learning() {
+  const [{ applications, enrolments }, pay] = await Promise.all([myTvs(), paymentInstructions()]);
+  const active = enrolments.filter((e) => e.status !== "cancelled");
+  if (!applications.length && !active.length) {
+    return (
+      <EmptyState>
+        Your programs and applications appear here. <Link className="font-bold text-link" href="/tvs">Explore TVS</Link> · Masterclass tickets are under{" "}
+        <Link className="font-bold text-link" href="/my-space?tab=tickets">Tickets</Link>.
+      </EmptyState>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      {active.map((e) => (
+        <Card key={e.id} tone={e.status === "offered" ? "soft" : undefined}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-[15px] font-extrabold">
+              {e.cohorts?.programs?.name ?? "Program"} · {e.cohorts?.label ?? "Cohort [NO.]"}
+            </h2>
+            <StatusPill tone={e.status === "confirmed" ? "ok" : "warn"}>{enrolmentLabel(e.status)}</StatusPill>
+          </div>
+          {e.status === "offered" ? (
+            <>
+              <p className="text-[13.5px]">
+                Your seat is waiting. To confirm it, transfer <b>{formatEGP(e.amount_piasters)}</b> by bank transfer with the reference <b className="font-mono">{e.pay_reference}</b>. We&apos;ll email you when the payment is confirmed.
+              </p>
+              <div className="rounded-lg bg-card p-3 text-[13px]">
+                <span className="mb-1 block text-[11px] font-extrabold tracking-[1.2px] text-faint uppercase">Bank details</span>
+                <span className="whitespace-pre-line text-fg">{pay.bank_details || "[BANK DETAILS]"}</span>
+              </div>
+            </>
+          ) : (
+            <p className="text-[13.5px] text-muted">
+              You&apos;re enrolled{e.cohorts?.starts_on ? `; the cohort starts ${formatDate(e.cohorts.starts_on + "T12:00:00Z")}` : "; we'll share the start date [DATE]"}. The classroom opens before the first session.
+            </p>
+          )}
+        </Card>
+      ))}
+      {applications.length ? (
+        <Card>
+          <CardHeader title="Applications" />
+          <ul className="flex flex-col">
+            {applications.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center gap-3 border-b border-line py-2.5 last:border-b-0">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[14px] font-bold">{a.programs?.name ?? "Program"}</div>
+                  <span className="text-[12.5px] text-faint">Sent {formatDate(a.created_at)}</span>
+                </div>
+                <StatusPill tone={a.status === "won" ? "ok" : a.status === "declined" ? "draft" : "blue"}>{applicationLabel(a.status)}</StatusPill>
+              </li>
+            ))}
+          </ul>
+          <span className="text-[12.5px] text-faint">Next after applying: a short intro call, then an offer for a seat in the cohort.</span>
+        </Card>
+      ) : null}
+    </div>
   );
 }

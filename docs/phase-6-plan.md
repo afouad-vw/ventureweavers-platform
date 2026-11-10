@@ -1,6 +1,6 @@
 # Phase 6 plan: TVS (programs, masterclasses, classroom)
 
-Status: **waiting for approval** (new tables, payments, file storage and access rules).
+Status: **approved 2026-11-10**. Building 6a, then 6b.
 
 Spec: `reference/prototype.html` → TVS (Programs, Masterclasses), TVAC classroom, My space › My learning, Admin › TVS (Programs, Masterclasses, Classroom, Learners, Applications).
 
@@ -73,7 +73,15 @@ Masterclasses reuse `events` (new type `masterclass`, with `space`, `host`, `for
 - Learners can't change an assignment after it is reviewed.
 - Masterclass Meet links are visible only to members with a confirmed ticket.
 
-## Decisions needed
+## Decisions (answered 2026-11-10)
+
+- Joining TVAC: **apply → intro call → offer → pay → enrolled**.
+- Payment: **bank transfer, admin marks paid** until Paymob.
+- Meet links: **pasted by the admins** for now.
+- Recordings: **pasted links** (YouTube unlisted or Drive) for now.
+- Cohort number and dates: **placeholders** until set in the admin console.
+
+## Original questions
 
 1. **Joining TVAC**: apply → intro call → offer → pay → enrolled (as in the prototype, recommended), or apply → pay straight away.
 2. **Payment** for programs and masterclasses until Paymob is live: bank transfer, admin marks paid (same as shows, recommended).

@@ -4,23 +4,26 @@ import { createServiceClient } from "@/lib/supabase/service";
 import type { BookingStatus } from "./format";
 import type { EventRow } from "./queries";
 
-export type AdminEvent = EventRow & { confirmed: number; reserved: number; checkedIn: number };
+export type AdminEvent = EventRow & { confirmed: number; reserved: number; checkedIn: number; meet_url: string | null };
 
 /** All events with seat counts. Admin only (row level security returns drafts only to admins). */
-export async function adminListEvents(): Promise<AdminEvent[]> {
+export async function adminListEvents(which: "outloud" | "masterclasses" = "outloud"): Promise<AdminEvent[]> {
   const supabase = await createClient();
   await supabase.rpc("expire_holds").then(() => {}, () => {});
   const [{ data: events }, { data: bookings }] = await Promise.all([
-    supabase.from("events").select("*").order("starts_at", { ascending: false, nullsFirst: true }),
+    (which === "masterclasses"
+      ? supabase.from("events").select("*, event_links(meet_url)").eq("type", "masterclass")
+      : supabase.from("events").select("*, event_links(meet_url)").neq("type", "masterclass")
+    ).order("starts_at", { ascending: false, nullsFirst: true }),
     supabase.from("bookings").select("event_id, seats, status, hold_expires_at, tickets(checked_in_at)").in("status", ["reserved", "confirmed"]),
   ]);
   const now = Date.now();
-  return ((events ?? []) as EventRow[]).map((e) => {
+  return ((events ?? []) as (EventRow & { event_links: { meet_url: string | null } | null })[]).map(({ event_links, ...e }) => {
     const mine = (bookings ?? []).filter((b) => b.event_id === e.id);
     const reserved = mine.filter((b) => b.status === "reserved" && b.hold_expires_at && new Date(b.hold_expires_at).getTime() > now).reduce((n, b) => n + (b.seats as number), 0);
     const confirmed = mine.filter((b) => b.status === "confirmed").reduce((n, b) => n + (b.seats as number), 0);
     const checkedIn = mine.filter((b) => (b.tickets as unknown as { checked_in_at: string | null } | null)?.checked_in_at).reduce((n, b) => n + (b.seats as number), 0);
-    return { ...e, confirmed, reserved, checkedIn };
+    return { ...e, confirmed, reserved, checkedIn, meet_url: event_links?.meet_url ?? null };
   });
 }
 

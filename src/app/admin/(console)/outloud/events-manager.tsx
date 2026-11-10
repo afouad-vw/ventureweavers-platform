@@ -9,7 +9,7 @@ import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { Drawer, Modal } from "@/components/ui/overlay";
 import { StatusPill } from "@/components/ui/tag";
 import { useToast } from "@/components/ui/toast";
-import { EVENT_TYPES, formatDateTime, formatEGP, isoToCairoLocal, typeLabel } from "@/lib/events/format";
+import { EVENT_TYPES, formatDateTime, formatEGP, isoToCairoLocal, MASTERCLASS_FORMATS, typeLabel } from "@/lib/events/format";
 import type { AdminEvent } from "@/lib/events/admin-queries";
 import { deleteEvent, duplicateEvent, saveEvent, setEventStatus, type ActionResult } from "./actions";
 import { ImageField } from "@/components/admin/image-field";
@@ -17,7 +17,8 @@ import { ImageField } from "@/components/admin/image-field";
 const priceInput = (p: number | null) => (p == null ? "" : (p / 100).toString());
 
 /** Admin › Outloud › Events: table with create, edit, duplicate, delete and Published/Draft. */
-export function EventsManager({ events, base }: { events: AdminEvent[]; base: string }) {
+export function EventsManager({ events, base, mode = "outloud" }: { events: AdminEvent[]; base: string; mode?: "outloud" | "masterclasses" }) {
+  const mc = mode === "masterclasses";
   const [editing, setEditing] = useState<AdminEvent | "new" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +44,10 @@ export function EventsManager({ events, base }: { events: AdminEvent[]; base: st
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[13px] text-faint">{events.length} events</span>
+        <span className="text-[13px] text-faint">{events.length} {mc ? "masterclasses" : "events"}</span>
         <Button onClick={() => { setError(null); setEditing("new"); }}>
           <Plus size={15} aria-hidden="true" />
-          New event
+          {mc ? "New masterclass" : "New event"}
         </Button>
       </div>
 
@@ -67,7 +68,7 @@ export function EventsManager({ events, base }: { events: AdminEvent[]; base: st
               <tr key={ev.id} className="border-b border-line last:border-b-0">
                 <td className="px-3 py-2.5">
                   <b className="block">{ev.title}</b>
-                  <span className="text-faint">{typeLabel(ev.type)} · {ev.venue ?? "[VENUE]"}</span>
+                  <span className="text-faint">{ev.type === "masterclass" ? ev.format ?? "Online" : typeLabel(ev.type)} · {ev.venue ?? "[VENUE]"}</span>
                 </td>
                 <td className="px-3 py-2.5 whitespace-nowrap">{ev.starts_at ? formatDateTime(ev.starts_at) : "By request"}</td>
                 <td className="px-3 py-2.5 whitespace-nowrap">
@@ -107,7 +108,7 @@ export function EventsManager({ events, base }: { events: AdminEvent[]; base: st
         open={editing !== null}
         onClose={() => setEditing(null)}
         eyebrow="Outloud · Events"
-        title={e ? "Edit event" : "New event"}
+        title={mc ? (e ? "Edit masterclass" : "New masterclass") : e ? "Edit event" : "New event"}
         footer={
           <>
             <Button variant="secondary" onClick={() => setEditing(null)}>Cancel</Button>
@@ -129,17 +130,27 @@ export function EventsManager({ events, base }: { events: AdminEvent[]; base: st
             {e ? <input type="hidden" name="id" value={e.id} /> : null}
             <TextField label="Title" name="title" defaultValue={e?.title ?? ""} required minLength={3} maxLength={140} />
             <div className="grid grid-cols-2 gap-3">
-              <SelectField label="Type" name="type" defaultValue={e?.type ?? "public_show"} options={EVENT_TYPES} />
+              {mc ? (
+                <>
+                  <input type="hidden" name="type" value="masterclass" />
+                  <SelectField label="Format" name="format" defaultValue={e?.format ?? "Online"} options={MASTERCLASS_FORMATS} />
+                </>
+              ) : (
+                <SelectField label="Type" name="type" defaultValue={e?.type ?? "public_show"} options={EVENT_TYPES} />
+              )}
               <SelectField label="Status" name="status" defaultValue={e?.status ?? "draft"} options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
             </div>
-            <TextField label="Date and time (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint="Leave empty for private sessions." />
-            <TextField label="Venue" name="venue" defaultValue={e?.venue ?? ""} placeholder="[VENUE], Cairo" maxLength={160} />
+            <TextField label="Date and time (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint={mc ? undefined : "Leave empty for private sessions."} />
+            <TextField label="Venue" name="venue" defaultValue={e?.venue ?? (mc ? "Online" : "")} placeholder="[VENUE], Cairo" maxLength={160} />
+            {mc ? (
+              <TextField label="Google Meet link" name="meet_url" type="url" defaultValue={e?.meet_url ?? ""} placeholder="https://meet.google.com/…" hint="Shown only to members with a confirmed ticket. Create it in Google Calendar and paste it here." />
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
-              <TextField label="Capacity" name="capacity" type="number" min={0} max={10000} defaultValue={e?.capacity ?? 80} />
+              <TextField label="Capacity" name="capacity" type="number" min={0} max={10000} defaultValue={e?.capacity ?? (mc ? 40 : 80)} />
               <TextField label="Price per seat (EGP)" name="price" inputMode="decimal" defaultValue={priceInput(e?.price_piasters ?? null)} placeholder="Empty = [PRICE]" hint="Booking opens once a price is set." />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <TextField label="Hosts" name="hosts" defaultValue={e?.hosts ?? "Fouad & Karim"} maxLength={160} />
+              <TextField label={mc ? "Host" : "Hosts"} name="hosts" defaultValue={e?.hosts ?? "Fouad & Karim"} maxLength={160} />
               <TextField label="Guest" name="guest" defaultValue={e?.guest ?? ""} placeholder="[GUEST NAME]" maxLength={160} />
             </div>
             <ImageField name="banner_url" target="event-banners" initial={e?.banner_url ?? null} />
