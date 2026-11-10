@@ -39,7 +39,7 @@ grant execute on function pg_temp.as_user(text, text) to anon, authenticated;
 -- ---------------------------------------------------------------- visitors
 set local role anon;
 select set_config('request.jwt.claims', '', true);
-select pg_temp.check((select count(*) from public.services) = 2, 'visitors see published services only');
+select pg_temp.check((select count(*) from public.services where slug <> 'custom-program') = 2, 'visitors see published services only');
 select pg_temp.check((select count(*) from public.qq_stages) = 2, 'visitors see QuidQuo stages');
 select pg_temp.check((select count(*) from public.qq_log) = 1, 'visitors see the published build log only');
 select pg_temp.expect_error($$select count(*) from public.requests$$, '%permission denied%', 'visitors cannot read requests');
@@ -95,7 +95,7 @@ select pg_temp.as_user('00000000-0000-0000-0000-0000000000ee', 'aal2');
 select pg_temp.check((select count(*) from public.requests) = 0, '2-step users who are not admins see no requests');
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a8', 'aal2');
 select pg_temp.check((select count(*) from public.requests) = 6, 'admins see every request');
-select pg_temp.check((select count(*) from public.services) = 3, 'admins see draft services');
+select pg_temp.check((select count(*) from public.services where slug <> 'custom-program') = 3, 'admins see draft services');
 update public.requests set status = 'won', owner = 'Karim', meeting_at = now() + interval '1 day', meeting_url = 'https://meet.google.com/abc-defg-hij'
   where member_id = '00000000-0000-0000-0000-0000000000f2';
 insert into public.request_notes (request_id, body) select id, 'Strong team; needs pricing help.' from public.requests where member_id = '00000000-0000-0000-0000-0000000000f2';

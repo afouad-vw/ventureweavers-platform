@@ -1,6 +1,12 @@
 # Phase 12 plan: sign-in wall, sign-up details, Calendly, content previews
 
-Status: **for approval**. From Ahmed's comments, 2026-11-10.
+Status: **approved 2026-11-10**. From Ahmed's comments, 2026-11-10.
+
+## Decisions (answered 2026-11-10)
+
+- **Everything behind sign-in** (only auth pages, unsubscribe and the landing page stay open).
+- Sign-up: **all fields required except LinkedIn**.
+- Calendly opens from **BRICKR services, private shows & sponsorships and TVS custom programs**. The Calendly link is set in admin settings (not yet provided); until then the current slot picker and form stay.
 
 Done already (no approval needed): LinkedIn link for each host and guest (editor + details pages); Outloud's "For teams" card is now **Private Shows & Sponsorships** without naming a format; the "Your hosts" card is removed from Outloud.
 
