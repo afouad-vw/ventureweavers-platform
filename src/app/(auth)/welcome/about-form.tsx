@@ -119,7 +119,7 @@ export function AboutForm({
         </div>
       </fieldset>
 
-      {byAdmin ? null : <Toggle label="The Floor Notes newsletter by email" name="newsletter" defaultChecked={initial.newsletter} />}
+      {byAdmin ? null : <Toggle label="Receive newsletters by email" name="newsletter" defaultChecked={initial.newsletter} />}
       {children}
       <FormNote state={state} />
       <Button type="submit" size={inProfile ? "md" : "lg"} className={inProfile ? "self-start" : undefined} disabled={pending}>

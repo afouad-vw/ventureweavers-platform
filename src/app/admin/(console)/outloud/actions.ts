@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { namesOf, parseList, parseOutline, parsePeople } from "@/lib/details";
+import { namesOf, parseList, parseOutline, parsePeople, peopleLinkError } from "@/lib/details";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { cairoLocalToISO, EVENT_TYPES, slugify, toPiasters, type EventType, MASTERCLASS_FORMATS } from "@/lib/events/format";
@@ -77,6 +77,8 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     return { ok: false, error: (e as Error).message };
   }
   if (ends_at && starts_at && ends_at < starts_at) return { ok: false, error: "The end time is before the start time." };
+  const linkError = peopleLinkError(s("host_list"), "host") ?? peopleLinkError(s("guest_list"), "guest");
+  if (linkError) return { ok: false, error: linkError };
   const host_list = parsePeople(s("host_list"));
   const guest_list = parsePeople(s("guest_list"));
   const short = s("short_description").replace(/\s+/g, " ").slice(0, 300);

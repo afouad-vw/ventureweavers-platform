@@ -42,6 +42,21 @@ export function parsePeople(json: string | null | undefined): Person[] {
   }
 }
 
+/** A message naming the first host or guest whose LinkedIn link isn't a LinkedIn profile, or null. */
+export function peopleLinkError(json: string | null | undefined, label: string): string | null {
+  try {
+    const raw = JSON.parse(json || "[]");
+    if (!Array.isArray(raw)) return null;
+    for (const p of raw) {
+      const link = String(p?.linkedin ?? "").trim();
+      if (link && !cleanLinkedIn(link)) return `The LinkedIn link for ${String(p?.name ?? "").trim() || `a ${label}`} doesn't look right. Use a profile link like linkedin.com/in/name.`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /** Outline sessions from the editor (JSON). Hours are rounded to the nearest quarter, 0.25 to 100. */
 export function parseOutline(json: string | null | undefined): Session[] {
   try {

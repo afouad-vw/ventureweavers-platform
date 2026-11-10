@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanLinkedIn, formatHours, namesOf, parseList, parseOutline, parsePeople, totalHours } from "./details";
+import { cleanLinkedIn, formatHours, namesOf, parseList, parseOutline, parsePeople, totalHours, peopleLinkError } from "./details";
 
 describe("details", () => {
   it("parses hosts and guests, dropping empty rows", () => {
@@ -40,5 +40,14 @@ describe("details", () => {
       { name: "A", title: "", linkedin: "https://www.linkedin.com/in/a" },
       { name: "B", title: "" },
     ]);
+  });
+});
+
+describe("peopleLinkError", () => {
+  it("names the person with a bad LinkedIn link", () => {
+    expect(peopleLinkError(JSON.stringify([{ name: "Ahmed", linkedin: "linkedin.com/in/ahmed" }]), "host")).toBeNull();
+    expect(peopleLinkError(JSON.stringify([{ name: "Ahmed", linkedin: "" }]), "host")).toBeNull();
+    expect(peopleLinkError(JSON.stringify([{ name: "Karim", linkedin: "https://twitter.com/karim" }]), "host")).toContain("Karim");
+    expect(peopleLinkError("not json", "host")).toBeNull();
   });
 });

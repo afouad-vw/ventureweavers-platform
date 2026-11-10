@@ -5,7 +5,7 @@ import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { parseTags } from "@/lib/content/format";
 import { sendEnrolmentConfirmed, sendSeatOffered } from "@/lib/email/tvs";
-import { parseList, parseOutline, parsePeople } from "@/lib/details";
+import { parseList, parseOutline, parsePeople, peopleLinkError } from "@/lib/details";
 import { slugify, toPiasters } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -50,6 +50,8 @@ export async function saveProgram(form: FormData): Promise<ActionResult> {
   if (id && !ID.test(id)) return { ok: false, error: "Unknown program." };
   const name = s("name");
   if (name.length < 2) return { ok: false, error: "Add a name." };
+  const linkError = peopleLinkError(s("hosts"), "host") ?? peopleLinkError(s("guests"), "guest");
+  if (linkError) return { ok: false, error: linkError };
   const short = s("short_description").replace(/\s+/g, " ");
   if (!short) return { ok: false, error: "Add a short description (shown on the card)." };
   if (short.length > 300) return { ok: false, error: "Keep the short description under 300 characters." };

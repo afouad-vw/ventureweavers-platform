@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Linkedin, Mail, MessageCircle } from "lucide-react";
+import { ArrowLeft, Linkedin, Mail, MessageCircle, Video } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
@@ -19,7 +19,7 @@ import { NotesCard, PersonActions, Timeline } from "./person-view";
 
 export const metadata: Metadata = { title: "Contact" };
 
-const TABS = ["overview", "activity", "payments"] as const;
+const TABS = ["overview", "activity", "requests", "notes", "payments"] as const;
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -35,7 +35,9 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   const [{ key }, { tab: rawTab }, base] = await Promise.all([params, searchParams, currentAdminBase()]);
   const person = await loadPerson(key);
   if (!person) notFound();
-  const { contact: c, account: a, timeline, payments } = person;
+  const { contact: c, account: a, timeline, payments, requests } = person;
+  const now = Date.now();
+  const upcoming = requests.filter((r) => r.meetingAt && new Date(r.meetingAt).getTime() + 3600_000 > now).sort((x, y) => x.meetingAt!.localeCompare(y.meetingAt!));
   const tab = (TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as (typeof TABS)[number]) : "overview";
   const wa = waNumber(c.phone);
   const here = `${base}/contacts/${key}`;
@@ -108,6 +110,8 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
         items={[
           { value: "overview", label: "Overview" },
           { value: "activity", label: "Activity", count: timeline.length },
+          ...(c.memberId ? [{ value: "requests", label: "Requests & meetings", count: requests.length }] : []),
+          { value: "notes", label: "Notes & tags" },
           ...(c.memberId ? [{ value: "payments", label: "Payments", count: payments.length }] : []),
         ]}
       />
@@ -135,7 +139,20 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
             </dl>
           </Card>
           <div className="flex min-w-0 flex-col gap-4">
-            <NotesCard contact={c} />
+            {upcoming.length ? (
+              <Card>
+                <CardHeader title="Next meeting" action={<Link href={`${here}?tab=requests`} className="text-link">All requests</Link>} />
+                <b className="text-[14px]">{upcoming[0].service}</b>
+                <span className="text-[13px] text-muted">{formatDateTime(upcoming[0].meetingAt!)}</span>
+                {upcoming[0].meetingUrl ? <a href={upcoming[0].meetingUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary", "sm", "self-start")}><Video size={14} aria-hidden="true" />Join on Meet</a> : null}
+              </Card>
+            ) : null}
+            {c.note ? (
+              <Card>
+                <CardHeader title="Your note" action={<Link href={`${here}?tab=notes`} className="text-link">Edit</Link>} />
+                <p className="line-clamp-4 text-[13.5px] whitespace-pre-line text-muted">{c.note}</p>
+              </Card>
+            ) : null}
             <Card>
               <CardHeader title="Latest activity" action={<Link href={`${here}?tab=activity`} className="text-link">See all</Link>} />
               {timeline.length ? (
@@ -156,6 +173,61 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
       ) : null}
 
       {tab === "activity" ? <Timeline items={timeline} /> : null}
+
+      {tab === "notes" ? (
+        <div className="max-w-[720px]">
+          <NotesCard contact={c} />
+        </div>
+      ) : null}
+
+      {tab === "requests" ? (
+        requests.length ? (
+          <div className="flex flex-col gap-4">
+            {upcoming.length ? (
+              <Card>
+                <CardHeader title="Upcoming meetings" action={<span className="font-normal text-faint">{upcoming.length}</span>} />
+                <ul className="flex flex-col">
+                  {upcoming.map((r) => (
+                    <li key={r.id} className="flex flex-wrap items-center gap-3 border-b border-line py-2.5 last:border-b-0">
+                      <span className="min-w-0 flex-1"><b className="block text-[13.5px]">{r.service}</b><span className="text-[12.5px] text-muted">{formatDateTime(r.meetingAt!)}{r.calendly ? " · booked through Calendly" : ""}</span></span>
+                      {r.meetingUrl ? <a href={r.meetingUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary", "sm")}><Video size={14} aria-hidden="true" />Join on Meet</a> : <span className="text-[12.5px] text-faint">No Meet link yet</span>}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ) : null}
+            <Card>
+              <CardHeader title="All requests" action={<Link href={`${base}/requests`} className="text-link">Open Requests inbox</Link>} />
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] text-[13.5px]">
+                  <thead><tr className="border-b border-line text-left text-[12px] text-faint">{["Request", "Space", "Status", "Meeting", "Owner", "Sent"].map((h) => <th key={h} className="px-3 py-2 font-bold">{h}</th>)}</tr></thead>
+                  <tbody>
+                    {requests.map((r) => (
+                      <tr key={r.id} className="border-b border-line align-top last:border-b-0">
+                        <td className="px-3 py-2.5">
+                          <b className="block">{r.service}</b>
+                          {r.company ? <span className="block text-[12.5px] text-muted">{r.company}</span> : null}
+                          {r.note ? <span className="block max-w-[320px] text-[12.5px] text-faint">{r.note}</span> : null}
+                        </td>
+                        <td className="px-3 py-2.5"><ThreadTag thread={r.space} /></td>
+                        <td className="px-3 py-2.5"><StatusPill tone={/won/i.test(r.status) ? "ok" : /declined/i.test(r.status) ? "draft" : "blue"}>{r.status}</StatusPill></td>
+                        <td className="px-3 py-2.5 text-muted">
+                          {r.meetingAt ? formatDateTime(r.meetingAt) : r.preferredAt ? <>Preferred {formatDateTime(r.preferredAt)}</> : "—"}
+                          {r.calendly ? <span className="block text-[12px] text-faint">Calendly</span> : null}
+                        </td>
+                        <td className="px-3 py-2.5 text-muted">{r.owner ?? "—"}</td>
+                        <td className="px-3 py-2.5 text-muted">{formatDate(r.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <EmptyState>No requests or meetings yet.</EmptyState>
+        )
+      ) : null}
 
       {tab === "payments" ? (
         payments.length ? (

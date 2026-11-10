@@ -26,8 +26,24 @@ export type MemberAccount = {
   edit: { name: string; phone: string | null; linkedin: string | null; country: string | null; role: string | null; goals: string[]; contact: string[] };
 };
 
+export type PersonRequest = {
+  id: string;
+  service: string;
+  space: Space;
+  status: string;
+  createdAt: string;
+  preferredAt: string | null;
+  meetingAt: string | null;
+  meetingUrl: string | null;
+  calendly: boolean;
+  company: string;
+  note: string;
+  owner: string | null;
+};
+
 export type Person = {
   contact: Contact;
+  requests: PersonRequest[];
   account: MemberAccount | null;
   timeline: TimelineItem[];
   payments: LedgerRow[];
@@ -61,7 +77,7 @@ export async function loadPerson(slug: string): Promise<Person | null> {
   if (!id) {
     timeline.push({ key: "added", at: contact.joinedAt, space: "House", title: contact.source });
     for (const it of contact.items) timeline.push({ key: `i${it.at}${it.label}`, at: it.at, space: it.space, title: it.label, status: it.status });
-    return { contact, account: null, timeline: sortTimeline(timeline), payments: [] };
+    return { contact, account: null, timeline: sortTimeline(timeline), payments: [], requests: [] };
   }
 
   const [user, profile, suspension, bookings, apps, enrols, reqs, payReqs, waitlist, questions, topics, subs, ledger] = await Promise.all([
@@ -71,7 +87,7 @@ export async function loadPerson(slug: string): Promise<Person | null> {
     svc.from("bookings").select("id, status, seats, amount_piasters, created_at, events(title, type)").eq("member_id", id),
     svc.from("applications").select("id, status, created_at, programs(name)").eq("member_id", id),
     svc.from("enrolments").select("id, status, amount_piasters, offered_at, confirmed_at, cohorts(label, programs(name))").eq("member_id", id),
-    svc.from("requests").select("id, status, space, created_at, meeting_at, calendly_invitee, services(name)").eq("member_id", id),
+    svc.from("requests").select("id, status, space, created_at, preferred_at, meeting_at, meeting_url, calendly_invitee, company, note, owner, services(name)").eq("member_id", id).order("created_at", { ascending: false }),
     svc.from("payment_requests").select("id, item, space, amount_piasters, status, created_at, paid_at").eq("member_id", id),
     svc.from("waitlist").select("id, role, joined_at").eq("member_id", id),
     svc.from("live_questions").select("id, text, status, picked_at, created_at, events(title)").eq("member_id", id).order("created_at", { ascending: false }).limit(50),
@@ -98,7 +114,9 @@ export async function loadPerson(slug: string): Promise<Person | null> {
     timeline.push({ key: `eo${e.id}`, at: e.offered_at, space: "TVS", title: `Offered a seat in ${prog}`, detail: egp(e.amount_piasters), status: e.status === "cancelled" ? "Cancelled" : undefined });
     if (e.confirmed_at) timeline.push({ key: `ec${e.id}`, at: e.confirmed_at, space: "TVS", title: `Enrolled in ${prog}`, status: "Enrolled" });
   }
-  for (const r of (reqs.data ?? []) as unknown as { id: string; status: string; space: Space; created_at: string; meeting_at: string | null; calendly_invitee: string | null; services: { name: string } | null }[]) {
+  type ReqRow = { id: string; status: string; space: Space; created_at: string; preferred_at: string | null; meeting_at: string | null; meeting_url: string | null; calendly_invitee: string | null; company: string; note: string; owner: string | null; services: { name: string } | null };
+  const reqRows = (reqs.data ?? []) as unknown as ReqRow[];
+  for (const r of reqRows) {
     timeline.push({ key: `r${r.id}`, at: r.created_at, space: r.space, title: `Requested ${r.services?.name ?? "a meeting"}`, detail: r.calendly_invitee ? "Booked through Calendly" : undefined, status: applicationLabel(r.status) });
   }
   for (const q of (payReqs.data ?? []) as { id: string; item: string; space: Space | "House"; amount_piasters: number; status: string; created_at: string; paid_at: string | null }[]) {
@@ -134,5 +152,19 @@ export async function loadPerson(slug: string): Promise<Person | null> {
     },
     timeline: sortTimeline(timeline),
     payments,
+    requests: reqRows.map((r) => ({
+      id: r.id,
+      service: r.services?.name ?? "Meeting",
+      space: r.space,
+      status: applicationLabel(r.status),
+      createdAt: r.created_at,
+      preferredAt: r.preferred_at,
+      meetingAt: r.meeting_at,
+      meetingUrl: r.meeting_url,
+      calendly: Boolean(r.calendly_invitee),
+      company: r.company,
+      note: r.note,
+      owner: r.owner,
+    })),
   };
 }
