@@ -39,7 +39,7 @@ export function ApplicationsBoard({ applications, cohorts }: { applications: Adm
                   const next = nextStatus(a.status);
                   const prev = previousStatus(a.status);
                   return (
-                    <article key={a.id} className="flex flex-col gap-1.5 rounded-lg border border-line bg-card p-2.5">
+                    <article key={a.id} className="flex flex-col gap-1.5 glass vw-lift rounded-xl border p-2.5">
                       <b className="text-[13.5px]">{a.member}</b>
                       <span className="text-[12px] text-faint">{a.program} · {a.role}{a.venture_stage ? ` · ${a.venture_stage}` : ""}</span>
                       <span className="line-clamp-3 text-[12.5px] text-muted">“{a.building}”</span>

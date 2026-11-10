@@ -30,7 +30,7 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
   if (!state.open) {
     return (
       <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
-        <section className="flex flex-col gap-3.5 rounded-[14px] bg-ink p-[18px] text-ink-fg">
+        <section className="flex flex-col gap-3.5 rounded-[20px] border border-white/[0.06] bg-[linear-gradient(160deg,#0f2b2c,#071112_60%)] p-[18px] text-ink-fg shadow-depth-lg">
           <b className="text-[13.5px] text-white">{title}</b>
           {state.ended ? (
             <>
@@ -50,7 +50,7 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
   const voted = Boolean(state.poll?.my_vote);
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4">
-      <section className="flex flex-col gap-3.5 rounded-[14px] bg-ink p-[18px] text-ink-fg" aria-live="polite">
+      <section className="flex flex-col gap-3.5 rounded-[20px] border border-white/[0.06] bg-[linear-gradient(160deg,#0f2b2c,#071112_60%)] p-[18px] text-ink-fg shadow-depth-lg" aria-live="polite">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <LivePill />
           <b className="text-[13.5px] text-white">{title}</b>
@@ -88,7 +88,7 @@ export function LiveRoom({ eventId, title, initial }: { eventId: string; title: 
           </div>
           {state.questions.length ? (
             state.questions.map((q) => (
-              <div key={q.id} className="flex items-center gap-2.5 rounded-[10px] border border-ink-line px-3 py-2.5">
+              <div key={q.id} className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5 backdrop-blur-sm transition-colors hover:bg-white/[0.06]">
                 <span className="min-w-0 flex-1 text-[13.5px] text-white">
                   {q.text}
                   {q.status === "waiting" ? <span className="block text-[11.5px] font-bold text-[#F2C27A]">Waiting for approval</span> : null}

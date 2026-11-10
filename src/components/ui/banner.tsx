@@ -66,8 +66,8 @@ export function Banner({
       ) : (
         <Mark aria-hidden="true" className="absolute -top-4 -right-3 h-[120px] w-[120px] opacity-20" strokeWidth={1.1} />
       )}
-      {chip ? <span className="absolute top-2.5 left-2.5 z-10 inline-flex h-[22px] items-center gap-1 rounded-md bg-ink/75 px-2 text-[11px] font-bold">{chip}</span> : null}
-      {chipRight ? <span className="absolute top-2.5 right-2.5 z-10 inline-flex h-[22px] items-center rounded-md bg-teal px-2 text-[11px] font-bold text-ink">{chipRight}</span> : null}
+      {chip ? <span className="absolute top-3 left-3 z-10 inline-flex h-[24px] items-center gap-1 rounded-full bg-ink/70 px-2.5 backdrop-blur-md text-[11px] font-bold">{chip}</span> : null}
+      {chipRight ? <span className="absolute top-3 right-3 z-10 inline-flex h-[24px] items-center rounded-full bg-teal px-2.5 text-[11px] font-bold text-ink">{chipRight}</span> : null}
       {label ? <span className="relative z-10 font-display text-[22px] leading-none font-bold">{label}</span> : null}
     </div>
   );

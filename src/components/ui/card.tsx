@@ -20,7 +20,7 @@ export function Card({
   as?: "div" | "section" | "article" | "aside";
 }) {
   return (
-    <Tag className={cn("flex min-w-0 flex-col gap-2 rounded-2xl border p-4", tones[tone], className)}>
+    <Tag className={cn("flex min-w-0 flex-col gap-2 rounded-[20px] border p-4", tones[tone], className)}>
       {children}
     </Tag>
   );

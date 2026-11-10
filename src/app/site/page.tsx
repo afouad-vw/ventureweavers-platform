@@ -108,7 +108,7 @@ export default async function SitePage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {spaces.map((s) => (
-            <article key={s.name} className="flex flex-col overflow-hidden rounded-2xl border border-line bg-card">
+            <article key={s.name} className="glass vw-surface vw-lift group flex flex-col border">
               <div className="relative h-[170px]">
                 <Image src={s.photo} alt="" fill sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/60 to-transparent" />

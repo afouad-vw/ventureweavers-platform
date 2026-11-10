@@ -112,7 +112,7 @@ export function RequestsInbox({ items, spaces, base, csv = true }: { items: Inbo
                   <header className="flex items-center justify-between px-1 text-[12px] font-extrabold tracking-wide text-faint uppercase"><span>{col.label}</span><span>{cards.length}</span></header>
                   {cards.length ? null : <span className="px-1 pb-1 text-[12.5px] text-faint">Nothing here.</span>}
                   {cards.map((i) => (
-                    <button key={i.id} type="button" onClick={() => setOpenId(i.id)} className="flex cursor-pointer flex-col items-start gap-1 rounded-lg border border-line bg-card p-2.5 text-left hover:border-line2">
+                    <button key={i.id} type="button" onClick={() => setOpenId(i.id)} className="flex cursor-pointer flex-col items-start gap-1 glass vw-lift rounded-xl border p-2.5 text-left hover:border-line2">
                       <ThreadTag thread={i.space} />
                       <b className="text-[13.5px]">{i.title}</b>
                       <span className="text-[12px] text-faint">{i.member} · {i.meeting_at ? formatDateTime(i.meeting_at) : relativeWhen(i.created_at)}</span>

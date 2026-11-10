@@ -2,7 +2,7 @@ import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 const control =
-  "w-full rounded-lg border border-line2 bg-card px-2.5 text-[13.5px] font-normal text-fg placeholder:text-faint focus:border-primary focus:outline-none";
+  "w-full rounded-lg border border-line2 bg-card/80 px-2.5 text-[13.5px] font-normal text-fg placeholder:text-faint transition-[border-color,box-shadow,background-color] focus:border-primary focus:bg-card focus:shadow-glow focus:outline-none";
 
 type Base = { label: string; hint?: string; className?: string };
 

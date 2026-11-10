@@ -168,7 +168,7 @@ export function LiveControl({ data, base }: { data: AdminLive; base: string }) {
 function PollResults({ poll, onClose }: { poll: AdminPoll; onClose: () => void }) {
   const pct = pollPercents(poll.options.map((o) => o.votes));
   return (
-    <div className="flex flex-col gap-1.5 rounded-[10px] border border-ink-line p-3">
+    <div className="flex flex-col gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
       <b className="text-[13.5px] text-white">Poll · {poll.question}</b>
       {poll.options.map((o, i) => (
         <div key={o.id} className="flex flex-col gap-1 text-[12.5px]">

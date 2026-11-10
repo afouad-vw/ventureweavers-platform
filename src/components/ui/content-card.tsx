@@ -36,9 +36,9 @@ export function ContentCard({
   cta?: React.ReactNode;
 }) {
   return (
-    <Tilt className="flex min-w-0 rounded-2xl">
-    <article className="glass flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border">
-      <div className="vw-zoom overflow-hidden">
+    <Tilt className="flex min-w-0 rounded-[20px]">
+    <article className="glass vw-surface flex min-w-0 flex-1 flex-col border">
+      <div className="vw-zoom overflow-hidden rounded-t-[19px]">
         <Banner src={bannerSrc} choice={banner} thread={thread} label={bannerLabel} chip={bannerChip} chipRight={bannerChipRight} />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3.5">
