@@ -1,18 +1,10 @@
 import { finishUpload, startUpload } from "@/app/admin/(console)/upload-actions";
-import { supabasePublicKey } from "@/lib/supabase/env";
+import { putSigned } from "@/lib/put-signed";
 import { checkUpload, type UploadTarget } from "@/lib/uploads";
 
-export type Uploaded = { url: string | null; path: string; fileName: string; size: number };
+export { putSigned };
 
-/** Send a file to a one-time Supabase Storage upload link. */
-export async function putSigned(url: string, contentType: string, file: File): Promise<boolean> {
-  const res = await fetch(url, {
-    method: "PUT",
-    body: file,
-    headers: { "content-type": contentType, "x-upsert": "false", "cache-control": "max-age=31536000", apikey: supabasePublicKey },
-  }).catch(() => null);
-  return Boolean(res?.ok);
-}
+export type Uploaded = { url: string | null; path: string; fileName: string; size: number };
 
 /** Admin uploads: a one-time link from the server, the file straight to storage, then the server checks it. */
 export async function uploadFile(target: UploadTarget, file: File): Promise<{ ok: true; file: Uploaded } | { ok: false; error: string }> {

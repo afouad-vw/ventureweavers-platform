@@ -123,6 +123,7 @@ export type AdminApplication = {
   venture_stage: string;
   building: string;
   why_now: string;
+  answers: { q: string; a: string }[];
   status: ApplicationStatus;
   owner: string | null;
   created_at: string;
@@ -198,7 +199,7 @@ export async function adminApplications(): Promise<AdminApplication[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("applications")
-    .select("id, member_id, program_id, role, venture_stage, building, why_now, status, owner, created_at, programs(name, price_piasters)")
+    .select("id, member_id, program_id, role, venture_stage, building, why_now, answers, status, owner, created_at, programs(name, price_piasters)")
     .order("created_at", { ascending: false })
     .limit(500);
   const rows = (data ?? []) as unknown as (Omit<AdminApplication, "member" | "email" | "program" | "price_piasters"> & { programs: { name: string; price_piasters: number | null } | null })[];

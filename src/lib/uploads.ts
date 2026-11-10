@@ -1,6 +1,6 @@
 /** Upload rules shared by the browser (early checks) and the server (the checks that count). */
 
-export type UploadTarget = "event-banners" | "content-images" | "library-files" | "cohort-files" | "brochures" | "event-gallery";
+export type UploadTarget = "event-banners" | "content-images" | "library-files" | "cohort-files" | "brochures" | "event-gallery" | "avatars";
 
 export const IMAGE_TYPES: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
 export const LIBRARY_TYPES: Record<string, string> = {
@@ -23,6 +23,7 @@ export const UPLOAD_RULES: Record<UploadTarget, { maxBytes: number; types: Recor
   "content-images": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
   "event-gallery": { maxBytes: 5 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
   brochures: { maxBytes: 10 * 1024 * 1024, types: PDF_TYPES, public: true, kind: "a PDF" },
+  avatars: { maxBytes: 2 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
   "library-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false, kind: DOCS },
   "cohort-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false, kind: DOCS },
 };

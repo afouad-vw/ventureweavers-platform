@@ -5,10 +5,11 @@ import { Bell, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { applyToProgram, setProgramInterest } from "@/app/(member)/tvs/actions";
 import { Button } from "@/components/ui/button";
-import { SelectField, TextArea } from "@/components/ui/field";
+import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { Modal } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
 import { ROLES, STAGES } from "@/lib/profile/options";
+import { QUESTIONS, type Role } from "@/lib/tvs/questions";
 
 /** Apply to the foundation program: a short form so the cohort fits. */
 export function ApplyButton({
@@ -23,6 +24,7 @@ export function ApplyButton({
   defaults: { role?: string | null; stage?: string | null };
 }) {
   const [open, setOpen] = useState(false);
+  const [role, setRole] = useState<string>(defaults.role && (ROLES as readonly string[]).includes(defaults.role) ? defaults.role : ROLES[0]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const toast = useToast();
@@ -61,12 +63,19 @@ export function ApplyButton({
         >
           <input type="hidden" name="program_id" value={programId} />
           <p className="text-[13px] text-muted">A few questions so the cohort fits. Next is a short intro call with Fouad or Karim.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <SelectField label="What describes you best" name="role" defaultValue={defaults.role && (ROLES as readonly string[]).includes(defaults.role) ? defaults.role : ROLES[0]} options={ROLES} />
-            <SelectField label="Stage" name="venture_stage" defaultValue={defaults.stage && STAGES.some(([v]) => v === defaults.stage) ? defaults.stage : ""} options={[{ value: "", label: "Choose" }, ...STAGES.map(([v]) => ({ value: v, label: v }))]} />
+          <SelectField label="What describes you best" name="role" value={role} onChange={(e) => { setRole(e.target.value); setError(null); }} options={ROLES} />
+          {/* The questions change with the role (Phase 14). */}
+          <div key={role} className="flex flex-col gap-3">
+            {QUESTIONS[role as Role].map((q) => {
+              const name = `q_${q.id}`;
+              const label = q.required ? q.label : q.label.endsWith("(optional)") ? q.label : `${q.label} (optional)`;
+              if (q.kind === "long") return <TextArea key={q.id} label={label} name={name} rows={3} required={q.required} maxLength={1000} />;
+              if (q.kind === "stage")
+                return <SelectField key={q.id} label={label} name={name} required={q.required} defaultValue={defaults.stage && STAGES.some(([v]) => v === defaults.stage) ? defaults.stage : ""} options={[{ value: "", label: "Choose" }, ...STAGES.map(([v, d]) => ({ value: v, label: `${v} · ${d}` }))]} />;
+              if (q.kind === "choice") return <SelectField key={q.id} label={label} name={name} required={q.required} defaultValue="" options={[{ value: "", label: "Choose" }, ...(q.options ?? []).map((o) => ({ value: o, label: o }))]} />;
+              return <TextField key={q.id} label={label} name={name} required={q.required} maxLength={q.id === "website" ? 200 : 160} placeholder={q.placeholder} />;
+            })}
           </div>
-          <TextArea label="What are you building or working on?" name="building" rows={3} required minLength={10} maxLength={1000} />
-          <TextArea label="Why now? (optional)" name="why_now" rows={2} maxLength={1000} />
           {error ? <p role="alert" className="rounded-lg bg-bad-bg px-3 py-2 text-[13px] font-bold text-bad-fg">{error}</p> : null}
         </form>
       </Modal>

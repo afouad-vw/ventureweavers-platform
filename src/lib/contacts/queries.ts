@@ -23,6 +23,9 @@ export type Contact = {
   role: string | null;
   country: string | null;
   linkedin: string | null;
+  avatar: string | null;
+  businessWebsite: string | null;
+  businessType: string | null;
   interests: string[];
   spaces: Space[];
   adminTags: Space[];
@@ -63,7 +66,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
   const svc = createServiceClient();
   const [users, profiles, admins, bookings, enrolments, applications, requests, waitlist, topics, added, notes] = await Promise.all([
     allAuthUsers(),
-    svc.from("profiles").select("id, full_name, phone, role, stage, country, linkedin, goals, contact_prefs, consent_whatsapp, consent_push, consent_newsletter, created_at"),
+    svc.from("profiles").select("id, full_name, phone, role, stage, country, linkedin, goals, contact_prefs, consent_whatsapp, consent_push, consent_newsletter, created_at, avatar_url, business_name, business_website, business_type"),
     svc.from("admin_users").select("user_id"),
     svc.from("bookings").select("id, member_id, status, seats, created_at, events(title, type)").order("created_at", { ascending: false }).limit(5000),
     svc.from("enrolments").select("id, member_id, status, offered_at, confirmed_at, cohorts(label, programs(name))").limit(5000),
@@ -76,7 +79,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
   ]);
 
   const adminIds = new Set(((admins.data ?? []) as { user_id: string }[]).map((a) => a.user_id));
-  const prof = new Map(((profiles.data ?? []) as { id: string; full_name: string | null; phone: string | null; role: string | null; stage: string | null; country: string | null; linkedin: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_whatsapp: boolean; consent_push: boolean; consent_newsletter: boolean; created_at: string }[]).map((p) => [p.id, p]));
+  const prof = new Map(((profiles.data ?? []) as { id: string; full_name: string | null; phone: string | null; role: string | null; stage: string | null; country: string | null; linkedin: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_whatsapp: boolean; consent_push: boolean; consent_newsletter: boolean; created_at: string; avatar_url: string | null; business_name: string | null; business_website: string | null; business_type: string | null }[]).map((p) => [p.id, p]));
   const noteByMember = new Map<string, { note: string; tags: Space[] }>();
   const noteByContact = new Map<string, { note: string; tags: Space[] }>();
   for (const n of (notes.data ?? []) as { member_id: string | null; contact_id: string | null; note: string; tags: Space[] }[]) {
@@ -137,10 +140,13 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       name: nameOf(u.id, u.email),
       email: u.email ?? null,
       phone: p?.phone ?? null,
-      company: null,
+      company: p?.business_name ?? null,
       role: [p?.role, p?.stage].filter(Boolean).join(" · ") || null,
       country: p?.country ?? null,
       linkedin: p?.linkedin ?? null,
+      avatar: p?.avatar_url ?? null,
+      businessWebsite: p?.business_website ?? null,
+      businessType: p?.business_type ?? null,
       interests: (p?.goals ?? []).filter((g) => ["Education", "Services", "Content", "QuidQuo"].includes(g)),
       spaces: Array.from(new Set([...mine.map((i) => i.space), ...(n?.tags ?? [])])),
       adminTags: n?.tags ?? [],
@@ -177,6 +183,9 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       role: c.role,
       country: null,
       linkedin: null,
+      avatar: null,
+      businessWebsite: null,
+      businessType: null,
       interests: [],
       spaces: Array.from(new Set([...c.tags, ...(n?.tags ?? [])])),
       adminTags: c.tags,
@@ -198,6 +207,9 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       contactId: null,
       country: null,
       linkedin: null,
+      avatar: null,
+      businessWebsite: null,
+      businessType: null,
       interests: [],
       name: w.name || w.email,
       email: w.email,

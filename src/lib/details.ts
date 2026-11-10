@@ -1,6 +1,12 @@
 /** Shared shapes and checks for program, masterclass, show and service details (Phase 11). */
 
-export type Person = { name: string; title: string; linkedin?: string };
+export type Person = { name: string; title: string; linkedin?: string; photo?: string };
+
+/** Host and guest photos come from our public upload bucket only. */
+export function cleanPhoto(v: unknown): string {
+  const raw = String(v ?? "").trim();
+  return /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/content-images\/[\w/.-]{1,200}\.(jpg|png|webp)$/.test(raw) ? raw : "";
+}
 
 /** A LinkedIn profile or company page address, or "" when it isn't one. */
 export function cleanLinkedIn(v: unknown): string {
@@ -33,7 +39,8 @@ export function parsePeople(json: string | null | undefined): Person[] {
     return raw
       .map((p) => {
         const linkedin = cleanLinkedIn(p?.linkedin);
-        return { name: clean(p?.name, 80), title: clean(p?.title, 120), ...(linkedin ? { linkedin } : {}) };
+        const photo = cleanPhoto(p?.photo);
+        return { name: clean(p?.name, 80), title: clean(p?.title, 120), ...(linkedin ? { linkedin } : {}), ...(photo ? { photo } : {}) };
       })
       .filter((p) => p.name)
       .slice(0, MAX_PEOPLE);

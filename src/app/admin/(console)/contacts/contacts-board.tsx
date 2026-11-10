@@ -83,7 +83,14 @@ export function ContactsBoard({ contacts, base, canManage = true, initialQuery =
             <tr key={c.key} className="border-b border-line last:border-b-0 hover:bg-hover">
               <td className={td}>
                 <Link href={href(c)} className="flex items-center gap-2.5 hover:[&_b]:underline">
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-[12px] font-bold text-white">{initialsOf(c.name)}</span>
+                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-display text-[12px] font-bold text-white">
+                    {c.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
+                      <img src={c.avatar} alt="" loading="lazy" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      initialsOf(c.name)
+                    )}
+                  </span>
                   <span className="min-w-0"><b className="block">{c.name}</b><span className="text-[12px] text-faint">{c.email ?? c.company ?? (c.memberId ? "Member" : "Added contact")}</span></span>
                 </Link>
               </td>

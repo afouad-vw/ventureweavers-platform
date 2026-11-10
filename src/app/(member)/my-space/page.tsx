@@ -33,7 +33,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
   const { tab: raw } = await searchParams;
   const supabase = await createClient();
   const [{ data: p }, bookings, { count: savedCount }, payments] = await Promise.all([
-    supabase.from("profiles").select("full_name, phone, linkedin, country, role, stage, goals, interests, contact_prefs, consent_push, consent_newsletter").eq("id", member.id).maybeSingle(),
+    supabase.from("profiles").select("full_name, phone, linkedin, country, role, stage, goals, interests, contact_prefs, consent_push, consent_newsletter, avatar_url, business_name, business_website, business_type").eq("id", member.id).maybeSingle(),
     myBookings(),
     supabase.from("saved_items").select("item_id", { count: "exact", head: true }),
     myPayments(),
@@ -54,10 +54,17 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
   return (
     <>
       <Card className="sm:flex-row sm:items-center">
-        <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary font-display text-lg font-bold text-white">{initialsOf(name)}</span>
+        <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-display text-lg font-bold text-white">
+          {p?.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
+            <img src={p.avatar_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            initialsOf(name)
+          )}
+        </span>
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-xl font-semibold">{name}</h1>
-          <span className="text-[13px] text-faint">{[p?.role, p?.stage, "Cairo"].filter(Boolean).join(" · ")}</span>
+          <span className="text-[13px] text-faint">{[p?.role, p?.business_name, p?.country].filter(Boolean).join(" · ")}</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             <ThreadTag thread="Outloud" label="Outloud member" />
           </div>
@@ -92,6 +99,10 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
                 stage: p?.stage ?? "",
                 topics: (p?.interests as string[]) ?? [],
                 push: !!p?.consent_push,
+                avatar: p?.avatar_url ?? null,
+                businessName: p?.business_name ?? "",
+                businessWebsite: p?.business_website ?? "",
+                businessType: p?.business_type ?? "",
               } satisfies ProfileValues}
             />
           </Card>

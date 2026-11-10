@@ -173,10 +173,17 @@ export function AppShell({
 }
 
 /** Avatar + name block for the top bar. */
-export function Who({ initials, name, sub, href }: { initials: string; name: string; sub: string; href: string }) {
+export function Who({ initials, name, sub, href, avatar }: { initials: string; name: string; sub: string; href: string; avatar?: string | null }) {
   return (
     <Link href={href} className="flex items-center gap-2 text-fg">
-      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-[13px] font-bold text-white">{initials}</span>
+      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-display text-[13px] font-bold text-white">
+        {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
+          <img src={avatar} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+        ) : (
+          initials
+        )}
+      </span>
       <span className="hidden flex-col leading-tight desk:flex">
         <b className="text-[13px]">{name}</b>
         <span className="text-[11.5px] text-faint">{sub}</span>

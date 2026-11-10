@@ -17,7 +17,26 @@ export type About = {
   contact_prefs: string[];
   consent_whatsapp: boolean;
   consent_newsletter: boolean;
+  business_name: string | null;
+  business_website: string | null;
+  business_type: string | null;
 };
+
+export const BUSINESS_TYPES = ["Venture", "Corporate", "Capital", "Government & non-profit", "Education", "Other"] as const;
+
+/** "acme.com" → "https://acme.com". Returns null when it isn't a web address. */
+export function cleanWebsite(v: string): string | null {
+  const raw = v.trim();
+  if (!raw) return null;
+  const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const u = new URL(url);
+    if (!/^https?:$/.test(u.protocol) || !u.hostname.includes(".") || /[\s<>"]/.test(url)) return null;
+    return url.slice(0, 200);
+  } catch {
+    return null;
+  }
+}
 
 /** "+20" and "01001234567" → "+20 1001234567". Returns null when the number doesn't look right. */
 export function joinPhone(dialCountry: string, number: string): string | null {
@@ -58,6 +77,11 @@ export function parseAbout(get: (k: string) => unknown, getAll: (k: string) => u
   if (!goals.length) return { ok: false, error: "Pick at least one interest." };
   const contact_prefs = [...new Set(getAll("contact").map(String).filter((x) => (CONTACT as readonly string[]).includes(x)))];
   if (!contact_prefs.length) return { ok: false, error: "Choose how we should get in touch." };
+  const business_name = s("business_name").replace(/\s+/g, " ").slice(0, 120) || null;
+  const rawSite = s("business_website");
+  const business_website = cleanWebsite(rawSite);
+  if (rawSite && !business_website) return { ok: false, error: "That website doesn't look right. Try something like yourcompany.com." };
+  const business_type = (BUSINESS_TYPES as readonly string[]).includes(s("business_type")) ? s("business_type") : null;
   return {
     ok: true,
     value: {
@@ -70,6 +94,9 @@ export function parseAbout(get: (k: string) => unknown, getAll: (k: string) => u
       contact_prefs,
       consent_whatsapp: contact_prefs.includes("WhatsApp"),
       consent_newsletter: get("newsletter") === "on",
+      business_name,
+      business_website,
+      business_type,
     },
   };
 }

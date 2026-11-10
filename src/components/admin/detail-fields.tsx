@@ -29,6 +29,7 @@ export function PeopleEditor({ name, label, initial, addLabel }: { name: string;
       <input type="hidden" name={name} value={JSON.stringify(rows)} />
       {rows.map((p, i) => (
         <div key={i} className="flex flex-wrap items-center gap-1.5">
+          <PersonPhoto url={p.photo} label={p.name || `${label} ${i + 1}`} onChange={(url) => set(i, "photo", url)} />
           <input aria-label={`${label} ${i + 1} name`} value={p.name} onChange={(e) => set(i, "name", e.target.value)} maxLength={80} placeholder="Name" className={`${input} flex-1 basis-[150px]`} />
           <input aria-label={`${label} ${i + 1} title`} value={p.title} onChange={(e) => set(i, "title", e.target.value)} maxLength={120} placeholder="Title, e.g. Co-founder, VentureWeavers" className={`${input} flex-[2] basis-[200px]`} />
           <input aria-label={`${label} ${i + 1} LinkedIn`} value={p.linkedin ?? ""} onChange={(e) => set(i, "linkedin", e.target.value)} maxLength={200} inputMode="url" placeholder="LinkedIn link (optional)" className={`${input} flex-[2] basis-[200px]`} />
@@ -42,6 +43,51 @@ export function PeopleEditor({ name, label, initial, addLabel }: { name: string;
         </Button>
       ) : null}
     </fieldset>
+  );
+}
+
+/** A host's or guest's photo: square crop, JPG/PNG/WebP up to 5 MB, uploaded to the public images bucket. */
+function PersonPhoto({ url, label, onChange }: { url?: string; label: string; onChange: (url: string) => void }) {
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <span className="relative inline-flex shrink-0 flex-col items-center">
+      <button
+        type="button"
+        title={error ?? (url ? `Change ${label}'s photo` : `Add ${label}'s photo`)}
+        aria-label={url ? `Change ${label}'s photo` : `Add ${label}'s photo`}
+        disabled={pending}
+        onClick={() => ref.current?.click()}
+        className={`relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border bg-card/80 text-faint hover:border-primary hover:text-primary desk:h-9 desk:w-9 ${error ? "border-bad-fg" : "border-line2"}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- uploaded photo, cropped to a circle */}
+        {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <ImagePlus size={15} aria-hidden="true" />}
+        {pending ? <span className="absolute inset-0 animate-pulse bg-card/70" aria-hidden="true" /> : null}
+      </button>
+      {url ? (
+        <button type="button" aria-label={`Remove ${label}'s photo`} onClick={() => onChange("")} className="absolute -top-1 -right-1 inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-ink text-[10px] text-white">×</button>
+      ) : null}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (!f) return;
+          start(async () => {
+            setError(null);
+            const r = await uploadFile("content-images", f);
+            if (r.ok && r.file.url) onChange(r.file.url);
+            else setError(r.ok ? "Upload failed" : r.error);
+          });
+        }}
+      />
+    </span>
   );
 }
 

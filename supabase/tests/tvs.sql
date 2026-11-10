@@ -61,7 +61,7 @@ select pg_temp.check((select status from public.applications) = 'new', 'new appl
 select pg_temp.expect_error($$insert into public.applications (program_id, role, building) values ('40000000-0000-0000-0000-000000000001', 'Founder', 'Second try at the same program')$$, '%applications_one_open%', 'one open application per program');
 select pg_temp.expect_error($$insert into public.applications (program_id, role, building) values ('40000000-0000-0000-0000-000000000002', 'Angel', 'I want to back founders early')$$, '%program_closed%', 'cannot apply to a program in development');
 select pg_temp.expect_error($$insert into public.applications (program_id, role, building, status) values ('40000000-0000-0000-0000-000000000001', 'Founder', 'Skipping the queue please', 'won')$$, '%permission denied%', 'member cannot set the stage');
-select pg_temp.expect_error($$insert into public.applications (program_id, role, building) values ('40000000-0000-0000-0000-000000000001', 'Founder', 'short')$$, '%building_check%', 'application needs a real description');
+select pg_temp.expect_error($$insert into public.applications (program_id, role, building, answers) values ('40000000-0000-0000-0000-000000000001', 'Founder', 'short', '{"not":"a list"}')$$, '%answers_check%', 'application answers must be a list of questions and answers (Phase 14)');
 update public.applications set status = 'won';
 select pg_temp.check((select status from public.applications) = 'new', 'member cannot move their own application');
 select pg_temp.expect_error($$update public.applications set building = 'Changed it'$$, '%permission denied%', 'member cannot edit after sending');

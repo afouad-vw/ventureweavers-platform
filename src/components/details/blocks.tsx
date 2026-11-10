@@ -65,13 +65,20 @@ export function People({ people }: { people: Person[] }) {
     <ul className="grid gap-2.5 sm:grid-cols-2">
       {people.map((p) => (
         <li key={`${p.name}-${p.title}`} className="flex items-center gap-2.5">
-          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(160deg,#0d2526,#02686f)] font-display text-[13px] font-bold text-white shadow-depth-sm">{initialsOf(p.name)}</span>
+          <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(160deg,#0d2526,#02686f)] font-display text-[14px] font-bold text-white shadow-depth-sm">
+            {p.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element -- uploaded photo, cropped to a circle
+              <img src={p.photo} alt="" loading="lazy" className="h-full w-full object-cover" />
+            ) : (
+              initialsOf(p.name)
+            )}
+          </span>
           <span className="min-w-0 flex-1">
             <b className="block truncate text-[13.5px]">{p.name}</b>
             {p.title ? <span className="block truncate text-[12.5px] text-faint">{p.title}</span> : null}
           </span>
           {p.linkedin ? (
-            <a href={p.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} on LinkedIn`} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2/70 bg-card/70 text-[#0a66c2] transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-depth-sm">
+            <a href={p.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} on LinkedIn`} title={`${p.name} on LinkedIn`} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2/70 bg-card/70 text-[#0a66c2] transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-depth-sm">
               <Linkedin size={16} aria-hidden="true" />
             </a>
           ) : null}

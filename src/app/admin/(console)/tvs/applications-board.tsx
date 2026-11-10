@@ -42,7 +42,7 @@ export function ApplicationsBoard({ applications, cohorts }: { applications: Adm
                     <article key={a.id} className="flex flex-col gap-1.5 glass vw-lift rounded-xl border p-2.5">
                       <b className="text-[13.5px]">{a.member}</b>
                       <span className="text-[12px] text-faint">{a.program} · {a.role}{a.venture_stage ? ` · ${a.venture_stage}` : ""}</span>
-                      <span className="line-clamp-3 text-[12.5px] text-muted">“{a.building}”</span>
+                      {a.building ? <span className="line-clamp-3 text-[12.5px] text-muted">“{a.building}”</span> : null}
                       <span className="text-[12px] text-faint">{relativeWhen(a.created_at)}</span>
                       <label className="flex items-center gap-1.5 text-[12px] text-faint">
                         Owner
@@ -86,8 +86,14 @@ export function ApplicationsBoard({ applications, cohorts }: { applications: Adm
           <dl className="flex flex-col gap-2.5 text-[13.5px]">
             <div><dt className="text-[12px] text-faint">Email</dt><dd>{view.email ? <a className="font-bold text-link" href={`mailto:${view.email}`}>{view.email}</a> : "—"}</dd></div>
             <div><dt className="text-[12px] text-faint">Describes them</dt><dd>{view.role}{view.venture_stage ? ` · ${view.venture_stage}` : ""}</dd></div>
-            <div><dt className="text-[12px] text-faint">Building</dt><dd className="whitespace-pre-line">{view.building}</dd></div>
-            {view.why_now ? <div><dt className="text-[12px] text-faint">Why now</dt><dd className="whitespace-pre-line">{view.why_now}</dd></div> : null}
+            {view.answers?.length ? (
+              view.answers.map((x, i) => <div key={i}><dt className="text-[12px] text-faint">{x.q}</dt><dd className="whitespace-pre-line">{x.a}</dd></div>)
+            ) : (
+              <>
+                <div><dt className="text-[12px] text-faint">Building</dt><dd className="whitespace-pre-line">{view.building}</dd></div>
+                {view.why_now ? <div><dt className="text-[12px] text-faint">Why now</dt><dd className="whitespace-pre-line">{view.why_now}</dd></div> : null}
+              </>
+            )}
             <div><dt className="text-[12px] text-faint">Sent</dt><dd>{relativeWhen(view.created_at)}</dd></div>
           </dl>
         ) : null}

@@ -5,7 +5,8 @@ import { FormNote } from "@/components/auth/form-note";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextField, Toggle } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
-import { CONTACT, INTEREST_HINT, INTERESTS } from "@/lib/profile/about";
+import { BUSINESS_TYPES, CONTACT, INTEREST_HINT, INTERESTS } from "@/lib/profile/about";
+import { AvatarField } from "@/components/profile/avatar-field";
 import { COUNTRIES, MENA_COUNT } from "@/lib/profile/countries";
 import { ROLES } from "@/lib/profile/options";
 import type { FormState } from "@/lib/auth/form-state";
@@ -22,6 +23,10 @@ export type AboutInitial = {
   interests: string[];
   contact: string[];
   newsletter: boolean;
+  avatar: string | null;
+  businessName: string;
+  businessWebsite: string;
+  businessType: string;
 };
 
 const control =
@@ -68,6 +73,7 @@ export function AboutForm({
         </div>
       )}
 
+      {byAdmin ? null : <AvatarField name={initial.name} initial={initial.avatar} />}
       <TextField label="Full name" name="name" defaultValue={initial.name} autoComplete="name" maxLength={120} required />
 
       <div className="flex flex-col gap-1.5">
@@ -100,6 +106,15 @@ export function AboutForm({
         />
         <SelectField label="Role" name="role" defaultValue={initial.role} required options={[{ value: "", label: "Choose your role" }, ...ROLES.map((r) => ({ value: r, label: r }))]} />
       </div>
+
+      <fieldset className="flex flex-col gap-3 rounded-xl border border-line p-3">
+        <legend className="px-1 text-[12.5px] font-bold text-muted">Your business (optional)</legend>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TextField label="Business name" name="business_name" defaultValue={initial.businessName} maxLength={120} autoComplete="organization" />
+          <SelectField label="Type" name="business_type" defaultValue={initial.businessType} options={[{ value: "", label: "Choose" }, ...BUSINESS_TYPES.map((t) => ({ value: t, label: t }))]} />
+        </div>
+        <TextField label="Website" name="business_website" defaultValue={initial.businessWebsite} inputMode="url" placeholder="yourcompany.com" maxLength={200} />
+      </fieldset>
 
       <fieldset className="flex flex-col gap-1.5">
         <legend className="pb-1.5 text-[12.5px] font-bold text-muted">Interests (pick any)</legend>

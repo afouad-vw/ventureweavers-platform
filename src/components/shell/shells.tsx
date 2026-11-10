@@ -15,7 +15,7 @@ import type { Notice } from "@/lib/notifications/format";
 import { AppShell, Who } from "./app-shell";
 import { NotificationsBell } from "./notifications-bell";
 
-export type ShellMember = { name: string; initials: string; sub: string } | null;
+export type ShellMember = { name: string; initials: string; sub: string; avatar?: string | null } | null;
 
 /** Member app layout. Shows the signed-in member, or Sign in and Join. */
 export function MemberShell({ member, live = false, notifications = [], children }: { member: ShellMember; live?: boolean; notifications?: Notice[]; children: React.ReactNode }) {
@@ -31,7 +31,7 @@ export function MemberShell({ member, live = false, notifications = [], children
           {member ? (
             <>
               <NotificationsBell initial={notifications} />
-              <Who initials={member.initials} name={member.name} sub={member.sub} href="/my-space" />
+              <Who initials={member.initials} name={member.name} sub={member.sub} href="/my-space" avatar={member.avatar} />
             </>
           ) : (
             <>

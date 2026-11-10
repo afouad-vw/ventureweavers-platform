@@ -56,7 +56,14 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
       <Card className="gap-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3.5">
-            <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary font-display text-[20px] font-bold text-white">{initialsOf(c.name)}</span>
+            <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-display text-[20px] font-bold text-white">
+              {c.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
+                <img src={c.avatar} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                initialsOf(c.name)
+              )}
+            </span>
             <div className="flex min-w-0 flex-col gap-1">
               <h1 className="font-display text-[22px] leading-tight font-semibold">{c.name}</h1>
               <span className="text-[13px] text-muted">
@@ -92,6 +99,10 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                         interests: a.edit.goals,
                         contact: a.edit.contact,
                         newsletter: a.newsletter,
+                        avatar: c.avatar,
+                        businessName: a.edit.businessName ?? "",
+                        businessWebsite: a.edit.businessWebsite ?? "",
+                        businessType: a.edit.businessType ?? "",
                       },
                     }
                   : null
@@ -126,7 +137,9 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
             <dl className="flex flex-col">
               <Row label="Email">{c.email}</Row>
               <Row label="Mobile">{c.phone}</Row>
-              {c.memberId ? <Row label="Country">{c.country}</Row> : <Row label="Company">{c.company}</Row>}
+              {c.memberId ? <Row label="Country">{c.country}</Row> : null}
+              <Row label="Business">{c.company ? <>{c.company}{c.businessType ? <span className="text-faint"> · {c.businessType}</span> : null}</> : null}</Row>
+              {c.memberId ? <Row label="Website">{c.businessWebsite ? <a href={c.businessWebsite} target="_blank" rel="noopener noreferrer" className="font-bold text-link hover:underline">{c.businessWebsite.replace(/^https?:\/\//, "")}</a> : null}</Row> : null}
               <Row label="Role">{c.role}</Row>
               {c.memberId ? (
                 <Row label="LinkedIn">

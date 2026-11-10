@@ -114,8 +114,8 @@ export async function exportContactsCsv(space: string, q: string): Promise<{ ok:
   return {
     ok: true,
     csv: toCsv(
-      ["Name", "Email", "Mobile", "Company", "Role", "Spaces", "Source", "Consent", "Last activity", "Joined"],
-      rows.map((c) => [c.name, c.email, c.phone, c.company, c.role, c.spaces.join(", "), c.source, c.consent, c.last?.text ?? "", formatDate(c.joinedAt)]),
+      ["Name", "Email", "Mobile", "Business", "Business type", "Website", "Role", "Country", "Spaces", "Source", "Consent", "Last activity", "Joined"],
+      rows.map((c) => [c.name, c.email, c.phone, c.company, c.businessType, c.businessWebsite, c.role, c.country, c.spaces.join(", "), c.source, c.consent, c.last?.text ?? "", formatDate(c.joinedAt)]),
     ),
   };
 }
@@ -155,6 +155,9 @@ export async function updateMember(memberId: string, _state: FormState, form: Fo
     p_role: v.role,
     p_goals: v.goals,
     p_contact_prefs: v.contact_prefs,
+    p_business_name: v.business_name ?? "",
+    p_business_website: v.business_website ?? "",
+    p_business_type: v.business_type ?? "",
   });
   if (error) return { error: dbError(error.message, "Couldn't save the details.") };
   refresh();

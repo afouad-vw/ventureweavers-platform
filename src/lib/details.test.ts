@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanLinkedIn, formatHours, namesOf, parseList, parseOutline, parsePeople, totalHours, peopleLinkError } from "./details";
+import { cleanLinkedIn, formatHours, namesOf, parseList, parseOutline, parsePeople, totalHours, peopleLinkError, cleanPhoto } from "./details";
 
 describe("details", () => {
   it("parses hosts and guests, dropping empty rows", () => {
@@ -49,5 +49,17 @@ describe("peopleLinkError", () => {
     expect(peopleLinkError(JSON.stringify([{ name: "Ahmed", linkedin: "" }]), "host")).toBeNull();
     expect(peopleLinkError(JSON.stringify([{ name: "Karim", linkedin: "https://twitter.com/karim" }]), "host")).toContain("Karim");
     expect(peopleLinkError("not json", "host")).toBeNull();
+  });
+});
+
+describe("cleanPhoto", () => {
+  it("keeps only photos from the images bucket", () => {
+    expect(cleanPhoto("https://abc.supabase.co/storage/v1/object/public/content-images/2026-11/x.jpg")).toContain("content-images");
+    expect(cleanPhoto("https://evil.example/x.jpg")).toBe("");
+    expect(cleanPhoto("https://abc.supabase.co/storage/v1/object/public/avatars/u/x.jpg")).toBe("");
+  });
+  it("is kept by parsePeople", () => {
+    const [p] = parsePeople(JSON.stringify([{ name: "A", title: "", photo: "https://abc.supabase.co/storage/v1/object/public/content-images/a.png" }]));
+    expect(p.photo).toBeTruthy();
   });
 });
