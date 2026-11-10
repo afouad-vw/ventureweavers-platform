@@ -1,6 +1,12 @@
 # Phase 8 plan: Live mode
 
-Status: **for approval**.
+Status: **approved 2026-11-10**.
+
+## Decisions (answered 2026-11-10)
+
+- Anyone with a **confirmed ticket** can join live mode (check-in not required).
+- **Names**: each person chooses per question: first name, or anonymous.
+- **Feedback**: emailed to attendees who opted in, and shown in live mode.
 
 Spec: `reference/prototype.html` → Member › Live mode, Admin › Outloud › Live control.
 

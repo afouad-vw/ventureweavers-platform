@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarPlus, Video } from "lucide-react";
+import { CalendarPlus, Radio, Video } from "lucide-react";
+import { myLiveShows } from "@/lib/live/queries";
 import { buttonClass, LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
@@ -104,7 +105,8 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
       </EmptyState>
     );
   }
-  const [pay, meet] = await Promise.all([paymentInstructions(), myMeetLinks()]);
+  const [pay, meet, liveNow] = await Promise.all([paymentInstructions(), myMeetLinks(), myLiveShows().catch(() => [])]);
+  const liveIds = new Set(liveNow.map((l) => l.eventId));
   return (
     <div className="flex flex-col gap-3">
       {bookings.map((b) => {
@@ -137,6 +139,12 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
                 </div>
               ) : null}
               <div className="flex flex-wrap gap-2">
+                {e && liveIds.has(e.id) && b.status === "confirmed" ? (
+                  <Link href={`/live?event=${e.id}`} className={buttonClass("primary")}>
+                    <Radio size={15} aria-hidden="true" />
+                    Open live mode
+                  </Link>
+                ) : null}
                 {live && e?.starts_at && b.tickets ? (
                   <a href={`/api/tickets/${b.tickets.code}/calendar`} className={buttonClass("secondary")}>
                     <CalendarPlus size={15} aria-hidden="true" />

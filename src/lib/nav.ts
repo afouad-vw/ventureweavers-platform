@@ -9,6 +9,7 @@ import {
   Inbox,
   Megaphone,
   Mic,
+  Radio,
   User,
   Users,
   type LucideIcon,
@@ -34,6 +35,9 @@ export const memberSpaces: NavItem[] = [
 ];
 
 export const memberAccount: NavItem = { href: "/my-space", label: "My space", icon: User };
+
+/** Shown under My space while live mode is open for a show the member has a ticket to. */
+export const memberLive: NavItem = { href: "/live", label: "Live now", icon: Radio };
 
 /** Bottom bar on phones: four destinations plus a More button that opens the full menu. */
 export const memberTabBar: NavItem[] = [memberHome, memberSpaces[0], memberSpaces[1], memberSpaces[2]];

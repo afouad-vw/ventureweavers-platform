@@ -11,7 +11,7 @@ import { threadDot } from "@/components/ui/tag";
 
 export type NavSection = { label?: string; items: NavItem[] };
 
-function NavLink({ item, pathname, badge }: { item: NavItem; pathname: string; badge?: number }) {
+function NavLink({ item, pathname, badge }: { item: NavItem; pathname: string; badge?: number | string }) {
   const on = isActive(pathname, item.href);
   const Icon = item.icon;
   return (
@@ -55,7 +55,7 @@ export function AppShell({
   searchPlaceholder: string;
   crumb?: string;
   tabBar?: NavItem[];
-  badges?: Record<string, number>;
+  badges?: Record<string, number | string>;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();

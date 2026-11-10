@@ -8,6 +8,7 @@ import { ChipLinks } from "@/components/ui/chip-link";
 import { DateBox, EmptyState, Eyebrow, PageHeader } from "@/components/ui/misc";
 import { ThreadTag, threadDot, type TagTone } from "@/components/ui/tag";
 import { cn } from "@/lib/cn";
+import { myLiveShows } from "@/lib/live/queries";
 import { getMember } from "@/lib/auth/guards";
 import { buildReminders, filterBySpace, isSpace, profileCompletion, relativeWhen, SPACES, tunedTo } from "@/lib/content/format";
 import { feedPosts, myHomeProfile, mySavedKeys } from "@/lib/content/queries";
@@ -33,6 +34,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     member ? feedPosts() : [],
     member ? mySavedKeys() : new Set<string>(),
   ]);
+  const liveIds = new Set(member ? (await myLiveShows().catch(() => [])).map((l) => l.eventId) : []);
 
   const shows = events.filter((e) => e.type !== "private_session" && e.starts_at);
   const now = Date.now();
@@ -82,10 +84,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <h3 className="mt-0.5 text-[15.5px] font-extrabold text-white">{nextUp.events.title}</h3>
                 <span className="text-[12.5px] text-ink-muted">{formatTime(nextUp.events.starts_at)} · {nextUp.events.venue ?? "[VENUE]"}</span>
               </div>
-              <LinkButton href="/my-space" variant="teal">
-                <Ticket size={15} aria-hidden="true" />
-                Ticket
-              </LinkButton>
+              <div className="flex gap-1.5">
+                <LinkButton href="/my-space" variant="teal">
+                  <Ticket size={15} aria-hidden="true" />
+                  Ticket
+                </LinkButton>
+                {liveIds.has(nextUp.events.id) && nextUp.status === "confirmed" ? <LinkButton href={`/live?event=${nextUp.events.id}`} variant="secondary">Live mode</LinkButton> : null}
+              </div>
             </Card>
           ) : null}
 

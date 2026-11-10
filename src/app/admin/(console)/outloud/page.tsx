@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import { ScanLine } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
-import { EmptyState, PageHeader } from "@/components/ui/misc";
+import { PageHeader } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
 import { adminListEvents } from "@/lib/events/admin-queries";
 import { adminBlog, adminContent, adminTopics } from "@/lib/content/admin-queries";
 import { hostConfig } from "@/lib/hosts";
+import { adminLive } from "@/lib/live/queries";
 import { BlogManager } from "./blog-manager";
 import { ContentManager } from "./content-manager";
 import { EventsManager } from "./events-manager";
+import { LiveControl } from "./live-control";
 import { TopicsList } from "./topics-list";
 
 export const metadata: Metadata = { title: "Outloud admin" };
@@ -22,16 +24,17 @@ const TABS = [
   { value: "live", label: "Live control" },
 ];
 
-export default async function AdminOutloudPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+export default async function AdminOutloudPage({ searchParams }: { searchParams: Promise<{ tab?: string; event?: string }> }) {
   await requireAdmin();
   const base = await currentAdminBase();
-  const { tab: raw } = await searchParams;
+  const { tab: raw, event } = await searchParams;
   const tab = TABS.some((t) => t.value === raw) ? raw! : "events";
-  const [events, content, blog, topics] = await Promise.all([
+  const [events, content, blog, topics, live] = await Promise.all([
     tab === "events" ? adminListEvents() : [],
     tab === "content" ? adminContent() : [],
     tab === "blog" ? adminBlog() : [],
     tab === "live" ? adminTopics() : [],
+    tab === "live" ? adminLive(event) : null,
   ]);
   const appOrigin = process.env.HOST_MODE === "strict" ? `https://${hostConfig().app}` : "";
   return (
@@ -46,11 +49,11 @@ export default async function AdminOutloudPage({ searchParams }: { searchParams:
       {tab === "events" ? <EventsManager events={events} base={base} /> : null}
       {tab === "content" ? <ContentManager items={content} /> : null}
       {tab === "blog" ? <BlogManager posts={blog} appOrigin={appOrigin} /> : null}
-      {tab === "live" ? (
-        <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <EmptyState>Live control (question queue, The Pick, polls) arrives in Phase 8.</EmptyState>
+      {tab === "live" && live ? (
+        <>
+          <LiveControl data={live} base={base} />
           <TopicsList topics={topics} />
-        </div>
+        </>
       ) : null}
     </>
   );

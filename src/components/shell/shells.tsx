@@ -4,7 +4,7 @@ import { initialsOf } from "@/lib/initials";
 
 import Image from "next/image";
 import Link from "next/link";
-import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberSpaces, memberTabBar } from "@/lib/nav";
+import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberLive, memberSpaces, memberTabBar } from "@/lib/nav";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import { adminSignOut } from "@/app/admin/(gate)/actions";
@@ -15,10 +15,11 @@ import { AppShell, BellButton, Who } from "./app-shell";
 export type ShellMember = { name: string; initials: string; sub: string } | null;
 
 /** Member app layout. Shows the signed-in member, or Sign in and Join. */
-export function MemberShell({ member, children }: { member: ShellMember; children: React.ReactNode }) {
+export function MemberShell({ member, live = false, children }: { member: ShellMember; live?: boolean; children: React.ReactNode }) {
   return (
     <AppShell
-      sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: [memberAccount] }]}
+      sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: live ? [memberAccount, memberLive] : [memberAccount] }]}
+      badges={live ? { "/live": "LIVE" } : undefined}
       searchPlaceholder="Search shows, programs, resources"
       tabBar={memberTabBar}
       topRight={

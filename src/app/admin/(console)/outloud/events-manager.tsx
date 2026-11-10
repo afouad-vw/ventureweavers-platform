@@ -84,6 +84,9 @@ export function EventsManager({ events, base, mode = "outloud" }: { events: Admi
                 <td className="px-3 py-2.5"><StatusPill tone={ev.status === "published" ? "ok" : "draft"}>{ev.status === "published" ? "Published" : "Draft"}</StatusPill></td>
                 <td className="px-3 py-2.5">
                   <div className="flex justify-end gap-1">
+                    {mode === "outloud" && ev.type === "public_show" ? (
+                      <Link href={`${base}/outloud?tab=live&event=${ev.id}`} className="inline-flex h-8 items-center rounded-md px-2 text-[12.5px] font-bold text-fg hover:bg-hover">Run live</Link>
+                    ) : null}
                     {ev.type !== "private_session" ? (
                       <Link href={`${base}/outloud/events/${ev.id}`} title="Bookings" aria-label={`Bookings for ${ev.title}`} className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg hover:bg-hover"><Users size={15} aria-hidden="true" /></Link>
                     ) : null}
