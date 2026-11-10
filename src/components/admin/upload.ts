@@ -1,5 +1,3 @@
-"use client";
-
 import { finishUpload, startUpload } from "@/app/admin/(console)/upload-actions";
 import { supabasePublicKey } from "@/lib/supabase/env";
 import { checkUpload, type UploadTarget } from "@/lib/uploads";

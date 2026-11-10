@@ -6,7 +6,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState, TicketQR } from "@/components/ui/misc";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
-import { initialsOf } from "@/components/shell/shells";
+import { initialsOf } from "@/lib/initials";
 import { requireMember } from "@/lib/auth/guards";
 import { bookingBadge, formatDateTime, formatEGP } from "@/lib/events/format";
 import { myBookings, paymentInstructions, type MyBooking } from "@/lib/events/queries";

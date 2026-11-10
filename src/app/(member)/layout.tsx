@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
-import { initialsOf, MemberShell } from "@/components/shell/shells";
+import { MemberShell } from "@/components/shell/shells";
+import { initialsOf } from "@/lib/initials";
 import { getMember } from "@/lib/auth/guards";
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,7 @@
 "use client";
 
+import { initialsOf } from "@/lib/initials";
+
 import Image from "next/image";
 import Link from "next/link";
 import { adminMain, adminShared, adminSpaces, memberAccount, memberHome, memberSpaces, memberTabBar } from "@/lib/nav";
@@ -88,7 +90,3 @@ export function AdminShell({ base, name, children }: { base: string; name: strin
   );
 }
 
-export function initialsOf(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "VW";
-}
