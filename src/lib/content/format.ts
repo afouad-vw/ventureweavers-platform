@@ -142,3 +142,18 @@ export function tunedTo(p: { role?: string | null; stage?: string | null; intere
   const bits = [p?.role, p?.stage, p?.interests?.slice(0, 3).join(", ")].filter(Boolean).map((s) => String(s).toLowerCase());
   return bits.join(" · ");
 }
+
+/** High-resolution YouTube thumbnail for a YouTube link (watch, youtu.be, shorts, embed), or null. */
+export function youtubeThumb(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\.|^m\./, "");
+    let id: string | null = null;
+    if (host === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+    else if (host === "youtube.com" || host === "music.youtube.com") id = u.searchParams.get("v") ?? /^\/(?:shorts|embed|live)\/([^/?#]+)/.exec(u.pathname)?.[1] ?? null;
+    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : null;
+  } catch {
+    return null;
+  }
+}

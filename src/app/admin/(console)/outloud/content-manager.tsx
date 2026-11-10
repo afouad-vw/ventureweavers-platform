@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
+import { ImageField } from "@/components/admin/image-field";
 import { ConfirmDelete, EditorDrawer, ListBar, RowActions, TableBox, td, useRunner } from "@/components/admin/crud";
 import { SelectField, TextField } from "@/components/ui/field";
 import { StatusPill } from "@/components/ui/tag";
@@ -67,6 +68,12 @@ export function ContentManager({ items }: { items: ContentItem[] }) {
           <TextField label="Publish date" name="publish_on" type="date" defaultValue={c?.publish_on ?? today()} required />
         </div>
         <TextField label="Link" name="url" type="url" defaultValue={c?.url ?? ""} placeholder="https://www.instagram.com/…" hint="Needed to publish. Scheduled items show as “Coming [date]” without a link." />
+        <ImageField
+          name="image_url"
+          initial={c?.image_url ?? null}
+          label="Preview image"
+          fallbackNote="A clear frame from the content works best. For YouTube links, the video's own high-resolution thumbnail is used when you don't upload one."
+        />
         <SelectField label="Status" name="status" defaultValue={c?.status ?? "draft"} options={CONTENT_STATUSES} />
       </EditorDrawer>
 

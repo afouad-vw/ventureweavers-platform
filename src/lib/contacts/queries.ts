@@ -21,6 +21,9 @@ export type Contact = {
   phone: string | null;
   company: string | null;
   role: string | null;
+  country: string | null;
+  linkedin: string | null;
+  interests: string[];
   spaces: Space[];
   adminTags: Space[];
   source: string;
@@ -47,8 +50,9 @@ async function allAuthUsers(): Promise<AuthUser[]> {
 
 const PROVIDER: Record<string, string> = { google: "Google sign-up", linkedin_oidc: "LinkedIn sign-up", email: "Email sign-up" };
 
-function consentOf(p: { consent_whatsapp?: boolean; consent_push?: boolean; consent_newsletter?: boolean } | undefined) {
+function consentOf(p: { contact_prefs?: string[] | null; consent_whatsapp?: boolean; consent_push?: boolean; consent_newsletter?: boolean } | undefined) {
   if (!p) return "Not asked yet";
+  if (p.contact_prefs?.length) return p.contact_prefs.join(", ");
   const parts = ["Email", p.consent_whatsapp ? "WhatsApp" : null, p.consent_push ? "push" : null].filter(Boolean);
   return parts.join(", ");
 }
@@ -59,7 +63,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
   const svc = createServiceClient();
   const [users, profiles, admins, bookings, enrolments, applications, requests, waitlist, topics, added, notes] = await Promise.all([
     allAuthUsers(),
-    svc.from("profiles").select("id, full_name, phone, role, stage, consent_whatsapp, consent_push, consent_newsletter, created_at"),
+    svc.from("profiles").select("id, full_name, phone, role, stage, country, linkedin, goals, contact_prefs, consent_whatsapp, consent_push, consent_newsletter, created_at"),
     svc.from("admin_users").select("user_id"),
     svc.from("bookings").select("id, member_id, status, seats, created_at, events(title, type)").order("created_at", { ascending: false }).limit(5000),
     svc.from("enrolments").select("id, member_id, status, offered_at, confirmed_at, cohorts(label, programs(name))").limit(5000),
@@ -72,7 +76,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
   ]);
 
   const adminIds = new Set(((admins.data ?? []) as { user_id: string }[]).map((a) => a.user_id));
-  const prof = new Map(((profiles.data ?? []) as { id: string; full_name: string | null; phone: string | null; role: string | null; stage: string | null; consent_whatsapp: boolean; consent_push: boolean; consent_newsletter: boolean; created_at: string }[]).map((p) => [p.id, p]));
+  const prof = new Map(((profiles.data ?? []) as { id: string; full_name: string | null; phone: string | null; role: string | null; stage: string | null; country: string | null; linkedin: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_whatsapp: boolean; consent_push: boolean; consent_newsletter: boolean; created_at: string }[]).map((p) => [p.id, p]));
   const noteByMember = new Map<string, { note: string; tags: Space[] }>();
   const noteByContact = new Map<string, { note: string; tags: Space[] }>();
   for (const n of (notes.data ?? []) as { member_id: string | null; contact_id: string | null; note: string; tags: Space[] }[]) {
@@ -135,6 +139,9 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       phone: p?.phone ?? null,
       company: null,
       role: [p?.role, p?.stage].filter(Boolean).join(" · ") || null,
+      country: p?.country ?? null,
+      linkedin: p?.linkedin ?? null,
+      interests: (p?.goals ?? []).filter((g) => ["Education", "Services", "Content", "QuidQuo"].includes(g)),
       spaces: Array.from(new Set([...mine.map((i) => i.space), ...(n?.tags ?? [])])),
       adminTags: n?.tags ?? [],
       source: invitedMembers.has(u.id) ? "Invited by a member" : PROVIDER[provider] ?? "Sign-up",
@@ -168,6 +175,9 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       phone: c.phone,
       company: c.company,
       role: c.role,
+      country: null,
+      linkedin: null,
+      interests: [],
       spaces: Array.from(new Set([...c.tags, ...(n?.tags ?? [])])),
       adminTags: c.tags,
       source: c.source,
@@ -186,6 +196,9 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       key: `w:${w.id}`,
       memberId: null,
       contactId: null,
+      country: null,
+      linkedin: null,
+      interests: [],
       name: w.name || w.email,
       email: w.email,
       phone: null,

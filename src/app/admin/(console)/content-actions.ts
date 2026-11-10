@@ -252,7 +252,10 @@ export async function saveContent(form: FormData): Promise<ActionResult> {
   const status = oneOf(s("status"), CONTENT_STATUSES.map((x) => x.value), "draft");
   if (status === "published" && !url) return { ok: false, error: "Add the link before publishing (or set it to Scheduled)." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s("publish_on"))) return { ok: false, error: "Choose a publish date." };
+  const image_url = s("image_url");
+  if (!imageOk(image_url)) return { ok: false, error: "That preview image isn't from the upload folder." };
   return save("content_items", s("id") || null, {
+    image_url: image_url || null,
     title: s("title").slice(0, 160),
     series: (s("series") || "The Question").slice(0, 60),
     format: oneOf(s("format"), CONTENT_FORMATS, "Short"),

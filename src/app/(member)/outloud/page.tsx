@@ -8,6 +8,7 @@ import { nextWorkingDays } from "@/lib/brickr/slots";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { ContentCard } from "@/components/ui/content-card";
 import { BLOG_CATEGORIES, CONTENT_FORMATS } from "@/lib/content/format";
+import { youtubeThumb } from "@/lib/content/format";
 import { blogPosts, contentItems, myHomeProfile } from "@/lib/content/queries";
 import { formatDate } from "@/lib/events/format";
 import { BookButton } from "@/components/events/book-button";
@@ -163,22 +164,33 @@ async function DigitalContent({ format }: { format?: string }) {
         <span className="text-[12.5px] text-faint">Follow <b>@openfloor.show</b> on Instagram, TikTok and LinkedIn</span>
       </div>
       {items.length ? (
-        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
           {items.map((c, i) => {
             const soon = c.status === "scheduled" || !c.url;
+            const img = c.image_url || youtubeThumb(c.url);
             const inner = (
               <>
-                <span className="text-[11px] font-extrabold tracking-[1.2px] uppercase opacity-90">{c.platform}</span>
-                <small className="text-[12px] opacity-85">{c.series} · {c.format}</small>
-                <b className="mt-auto text-[15px] leading-snug font-extrabold">{c.title}</b>
-                <span className="text-[12px] font-bold opacity-85">{soon ? `Coming ${formatDate(c.publish_on + "T12:00:00Z")}` : formatDate(c.publish_on + "T12:00:00Z")}</span>
+                {img ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- uploaded or YouTube preview, cropped to fit
+                  <img src={img} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" />
+                ) : null}
+                {img ? <span className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-ink/10" aria-hidden="true" /> : null}
+                <span className="relative flex h-full flex-col gap-1">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-black/35 px-2 py-0.5 text-[10.5px] font-extrabold tracking-[1.2px] uppercase backdrop-blur-md">{c.platform}</span>
+                    <small className="text-[11.5px] font-bold opacity-90">{c.format}</small>
+                  </span>
+                  <small className="mt-auto text-[12px] opacity-85">{c.series}</small>
+                  <b className="text-[15px] leading-snug font-extrabold">{c.title}</b>
+                  <span className="text-[12px] font-bold opacity-85">{soon ? `Coming ${formatDate(c.publish_on + "T12:00:00Z")}` : formatDate(c.publish_on + "T12:00:00Z")}</span>
+                </span>
               </>
             );
-            const cls = `flex aspect-[4/5] flex-col gap-1 rounded-xl p-3.5 ${TILE_TONES[i % 4]}`;
+            const cls = `group relative flex aspect-[4/5] overflow-hidden rounded-[20px] p-3.5 text-white shadow-depth ${img ? "bg-ink" : TILE_TONES[i % 4]}`;
             return soon ? (
               <div key={c.id} className={cls}>{inner}</div>
             ) : (
-              <a key={c.id} href={c.url!} target="_blank" rel="noopener noreferrer" className={`${cls} hover:brightness-110`} aria-label={`${c.title} on ${c.platform}`}>{inner}</a>
+              <a key={c.id} href={c.url!} target="_blank" rel="noopener noreferrer" className={`${cls} vw-lift`} aria-label={`${c.title} on ${c.platform}`}>{inner}</a>
             );
           })}
         </div>

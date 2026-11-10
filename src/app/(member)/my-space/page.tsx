@@ -20,6 +20,8 @@ import { myTvs } from "@/lib/tvs/queries";
 import { myRequests } from "@/lib/brickr/queries";
 import { KIND_LABEL, statusLabel as payLabel, statusTone as payTone } from "@/lib/payments/format";
 import { myPayments, type MyPayment } from "@/lib/payments/queries";
+import { INTERESTS, splitPhone } from "@/lib/profile/about";
+import { countryByName } from "@/lib/profile/countries";
 import { WithdrawButton } from "@/components/brickr/brickr-client";
 import { CancelReservation } from "./cancel-button";
 import { ProfileForm, type ProfileValues } from "./profile-form";
@@ -31,7 +33,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
   const { tab: raw } = await searchParams;
   const supabase = await createClient();
   const [{ data: p }, bookings, { count: savedCount }, payments] = await Promise.all([
-    supabase.from("profiles").select("full_name, phone, role, stage, goals, interests, consent_whatsapp, consent_push, consent_newsletter").eq("id", member.id).maybeSingle(),
+    supabase.from("profiles").select("full_name, phone, linkedin, country, role, stage, goals, interests, contact_prefs, consent_push, consent_newsletter").eq("id", member.id).maybeSingle(),
     myBookings(),
     supabase.from("saved_items").select("item_id", { count: "exact", head: true }),
     myPayments(),
@@ -75,15 +77,21 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
             <CardHeader title="Profile" />
             <ProfileForm
               initial={{
-                full_name: p?.full_name ?? "",
-                phone: p?.phone ?? "",
+                name: p?.full_name ?? member.name ?? "",
+                email: member.email ?? "",
+                ...(() => {
+                  const sp = splitPhone(p?.phone, countryByName(p?.country)?.code ?? "EG");
+                  return { dialCountry: sp.dialCountry, phone: sp.number };
+                })(),
+                linkedin: p?.linkedin ?? "",
+                country: p?.country ?? "",
                 role: p?.role ?? "",
+                interests: ((p?.goals as string[] | null) ?? []).filter((g) => (INTERESTS as readonly string[]).includes(g)),
+                contact: (p?.contact_prefs as string[] | null) ?? [],
+                newsletter: !!p?.consent_newsletter,
                 stage: p?.stage ?? "",
-                goals: (p?.goals as string[]) ?? [],
-                interests: (p?.interests as string[]) ?? [],
-                consent_whatsapp: !!p?.consent_whatsapp,
-                consent_push: !!p?.consent_push,
-                consent_newsletter: !!p?.consent_newsletter,
+                topics: (p?.interests as string[]) ?? [],
+                push: !!p?.consent_push,
               } satisfies ProfileValues}
             />
           </Card>

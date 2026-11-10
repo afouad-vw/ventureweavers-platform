@@ -160,8 +160,11 @@ function Panel({ c, onEdit, onDelete }: { c: Contact; onEdit: () => void; onDele
         <div><dt className="text-faint">Email</dt><dd className="truncate font-bold">{c.email ?? "—"}</dd></div>
         <div><dt className="text-faint">Mobile</dt><dd className="font-bold">{c.phone ?? "—"}</dd></div>
         <div><dt className="text-faint">Source</dt><dd className="font-bold">{c.source}</dd></div>
-        <div><dt className="text-faint">Consent</dt><dd className="font-bold">{c.consent}</dd></div>
+        <div><dt className="text-faint">Contact by</dt><dd className="font-bold">{c.consent}</dd></div>
+        {c.country ? <div><dt className="text-faint">Country</dt><dd className="font-bold">{c.country}</dd></div> : null}
+        {c.interests.length ? <div><dt className="text-faint">Interests</dt><dd className="font-bold">{c.interests.join(", ")}</dd></div> : null}
       </dl>
+      {c.linkedin ? <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="self-start text-[12.5px] font-bold text-link hover:underline">LinkedIn profile</a> : null}
       {c.spaces.length ? <div className="flex flex-wrap gap-1">{c.spaces.map((s) => <ThreadTag key={s} thread={s} />)}</div> : null}
       {c.items.length ? (
         <div className="flex flex-col gap-1.5">

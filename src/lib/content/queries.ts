@@ -29,8 +29,9 @@ export type ContentItem = {
   url: string | null;
   publish_on: string;
   status: ContentStatus;
+  image_url: string | null;
 };
-export const CONTENT_COLS = "id, title, series, format, platform, url, publish_on, status";
+export const CONTENT_COLS = "id, title, series, format, platform, url, publish_on, status, image_url";
 
 export type BlogPost = {
   id: string;
