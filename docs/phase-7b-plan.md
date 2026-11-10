@@ -1,6 +1,6 @@
 # Phase 7b plan: Admin Overview and Contacts
 
-Status: **waiting for approval** (new tables, reads member data, admin-only access).
+Status: **approved 2026-11-10**.
 
 Spec: `reference/prototype.html` → Admin › Overview, Admin › Contacts.
 
@@ -37,7 +37,12 @@ Everything else is read from what's already there (profiles, bookings, enrolment
 - Member email and phone are read on the server for admins only.
 - An added contact who later signs up with the same email shows as **one person** (their account takes over; your note and tags stay).
 
-## Decisions needed
+## Decisions (answered 2026-11-10)
+
+- **CSV import** built now.
+- Admins add **notes and tags only** to members; members keep control of their own profile.
+
+## Original questions
 
 1. **CSV import** now (recommended), or later.
 2. **Editing members' details**: admins add notes and tags only; members keep control of their own name, phone and profile (recommended). Or let admins edit member profiles too.
