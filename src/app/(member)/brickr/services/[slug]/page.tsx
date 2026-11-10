@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Users } from "lucide-react";
-import { RequestButton } from "@/components/brickr/brickr-client";
+import { MeetingButton } from "@/components/brickr/meeting-button";
 import { BrochureLink, Bullets, Facts, NumberedList, Section } from "@/components/details/blocks";
 import { Banner, type BannerChoice } from "@/components/ui/banner";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ThreadTag } from "@/components/ui/tag";
-import { getMember } from "@/lib/auth/guards";
 import { getService } from "@/lib/brickr/queries";
-import { nextWorkingDays } from "@/lib/brickr/slots";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,7 +19,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ServicePage({ params }: Props) {
   const s = await getService((await params).slug);
   if (!s) notFound();
-  const member = await getMember();
   const thread = s.space === "Outloud" ? "Outloud" : "BRICKR";
   return (
     <>
@@ -45,7 +42,7 @@ export default async function ServicePage({ params }: Props) {
             ]}
           />
           <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">
-            <RequestButton service={s} days={nextWorkingDays()} signedIn={!!member} />
+            <MeetingButton service={s} size="md" />
             {s.brochure_url ? <BrochureLink url={s.brochure_url} /> : null}
           </div>
         </div>

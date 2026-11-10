@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Briefcase, Lock } from "lucide-react";
-import { RequestButton } from "@/components/brickr/brickr-client";
+import { MeetingButton } from "@/components/brickr/meeting-button";
 import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -9,7 +9,6 @@ import { EmptyState, PageHeader } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { listServices, myRequests } from "@/lib/brickr/queries";
-import { nextWorkingDays } from "@/lib/brickr/slots";
 
 export const metadata: Metadata = { title: "BRICKR" };
 
@@ -17,7 +16,6 @@ export default async function BrickrPage() {
   const [member, services] = await Promise.all([getMember(), listServices()]);
   const mine = member ? await myRequests() : [];
   const open = mine.filter((r) => r.status !== "declined").length;
-  const days = nextWorkingDays();
   const isClient = mine.some((r) => r.status === "won");
   const diagnostic = services.find((s) => s.slug === "growth-diagnostic") ?? services.find((s) => s.space === "BRICKR");
 
@@ -54,7 +52,7 @@ export default async function BrickrPage() {
                   cta={
                     <span className="flex flex-wrap justify-end gap-1.5">
                       <LinkButton href={`/brickr/services/${s.slug}`} size="sm" variant="secondary">View details</LinkButton>
-                      <RequestButton service={s} days={days} signedIn={!!member} />
+                      <MeetingButton service={s} />
                     </span>
                   }
                 />
@@ -97,7 +95,7 @@ export default async function BrickrPage() {
             <Card tone="soft">
               <h2 className="text-[15px] font-extrabold">Not sure where to start?</h2>
               <span className="text-[13px] text-muted">Most founders start with a growth diagnostic.</span>
-              <RequestButton service={diagnostic} days={days} signedIn={!!member} label="Book a diagnostic" className="self-start" />
+              <MeetingButton service={diagnostic} label="Book a diagnostic" className="self-start" />
             </Card>
           ) : null}
         </aside>

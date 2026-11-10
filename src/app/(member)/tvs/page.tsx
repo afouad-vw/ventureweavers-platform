@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen, CalendarDays, GraduationCap } from "lucide-react";
 import { BookButton } from "@/components/events/book-button";
+import { MeetingButton } from "@/components/brickr/meeting-button";
 import { CustomProgramButton } from "@/components/tvs/custom-program";
+import { customProgramService } from "@/lib/brickr/queries";
+import { calendlyUrl } from "@/lib/calendly-server";
 import { ProgramCta } from "@/components/tvs/program-cta";
 import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
@@ -73,7 +76,13 @@ async function Programs({
   signedIn: boolean;
   memberId: string | null;
 }) {
-  const [profile, cohorts, me] = await Promise.all([memberId ? myHomeProfile(memberId) : null, publicCohorts(programs.map((p) => p.id)), getMember()]);
+  const [profile, cohorts, me, calUrl, customService] = await Promise.all([
+    memberId ? myHomeProfile(memberId) : null,
+    publicCohorts(programs.map((p) => p.id)),
+    getMember(),
+    calendlyUrl(),
+    customProgramService(),
+  ]);
 
   return (
     <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-[18px]">
@@ -135,7 +144,11 @@ async function Programs({
         <Card tone="ink" className="gap-2.5">
           <h2 className="text-[15px] font-bold text-white">Custom programs</h2>
           <span className="text-[13.5px]">For teams, portfolios, cohorts and organisations. Tell us what you need and we&apos;ll shape a program around it.</span>
-          <CustomProgramButton defaults={{ name: me?.name ?? "", email: me?.email ?? "" }} />
+          {calUrl && customService ? (
+            <MeetingButton service={customService} variant="teal" size="md" className="self-start" />
+          ) : (
+            <CustomProgramButton defaults={{ name: me?.name ?? "", email: me?.email ?? "" }} />
+          )}
         </Card>
       </aside>
     </div>

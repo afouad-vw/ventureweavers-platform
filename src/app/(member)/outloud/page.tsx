@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, MessageSquare } from "lucide-react";
-import { RequestButton } from "@/components/brickr/brickr-client";
+import { MeetingButton } from "@/components/brickr/meeting-button";
 import { NewsletterToggle, TopicForm } from "@/components/content/member-buttons";
 import { listServices } from "@/lib/brickr/queries";
-import { nextWorkingDays } from "@/lib/brickr/slots";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { ContentCard } from "@/components/ui/content-card";
 import { BLOG_CATEGORIES, CONTENT_FORMATS } from "@/lib/content/format";
@@ -118,7 +117,7 @@ async function Shows() {
           <h3 className="text-[15px] font-extrabold text-white">A show for your people, or your name on ours</h3>
           <p className="text-[13px] text-ink-muted">Book a private show for your team, portfolio or community, or sponsor one of our public shows.</p>
           {privateService ? (
-            <RequestButton service={privateService} days={nextWorkingDays()} signedIn={!!member} label="Request a meeting" variant="teal" size="md" className="self-start" />
+            <MeetingButton service={privateService} variant="teal" size="md" className="self-start" />
           ) : (
             <a href="mailto:info@ventureweavers.com?subject=Private%20show%20or%20sponsorship" className={buttonClass("teal", "md", "self-start")}>
               Get in touch

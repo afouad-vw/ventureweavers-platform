@@ -133,11 +133,11 @@ export async function adminInbox(): Promise<InboxItem[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
   const [{ data: reqs }, { data: apps }, { data: notes }] = await Promise.all([
-    supabase.from("requests").select("id, member_id, space, preferred_at, company, note, status, owner, meeting_at, meeting_url, created_at, services(name)").order("created_at", { ascending: false }).limit(500),
+    supabase.from("requests").select("id, member_id, space, preferred_at, company, note, status, owner, meeting_at, meeting_url, created_at, calendly_invitee, cancelled_at, services(name)").order("created_at", { ascending: false }).limit(500),
     supabase.from("applications").select("id, member_id, role, venture_stage, building, status, owner, created_at, programs(name)").order("created_at", { ascending: false }).limit(500),
     supabase.from("request_notes").select("id, request_id, author_id, body, created_at").order("created_at"),
   ]);
-  type R = { id: string; member_id: string; space: "BRICKR" | "Outloud"; preferred_at: string; company: string; note: string; status: ApplicationStatus; owner: string | null; meeting_at: string | null; meeting_url: string | null; created_at: string; services: { name: string } | null };
+  type R = { id: string; member_id: string; space: "BRICKR" | "Outloud" | "TVS"; preferred_at: string; company: string; note: string; status: ApplicationStatus; owner: string | null; meeting_at: string | null; meeting_url: string | null; created_at: string; calendly_invitee: string | null; cancelled_at: string | null; services: { name: string } | null };
   type A = { id: string; member_id: string; role: string; venture_stage: string; building: string; status: ApplicationStatus; owner: string | null; created_at: string; programs: { name: string } | null };
   type N = { id: string; request_id: string; author_id: string; body: string; created_at: string };
   const r = (reqs ?? []) as unknown as R[];
@@ -153,7 +153,7 @@ export async function adminInbox(): Promise<InboxItem[]> {
       member: people.get(x.member_id)?.name ?? "Member",
       email: people.get(x.member_id)?.email ?? null,
       company: x.company,
-      note: x.note,
+      note: x.cancelled_at ? `Cancelled in Calendly. ${x.note}`.trim() : x.calendly_invitee ? `Booked in Calendly. ${x.note === "Booked in Calendly" ? "" : x.note}`.trim() : x.note,
       timing: x.preferred_at,
       meeting_at: x.meeting_at,
       meeting_url: x.meeting_url,
