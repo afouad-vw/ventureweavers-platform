@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle2, MessageSquare } from "lucide-react";
+import { RequestButton } from "@/components/brickr/brickr-client";
 import { NewsletterToggle, TopicForm } from "@/components/content/member-buttons";
+import { listServices } from "@/lib/brickr/queries";
+import { nextWorkingDays } from "@/lib/brickr/slots";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { ContentCard } from "@/components/ui/content-card";
 import { BLOG_CATEGORIES, CONTENT_FORMATS } from "@/lib/content/format";
@@ -45,7 +48,8 @@ export default async function OutloudPage({ searchParams }: { searchParams: Prom
 }
 
 async function Shows() {
-  const [events, member] = await Promise.all([listUpcomingEvents(), getMember()]);
+  const [events, member, services] = await Promise.all([listUpcomingEvents(), getMember(), listServices()]);
+  const privateService = services.find((s) => s.space === "Outloud");
   const [booked, pay] = member ? await Promise.all([myActiveEventIds(), paymentInstructions()]) : [new Set<string>(), { bank_details: "" }];
   const shows = events.filter((e) => e.type !== "private_session");
   const privateSession = events.find((e) => e.type === "private_session");
@@ -115,9 +119,13 @@ async function Shows() {
             <Eyebrow className="text-teal">For teams</Eyebrow>
             <h3 className="text-[15px] font-extrabold text-white">{privateSession.title}</h3>
             {privateSession.description ? <p className="text-[13px] text-ink-muted">{privateSession.description}</p> : null}
-            <a href="mailto:info@ventureweavers.com?subject=Open%20Floor%20private%20session" className={buttonClass("teal", "md", "self-start")}>
-              Request a session
-            </a>
+            {privateService ? (
+              <RequestButton service={privateService} days={nextWorkingDays()} signedIn={!!member} label="Request a session" variant="teal" size="md" className="self-start" />
+            ) : (
+              <a href="mailto:info@ventureweavers.com?subject=Open%20Floor%20private%20session" className={buttonClass("teal", "md", "self-start")}>
+                Request a session
+              </a>
+            )}
           </Card>
         ) : null}
         <Card>

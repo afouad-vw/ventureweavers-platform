@@ -16,6 +16,8 @@ import { SaveButton } from "@/components/content/member-buttons";
 import { mySavedEntries } from "@/lib/content/queries";
 import { applicationLabel, enrolmentLabel } from "@/lib/tvs/format";
 import { myTvs } from "@/lib/tvs/queries";
+import { myRequests } from "@/lib/brickr/queries";
+import { WithdrawButton } from "@/components/brickr/brickr-client";
 import { CancelReservation } from "./cancel-button";
 import { ProfileForm, type ProfileValues } from "./profile-form";
 
@@ -58,7 +60,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
 
       {tab === "tickets" ? <Tickets bookings={bookings} /> : null}
       {tab === "learning" ? <Learning /> : null}
-      {tab === "requests" ? <EmptyState>Your meeting requests appear here. <Link className="font-bold text-link" href="/brickr">Book a conversation</Link></EmptyState> : null}
+      {tab === "requests" ? <Requests /> : null}
       {tab === "saved" ? <Saved /> : null}
       {tab === "profile" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
@@ -239,5 +241,56 @@ async function Learning() {
         </Card>
       ) : null}
     </div>
+  );
+}
+
+async function Requests() {
+  const [reqs, { applications }] = await Promise.all([myRequests(), myTvs()]);
+  if (!reqs.length && !applications.length) {
+    return (
+      <EmptyState>
+        Your meeting requests appear here. <Link className="font-bold text-link" href="/brickr">Book a conversation</Link>
+      </EmptyState>
+    );
+  }
+  return (
+    <Card>
+      <ul className="flex flex-col">
+        {reqs.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-start gap-3 border-b border-line py-3 last:border-b-0">
+            <ThreadTag thread={r.space === "Outloud" ? "Outloud" : "BRICKR"} />
+            <div className="flex min-w-[200px] flex-1 flex-col gap-0.5">
+              <b className="text-[14px]">{r.services?.name ?? "Meeting request"}</b>
+              {r.meeting_at ? (
+                <span className="text-[13px]">
+                  Confirmed for <b>{formatDateTime(r.meeting_at)}</b>
+                  {r.meeting_url ? (
+                    <>
+                      {" · "}
+                      <a href={r.meeting_url} target="_blank" rel="noopener noreferrer" className="font-bold text-link">Join on Google Meet</a>
+                    </>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="text-[12.5px] text-faint">Asked for {formatDateTime(r.preferred_at)} · we confirm within 1–2 working days</span>
+              )}
+              {r.note ? <span className="text-[12.5px] text-muted">“{r.note}”</span> : null}
+            </div>
+            <StatusPill tone={r.status === "won" ? "ok" : r.status === "declined" ? "draft" : "blue"}>{applicationLabel(r.status)}</StatusPill>
+            {r.status === "new" ? <WithdrawButton id={r.id} /> : null}
+          </li>
+        ))}
+        {applications.map((a) => (
+          <li key={a.id} className="flex flex-wrap items-center gap-3 border-b border-line py-3 last:border-b-0">
+            <ThreadTag thread="TVS" />
+            <div className="min-w-[200px] flex-1">
+              <b className="text-[14px]">{a.programs?.name ?? "Program"} application</b>
+              <span className="block text-[12.5px] text-faint">Sent {formatDate(a.created_at)} · details in <Link href="/my-space?tab=learning" className="font-bold text-link">My learning</Link></span>
+            </div>
+            <StatusPill tone={a.status === "won" ? "ok" : a.status === "declined" ? "draft" : "blue"}>{applicationLabel(a.status)}</StatusPill>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }

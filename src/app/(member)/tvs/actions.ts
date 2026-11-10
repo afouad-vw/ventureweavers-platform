@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { ROLES, STAGES } from "@/lib/profile/options";
+import { alertPartners } from "@/lib/email/brickr";
+import { esc } from "@/lib/email/send";
 import { sendApplicationReceived } from "@/lib/email/tvs";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -40,6 +42,11 @@ export async function applyToProgram(form: FormData): Promise<Result> {
   }
   const { data: p } = await s.supabase.from("programs").select("name").eq("id", programId).maybeSingle();
   if (s.email) await sendApplicationReceived(s.email, p?.name ?? "the program").catch(() => null);
+  const { data: me } = await s.supabase.from("profiles").select("full_name").eq("id", s.id).maybeSingle();
+  await alertPartners(`New application: ${p?.name ?? "TVS"}`, [
+    `<b>${esc(me?.full_name || s.email || "A member")}</b> (${esc(role)}${stage ? `, ${esc(stage)}` : ""}) applied to <b>${esc(p?.name ?? "a program")}</b>.`,
+    `“${esc(building)}”`,
+  ], "/tvs?tab=apps").catch(() => null);
   revalidatePath("/tvs");
   revalidatePath("/my-space");
   return { ok: true, message: "Application sent. We'll be in touch for a short intro call." };

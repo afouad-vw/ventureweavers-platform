@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import { Placeholder } from "@/components/placeholder";
-import { requireAdmin } from "@/lib/auth/guards";
+import { PageHeader } from "@/components/ui/misc";
+import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
+import { adminInbox } from "@/lib/brickr/queries";
+import { RequestsInbox } from "./inbox";
 
 export const metadata: Metadata = { title: "Requests" };
 
 export default async function RequestsPage() {
   await requireAdmin();
+  const [items, base] = await Promise.all([adminInbox(), currentAdminBase()]);
   return (
-    <Placeholder
-      title="Requests"
-      description="Every meeting request, private session, application and partnership."
-      phase="Phase 9"
-      items={[
-        "Counts by stage: New, Intro call, Proposal, Won, Declined",
-        "Table and board views, filter by space",
-        "Owner, notes and member notifications on every change"
-      ]}
-    />
+    <>
+      <PageHeader title="Requests" description="Every meeting request, private session and application in one place." />
+      <RequestsInbox items={items} spaces={["BRICKR", "Outloud", "TVS"]} base={base} />
+    </>
   );
 }
