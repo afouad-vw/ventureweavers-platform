@@ -14,24 +14,25 @@ export default async function AdminBrickrPage({ searchParams }: { searchParams: 
   await requireAdmin("brickr.view");
   const base = await currentAdminBase();
   const { tab: raw } = await searchParams;
-  const tab = raw === "services" ? "services" : "requests";
-  const [items, services] = await Promise.all([tab === "requests" ? adminInbox() : [], tab === "services" ? adminServices() : []]);
+  // Services come first; requests are one tab over (and in the shared Requests inbox).
+  const tab = raw === "requests" ? "requests" : "services";
+  const [items, services] = await Promise.all([adminInbox(), tab === "services" ? adminServices() : []]);
   const reqs = items.filter((i) => i.kind === "request");
   return (
     <>
       <PageHeader
         above={<ThreadTag thread="BRICKR" />}
         title="BRICKR"
-        description="Service requests and the services members can book."
+        description="The services members can book, and their requests."
         actions={tab === "requests" ? <LinkButton href={`${base}/requests`} variant="secondary">All requests</LinkButton> : undefined}
       />
       <LinkTabs
         label="BRICKR admin sections"
         value={tab}
-        hrefFor={(v) => `${base}/brickr${v === "requests" ? "" : `?tab=${v}`}`}
+        hrefFor={(v) => `${base}/brickr${v === "services" ? "" : `?tab=${v}`}`}
         items={[
-          { value: "requests", label: "Requests", count: reqs.filter((r) => r.status === "new").length || null },
           { value: "services", label: "Services" },
+          { value: "requests", label: "Requests", count: reqs.filter((r) => r.status === "new").length || null },
         ]}
       />
       {tab === "requests" ? <RequestsInbox items={reqs} spaces={["BRICKR", "Outloud"]} base={base} csv={false} /> : <ServicesManager services={services} />}
