@@ -18,7 +18,7 @@ export async function sendShowFeedback(recipients: { id: string; email: string }
           "Thanks for coming",
           [`Thank you for being part of <b>${esc(show.title)}</b>.`, "What should the next show be about? Tell us in one line. We read every one."],
           { label: "Send feedback", href: link },
-          `You get this because you chose The Floor Notes and booked this show. <a href="${esc(unsub)}" style="color:#6b7a78">Unsubscribe</a>`,
+          `You get this because you chose the VW Newsletter and booked this show. <a href="${esc(unsub)}" style="color:#6b7a78">Unsubscribe</a>`,
         ),
         headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
       };

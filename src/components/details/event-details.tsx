@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { namesOf } from "@/lib/details";
-import { formatDateTime, formatEGP, formatTime, typeLabel } from "@/lib/events/format";
+import { formatDateTime, formatPerSeat, formatTime, typeLabel } from "@/lib/events/format";
 import { myActiveEventIds, paymentInstructions, type EventWithSeats } from "@/lib/events/queries";
 import { loadLiveState } from "@/lib/live/queries";
 import { BrochureLink, Bullets, DetailsText, Facts, Outline, outlineSummary, People, Section } from "./blocks";
@@ -30,7 +30,9 @@ export async function EventDetails({ e }: { e: EventWithSeats }) {
   const guests = e.guest_list?.length ? e.guest_list : e.guest ? [{ name: e.guest, title: "" }] : [];
   const when = e.starts_at
     ? `${formatDateTime(e.starts_at)}${e.ends_at ? (cairoDay(e.starts_at) === cairoDay(e.ends_at) ? `–${formatTime(e.ends_at)}` : ` – ${formatDateTime(e.ends_at)}`) : ""}`
-    : "Scheduled with you";
+    : e.type === "private_session"
+      ? "Scheduled with you"
+      : "Date TBA";
   const place = e.format === "Online" ? "Online (Google Meet)" : e.venue || "Location TBA";
   // Older events only have one text; don't repeat it under "About" when it's the short description.
   const details = e.details || (e.description && e.description.trim() !== (e.short_description ?? "").trim() ? e.description : "");
@@ -57,7 +59,7 @@ export async function EventDetails({ e }: { e: EventWithSeats }) {
               { icon: e.format === "Online" ? <Video size={16} aria-hidden="true" /> : <MapPin size={16} aria-hidden="true" />, text: place },
               ...(e.type !== "private_session"
                 ? [
-                    { icon: <Ticket size={16} aria-hidden="true" />, text: `${formatEGP(e.price_piasters)} per seat` },
+                    { icon: <Ticket size={16} aria-hidden="true" />, text: formatPerSeat(e.price_piasters) },
                     { icon: <Users size={16} aria-hidden="true" />, text: `${e.seats_left} of ${e.capacity} seats left` },
                   ]
                 : []),

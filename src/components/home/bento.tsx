@@ -73,7 +73,7 @@ export function NextShowTile({ show }: { show: ShowTile | null }) {
         <div className="flex flex-1 flex-col gap-3 p-4">
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-[13.5px] text-muted">
             <span className="flex items-center gap-1.5"><CalendarDays size={15} aria-hidden="true" />{formatDateTime(show.starts_at)}</span>
-            <span className="flex items-center gap-1.5"><MapPin size={15} aria-hidden="true" />{show.venue ?? "[VENUE]"}</span>
+            <span className="flex items-center gap-1.5"><MapPin size={15} aria-hidden="true" />{show.venue ?? "Venue TBA"}</span>
           </div>
           {show.capacity > 0 ? (
             <div className="flex items-center gap-3">

@@ -11,7 +11,7 @@ export default async function PublishingPage() {
   const [posts, log, subscribers] = await Promise.all([adminPosts(), adminPublishLog(), newsletterCount()]);
   return (
     <>
-      <PageHeader title="Publishing" description="Send an update to the Home feed and The Floor Notes. Only members who opted in to a channel receive it." />
+      <PageHeader title="Publishing" description="Send an update to the Home feed and the VW Newsletter. Only members who opted in to a channel receive it." />
       <PublishingBoard posts={posts} log={log} subscribers={subscribers} emailReady={Boolean(process.env.RESEND_API_KEY)} />
     </>
   );

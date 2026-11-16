@@ -150,7 +150,7 @@ async function Tickets({ bookings }: { bookings: MyBooking[] }) {
               </h3>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[13px] sm:grid-cols-4">
                 <div><dt className="text-[11.5px] text-faint">When</dt><dd className="font-bold">{e?.starts_at ? formatDateTime(e.starts_at) : "—"}</dd></div>
-                <div><dt className="text-[11.5px] text-faint">Where</dt><dd className="font-bold">{e?.venue ?? "[VENUE]"}</dd></div>
+                <div><dt className="text-[11.5px] text-faint">Where</dt><dd className="font-bold">{e?.venue ?? "Venue TBA"}</dd></div>
                 <div><dt className="text-[11.5px] text-faint">Seats</dt><dd className="font-bold">{b.seats}</dd></div>
                 <div><dt className="text-[11.5px] text-faint">Total</dt><dd className="font-bold">{formatEGP(b.amount_piasters)}</dd></div>
               </dl>
@@ -275,7 +275,7 @@ async function Learning() {
         <Card key={e.id} tone={e.status === "offered" ? "soft" : undefined}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-[15px] font-extrabold">
-              {e.cohorts?.programs?.name ?? "Program"} · {e.cohorts?.label ?? "Cohort [NO.]"}
+              {e.cohorts?.programs?.name ?? "Program"}
             </h2>
             <StatusPill tone={e.status === "confirmed" ? "ok" : "warn"}>{enrolmentLabel(e.status)}</StatusPill>
           </div>
@@ -291,7 +291,7 @@ async function Learning() {
             </>
           ) : (
             <p className="text-[13.5px] text-muted">
-              You&apos;re enrolled{e.cohorts?.starts_on ? `; the cohort starts ${formatDate(e.cohorts.starts_on + "T12:00:00Z")}` : "; we'll share the start date [DATE]"}. The classroom opens before the first session.
+              You&apos;re enrolled{e.cohorts?.starts_on ? `; the cohort starts ${formatDate(e.cohorts.starts_on + "T12:00:00Z")}` : "; we'll share the start date soon"}. The classroom opens before the first session.
             </p>
           )}
         </Card>

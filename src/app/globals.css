@@ -305,12 +305,15 @@ h3 {
 }
 
 /* The weave (brand pattern): fine threads that drift and cross. */
-@keyframes weave-drift { to { stroke-dashoffset: -400; } }
 @keyframes weave-draw { from { stroke-dashoffset: 900; } to { stroke-dashoffset: 0; } }
 .weave path { fill: none; stroke-linecap: round; }
-.weave .t { stroke-dasharray: 220 180; animation: weave-drift 14s linear infinite; }
-.weave .t:nth-child(2n) { animation-duration: 19s; animation-direction: reverse; }
-.weave .t:nth-child(3n) { animation-duration: 23s; }
+/* Hero glow: two soft lights drifting slowly behind the threads (transform only). */
+.weave-aurora .glow { position: absolute; border-radius: 9999px; opacity: .5; will-change: transform; }
+.weave-aurora .glow.a { width: 70%; height: 180%; left: -15%; top: -60%; animation: aurora-a 20s ease-in-out infinite alternate; }
+.weave-aurora .glow.b { width: 60%; height: 170%; right: -15%; bottom: -80%; opacity: .7; animation: aurora-b 26s ease-in-out infinite alternate; }
+@keyframes aurora-a { to { transform: translate(30%, 12%) scale(1.12); } }
+@keyframes aurora-b { to { transform: translate(-35%, -14%) scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .weave-aurora .glow { animation: none !important; } }
 .weave .s { stroke-dasharray: 900; animation: weave-draw 2.4s cubic-bezier(.2,.8,.2,1) both; }
 
 /* Progress ring: set --p (0–100). */

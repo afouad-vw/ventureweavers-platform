@@ -66,7 +66,7 @@ export async function adminPublishLog(): Promise<PublishEntry[]> {
   return rows.map(({ sent_by, ...r }) => ({ ...r, by: (sent_by && a.get(sent_by)) || "Admin" }));
 }
 
-/** Members who ticked The Floor Notes and have a confirmed email address. */
+/** Members who ticked the VW Newsletter and have a confirmed email address. */
 export async function newsletterRecipients(): Promise<{ id: string; email: string }[]> {
   if (!supabaseConfigured) return [];
   const svc = createServiceClient();

@@ -62,7 +62,7 @@ export const outlineSummary = (sessions: Session[]) => `${sessions.length} ${ses
 
 export function People({ people }: { people: Person[] }) {
   return (
-    <ul className="grid gap-2.5 sm:grid-cols-2">
+    <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
       {people.map((p) => (
         <li key={`${p.name}-${p.title}`} className="flex items-center gap-2.5">
           <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(160deg,#0d2526,#02686f)] font-display text-[14px] font-bold text-white shadow-depth-sm">
@@ -74,8 +74,8 @@ export function People({ people }: { people: Person[] }) {
             )}
           </span>
           <span className="min-w-0 flex-1">
-            <b className="block truncate text-[13.5px]">{p.name}</b>
-            {p.title ? <span className="block truncate text-[12.5px] text-faint">{p.title}</span> : null}
+            <b className="block text-[13.5px] leading-snug break-words">{p.name}</b>
+            {p.title ? <span className="block text-[12.5px] leading-snug break-words text-faint">{p.title}</span> : null}
           </span>
           {p.linkedin ? (
             <a href={p.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} on LinkedIn`} title={`${p.name} on LinkedIn`} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2/70 bg-card/70 text-[#0a66c2] transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-depth-sm">

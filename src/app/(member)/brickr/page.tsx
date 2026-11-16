@@ -97,7 +97,7 @@ export default async function BrickrPage() {
             <Card tone="soft">
               <h2 className="text-[15px] font-extrabold">Not sure where to start?</h2>
               <span className="text-[13px] text-muted">Most founders start with a growth diagnostic.</span>
-              <MeetingButton service={diagnostic} label="Book a diagnostic" className="self-start" />
+              <MeetingButton service={diagnostic} label="Request a meeting" className="self-start" />
             </Card>
           ) : null}
         </aside>

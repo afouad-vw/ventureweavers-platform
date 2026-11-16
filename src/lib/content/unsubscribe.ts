@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 /**
- * Unsubscribe links for The Floor Notes. The token is a signature of the member's id, so a link
+ * Unsubscribe links for the VW Newsletter. The token is a signature of the member's id, so a link
  * only works for the person it was sent to and can't be guessed for anyone else.
  * The signing key is derived from the Supabase secret key, so no extra setting is needed.
  */

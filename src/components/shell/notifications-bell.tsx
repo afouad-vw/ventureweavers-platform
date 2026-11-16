@@ -64,7 +64,7 @@ export function NotificationsBell({ initial }: { initial: Notice[] }) {
         {unread ? <span className="absolute -top-1 -right-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-card bg-teal px-1 text-[10px] font-extrabold text-ink">{badgeText(unread)}</span> : null}
       </button>
       {open ? (
-        <div role="dialog" aria-label="Notifications" className="glass-strong fixed inset-x-3 top-[60px] z-50 flex max-h-[70vh] flex-col overflow-hidden rounded-2xl border sm:absolute sm:inset-x-auto sm:top-11 sm:right-0 sm:w-[360px]">
+        <div role="dialog" aria-label="Notifications" className="fixed inset-x-3 top-[60px] z-50 flex max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-line bg-card text-fg shadow-[0_18px_44px_rgb(7_17_18/0.22)] sm:absolute sm:inset-x-auto sm:top-11 sm:right-0 sm:w-[360px]">
           <div className="flex items-center justify-between gap-2 border-b border-line px-3.5 py-2.5">
             <b className="text-[14px]">Notifications</b>
             {unread ? (

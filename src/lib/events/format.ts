@@ -14,12 +14,17 @@ export const EVENT_TYPES: { value: EventType; label: string }[] = [
 export const typeLabel = (t: EventType) => (t === "masterclass" ? "Masterclass" : EVENT_TYPES.find((x) => x.value === t)?.label ?? t);
 export const MASTERCLASS_FORMATS = ["Online", "In person"] as const;
 
-/** Money is stored in piasters. null means the price isn't set yet. */
+/** Money is stored in piasters. null means the price isn't set yet, shown as TBA. */
 export function formatEGP(piasters: number | null | undefined) {
-  if (piasters == null) return "[PRICE]";
+  if (piasters == null) return "TBA";
   const egp = piasters / 100;
   return `EGP ${egp.toLocaleString("en-US", { minimumFractionDigits: piasters % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
 }
+
+/** "EGP 450 per seat", or "Price TBA" when the price isn't set. */
+export const formatPerSeat = (piasters: number | null | undefined) => (piasters == null ? "Price TBA" : `${formatEGP(piasters)} per seat`);
+/** "EGP 450", or "Price TBA". */
+export const formatPrice = (piasters: number | null | undefined) => (piasters == null ? "Price TBA" : formatEGP(piasters));
 
 /** "450" or "450.50" → 45050. Empty → null. Throws on anything else. */
 export function toPiasters(input: string): number | null {

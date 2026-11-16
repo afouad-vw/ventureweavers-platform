@@ -10,7 +10,8 @@ export const SPACES: { value: TagTone; label: string }[] = [
 ];
 export const isSpace = (v: string): v is TagTone => SPACES.some((s) => s.value === v);
 
-export const CONTENT_FORMATS = ["Short", "Carousel", "Reel", "Episode"] as const;
+/** Digital content is Shorts and Episodes. (Older Carousel and Reel rows stay in the database but are not shown.) */
+export const CONTENT_FORMATS = ["Short", "Episode"] as const;
 export const PLATFORMS = ["Instagram", "TikTok", "LinkedIn", "YouTube"] as const;
 export const SERIES = ["The Question", "In 60 Seconds", "The Answer", "Next Show", "Full episodes"] as const;
 export type ContentStatus = "draft" | "scheduled" | "published";
@@ -21,6 +22,9 @@ export const CONTENT_STATUSES: { value: ContentStatus; label: string }[] = [
 ];
 
 export const BLOG_CATEGORIES = ["Newsletter", "Article", "Founder notes"] as const;
+/** Display names for blog categories. "Founder notes" is the stored value; members see "VW Notes". */
+export const blogCategoryLabel = (c: string) => (c === "Founder notes" ? "VW Notes" : c);
+export const BLOG_CATEGORY_OPTIONS = BLOG_CATEGORIES.map((v) => ({ value: v, label: blogCategoryLabel(v) }));
 export const AUTHORS = ["Fouad & Karim", "Ahmed Fouad", "Karim Hemdan"] as const;
 
 export const LIBRARY_KINDS = ["Report", "Guide", "Template", "AI skill"] as const;

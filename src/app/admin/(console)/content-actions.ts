@@ -189,7 +189,7 @@ export async function duplicatePost(id: string) { return duplicate("posts", id);
 export async function deletePost(id: string) { return remove("posts", id); }
 export async function setPostStatus(id: string, status: "draft" | "published") { return setStatus("posts", id, status); }
 
-/** Admin › Publishing › New update: to the Home feed, to The Floor Notes by email, or both. */
+/** Admin › Publishing › New update: to the Home feed, to the VW Newsletter by email, or both. */
 export async function publishUpdate(form: FormData): Promise<ActionResult> {
   const admin = await requireAdmin("publishing.manage");
   const toFeed = form.get("ch_feed") === "on";
@@ -220,7 +220,7 @@ export async function publishUpdate(form: FormData): Promise<ActionResult> {
         return {
           to: m.email,
           subject: String(row.title),
-          html: emailFrame(String(row.title), paragraphs, cta, `You get this because you chose The Floor Notes. <a href="${esc(unsub)}" style="color:#6b7a78">Unsubscribe</a>`),
+          html: emailFrame(String(row.title), paragraphs, cta, `You get this because you chose the VW Newsletter. <a href="${esc(unsub)}" style="color:#6b7a78">Unsubscribe</a>`),
           headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
         };
       }),
@@ -233,7 +233,7 @@ export async function publishUpdate(form: FormData): Promise<ActionResult> {
     post_id: post.id,
     title: String(row.title),
     channels: [toFeed ? "feed" : null, toEmail ? "email" : null].filter(Boolean),
-    audience: toEmail && !toFeed ? "The Floor Notes subscribers" : toEmail ? "All members · The Floor Notes subscribers" : "All members",
+    audience: toEmail && !toFeed ? "VW Newsletter subscribers" : toEmail ? "All members · the VW Newsletter subscribers" : "All members",
     emails_sent: sent,
     emails_failed: failed,
     sent_by: admin.userId,

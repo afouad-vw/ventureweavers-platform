@@ -27,6 +27,7 @@ function NavLink({ item, pathname, badge }: { item: NavItem; pathname: string; b
     >
       <Icon size={18} strokeWidth={1.8} aria-hidden="true" className="shrink-0 opacity-90" />
       <span>{item.label}</span>
+      {item.kind ? <span className={cn("text-[11px] font-medium", on ? "text-teal/70" : "text-[#7fa49b]")}>{item.kind}</span> : null}
       {badge ? (
         <span className="ml-auto rounded-full bg-teal px-1.5 text-[11px] leading-[18px] font-extrabold text-ink">{badge}</span>
       ) : item.thread ? (
@@ -38,8 +39,7 @@ function NavLink({ item, pathname, badge }: { item: NavItem; pathname: string; b
 
 /**
  * The shared layout for the member app and the admin console:
- * fixed sidebar on desktop (slide-out menu on phones), sticky top bar,
- * and an optional bottom bar on phones.
+ * fixed sidebar on desktop (slide-out menu on phones) and a sticky top bar.
  */
 export function AppShell({
   sections,
@@ -48,7 +48,6 @@ export function AppShell({
   searchPlaceholder,
   searchAction,
   crumb,
-  tabBar,
   badges = {},
   children,
 }: {
@@ -59,7 +58,6 @@ export function AppShell({
   /** Where the top-bar search goes (a GET form with ?q=). */
   searchAction: string;
   crumb?: string;
-  tabBar?: NavItem[];
   badges?: Record<string, number | string>;
   children: React.ReactNode;
 }) {
@@ -128,7 +126,7 @@ export function AppShell({
             <Menu size={18} aria-hidden="true" />
           </button>
           {crumb ? <span className="hidden text-[13px] font-bold whitespace-nowrap text-faint desk:inline">{crumb}</span> : null}
-          <form action={searchAction} role="search" className="flex h-9 max-w-[460px] min-w-0 flex-1">
+          <form action={searchAction} role="search" className="flex h-9 min-w-0 flex-1 desk:max-w-[460px]">
             <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line2/70 bg-card/60 px-3 text-faint shadow-[inset_0_1px_2px_rgb(7_17_18/0.05)] transition-[border-color,box-shadow,background-color] focus-within:border-primary focus-within:bg-card focus-within:shadow-glow">
               <Search size={16} aria-hidden="true" className="shrink-0" />
               <span className="sr-only">Search</span>
@@ -136,38 +134,15 @@ export function AppShell({
               <kbd className="hidden shrink-0 rounded-md border border-line2 bg-bg px-1.5 font-sans text-[11px] font-bold text-faint desk:inline" title="Press / or Ctrl+K">/</kbd>
             </label>
           </form>
-          <span className="flex-1" />
+          <span className="hidden flex-1 desk:block" />
           {topRight}
         </header>
 
-        <main
-          className={cn(
-            "mx-auto flex w-full max-w-[1240px] flex-col gap-4 pt-4 pr-[max(16px,env(safe-area-inset-right))] pb-14 pl-[max(16px,env(safe-area-inset-left))] desk:gap-[18px] desk:px-6 desk:pt-[22px]",
-            tabBar && "pb-[calc(88px+env(safe-area-inset-bottom))] desk:pb-14",
-          )}
-        >
+        <main className="mx-auto flex w-full max-w-[1240px] flex-col gap-4 pt-4 pr-[max(16px,env(safe-area-inset-right))] pb-[calc(56px+env(safe-area-inset-bottom))] pl-[max(16px,env(safe-area-inset-left))] desk:gap-[18px] desk:px-6 desk:pt-[22px] desk:pb-14">
           {children}
         </main>
       </div>
 
-      {tabBar ? (
-        <nav aria-label="Quick" className="glass-bar fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t px-1 pb-[calc(4px+env(safe-area-inset-bottom))] pt-1 desk:hidden">
-          {tabBar.map((t) => {
-            const on = isActive(pathname, t.href);
-            const Icon = t.icon;
-            return (
-              <Link key={t.href} href={t.href} aria-current={on ? "page" : undefined} className={cn("flex min-h-[50px] flex-col items-center justify-center gap-0.5 text-[10.5px] font-bold transition-colors", on ? "text-link" : "text-faint active:text-fg")}>
-                <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
-                {t.label}
-              </Link>
-            );
-          })}
-          <button type="button" onClick={() => setOpen(true)} className="flex min-h-[50px] cursor-pointer flex-col items-center justify-center gap-0.5 text-[10.5px] font-bold text-faint">
-            <Menu size={20} strokeWidth={1.8} aria-hidden="true" />
-            More
-          </button>
-        </nav>
-      ) : null}
     </div>
   );
 }

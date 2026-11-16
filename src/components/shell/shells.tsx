@@ -4,7 +4,7 @@ import { initialsOf } from "@/lib/initials";
 
 import Image from "next/image";
 import Link from "next/link";
-import { adminMain, adminShared, adminSpaces, adminTeam, memberAccount, memberHome, memberLive, memberSpaces, memberTabBar } from "@/lib/nav";
+import { adminMain, adminShared, adminSpaces, adminTeam, memberAccount, memberHome, memberLive, memberSpaces } from "@/lib/nav";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import { adminSignOut } from "@/app/admin/(gate)/actions";
@@ -23,9 +23,8 @@ export function MemberShell({ member, live = false, notifications = [], children
     <AppShell
       sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: live ? [memberAccount, memberLive] : [memberAccount] }]}
       badges={live ? { "/live": "LIVE" } : undefined}
-      searchPlaceholder="Search shows, programs, resources"
+      searchPlaceholder="Search"
       searchAction="/search"
-      tabBar={memberTabBar}
       topRight={
         <>
           {member ? (

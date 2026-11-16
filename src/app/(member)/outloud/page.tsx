@@ -7,7 +7,7 @@ import { NewsletterToggle, TopicForm } from "@/components/content/member-buttons
 import { listServices } from "@/lib/brickr/queries";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { ContentCard } from "@/components/ui/content-card";
-import { BLOG_CATEGORIES, CONTENT_FORMATS } from "@/lib/content/format";
+import { BLOG_CATEGORIES, CONTENT_FORMATS, blogCategoryLabel } from "@/lib/content/format";
 import { youtubeThumb } from "@/lib/content/format";
 import { blogPosts, contentItems, myHomeProfile } from "@/lib/content/queries";
 import { formatDate } from "@/lib/events/format";
@@ -19,7 +19,7 @@ import { LinkTabs } from "@/components/ui/link-tabs";
 import { DateBox, EmptyState, Eyebrow } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
-import { cairoDay, formatDateTime, formatEGP, formatTime, typeLabel } from "@/lib/events/format";
+import { cairoDay, formatDateTime, formatPrice, formatTime, typeLabel } from "@/lib/events/format";
 import { listUpcomingEvents, myActiveEventIds, paymentInstructions } from "@/lib/events/queries";
 
 export const metadata: Metadata = { title: "Outloud" };
@@ -71,8 +71,8 @@ async function Shows() {
               {next.description ? <p className="line-clamp-3 text-[13.5px] text-muted">{next.description}</p> : null}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
                 <Kv k="When" v={next.starts_at ? formatDateTime(next.starts_at) : "To schedule"} />
-                <Kv k="Where" v={next.venue ?? "[VENUE]"} />
-                <Kv k="Seat" v={formatEGP(next.price_piasters)} />
+                <Kv k="Where" v={next.venue ?? "Venue TBA"} />
+                <Kv k="Seat" v={formatPrice(next.price_piasters)} />
                 <Kv k="Seats left" v={`${next.seats_left} of ${next.capacity}`} />
               </dl>
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
@@ -96,7 +96,7 @@ async function Shows() {
                   <div className="min-w-0 flex-1">
                     <Link href={`/outloud/events/${e.slug}`} className="block truncate text-[14px] font-bold hover:underline">{e.title}</Link>
                     <span className="text-[12.5px] text-faint">
-                      {typeLabel(e.type)} · {e.starts_at ? formatTime(e.starts_at) : ""} · {e.venue ?? "[VENUE]"} · {e.seats_left} seats left
+                      {typeLabel(e.type)} · {e.starts_at ? formatTime(e.starts_at) : ""} · {e.venue ?? "Venue TBA"} · {e.seats_left} seats left
                     </span>
                   </div>
                   {booked.has(e.id) ? (
@@ -153,7 +153,7 @@ const TILE_TONES = [
 
 async function DigitalContent({ format }: { format?: string }) {
   const fm = (CONTENT_FORMATS as readonly string[]).includes(format ?? "") ? format! : "All";
-  const items = (await contentItems()).filter((c) => fm === "All" || c.format === fm);
+  const items = (await contentItems()).filter((c) => (CONTENT_FORMATS as readonly string[]).includes(c.format) && (fm === "All" || c.format === fm));
   return (
     <>
       <div className="flex flex-wrap items-center gap-3">
@@ -198,7 +198,7 @@ async function DigitalContent({ format }: { format?: string }) {
       ) : (
         <EmptyState>No content in this format yet.</EmptyState>
       )}
-      <p className="text-[12.5px] text-faint">Shorts and carousels are posted after each show. Full episodes come to YouTube.</p>
+      <p className="text-[12.5px] text-faint">Shorts are posted after each show. Full episodes come to YouTube.</p>
     </>
   );
 }
@@ -214,7 +214,7 @@ async function Blog({ category }: { category?: string }) {
       <div className="flex min-w-0 flex-col gap-3">
         <ChipLinks
           label="Filter by category"
-          items={["All", ...BLOG_CATEGORIES].map((c) => ({ href: c === "All" ? "/outloud?tab=blog" : `/outloud?tab=blog&category=${encodeURIComponent(c)}`, label: c === "All" ? "All posts" : c === "Article" ? "Articles" : c, on: cat === c }))}
+          items={["All", ...BLOG_CATEGORIES].map((c) => ({ href: c === "All" ? "/outloud?tab=blog" : `/outloud?tab=blog&category=${encodeURIComponent(c)}`, label: c === "All" ? "All posts" : c === "Article" ? "Articles" : blogCategoryLabel(c), on: cat === c }))}
         />
         {posts.length ? (
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
@@ -224,7 +224,7 @@ async function Blog({ category }: { category?: string }) {
                   thread="Outloud"
                   banner={b.banner as BannerChoice}
                   bannerSrc={b.banner_url}
-                  bannerChip={b.category}
+                  bannerChip={blogCategoryLabel(b.category)}
                   title={b.title}
                   description={b.summary}
                   tags={b.tags}
@@ -240,8 +240,8 @@ async function Blog({ category }: { category?: string }) {
       </div>
       <aside className="flex min-w-0 flex-col gap-4">
         <Card tone="soft">
-          <h2 className="text-[15px] font-extrabold">The Floor Notes</h2>
-          <span className="text-[13px] text-muted">Our newsletter: what founders asked us this month, in five minutes.</span>
+          <h2 className="text-[15px] font-extrabold">VW Newsletter</h2>
+          <span className="text-[13px] text-muted">Subscribe to stay up to date with VentureWeavers: new shows, programs, content and news.</span>
           <NewsletterToggle on={!!profile?.consent_newsletter} signedIn={!!member} />
         </Card>
         {tags.length ? (

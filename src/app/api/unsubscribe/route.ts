@@ -3,7 +3,7 @@ import { esc } from "@/lib/email/send";
 import { verifyUnsubscribe } from "@/lib/content/unsubscribe";
 import { createServiceClient } from "@/lib/supabase/service";
 
-// The Floor Notes unsubscribe. GET shows a confirm button (so link scanners in mail apps can't
+// VW Newsletter unsubscribe. GET shows a confirm button (so link scanners in mail apps can't
 // unsubscribe anyone by opening the link); POST turns the setting off. Mail apps' one-click
 // "Unsubscribe" (List-Unsubscribe-Post) also arrives as a POST.
 
@@ -23,8 +23,8 @@ button,a.btn{display:inline-block;background:#02686F;color:#fff;border:0;border-
 export async function GET(req: NextRequest) {
   const u = req.nextUrl.searchParams.get("u") ?? "";
   const t = req.nextUrl.searchParams.get("t") ?? "";
-  if (!verifyUnsubscribe(u, t)) return page("This link doesn't work", "It may be incomplete. You can turn The Floor Notes off in My space › Profile & settings.");
-  return page("Stop The Floor Notes?", "You'll stop getting our newsletter by email. Booking and account emails still arrive.", { u, t });
+  if (!verifyUnsubscribe(u, t)) return page("This link doesn't work", "It may be incomplete. You can turn the VW Newsletter off in My space › Profile & settings.");
+  return page("Stop the VW Newsletter?", "You'll stop getting our newsletter by email. Booking and account emails still arrive.", { u, t });
 }
 
 export async function POST(req: NextRequest) {
@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null);
   const u = String(form?.get("u") ?? req.nextUrl.searchParams.get("u") ?? "");
   const t = String(form?.get("t") ?? req.nextUrl.searchParams.get("t") ?? "");
-  if (!verifyUnsubscribe(u, t)) return page("This link doesn't work", "It may be incomplete. You can turn The Floor Notes off in My space › Profile & settings.");
+  if (!verifyUnsubscribe(u, t)) return page("This link doesn't work", "It may be incomplete. You can turn the VW Newsletter off in My space › Profile & settings.");
   const { error } = await createServiceClient().from("profiles").update({ consent_newsletter: false }).eq("id", u);
   if (error) return page("Something went wrong", "Please try again in a minute, or turn it off in My space › Profile & settings.");
-  return page("You're unsubscribed", "You won't get The Floor Notes by email any more. You can turn it back on any time in My space.");
+  return page("You're unsubscribed", "You won't get the VW Newsletter by email any more. You can turn it back on any time in My space.");
 }

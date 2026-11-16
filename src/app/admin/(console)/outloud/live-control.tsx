@@ -236,7 +236,7 @@ function ConfirmEnd({ open, onClose, onConfirm, pending, sent }: { open: boolean
     >
       <p className="text-[13.5px]">
         The poll closes and phones move to <b>Your voice</b>.{" "}
-        {sent ? "The feedback email was already sent, so it won't go again." : "Attendees who chose The Floor Notes get an email asking what the next show should be about."}
+        {sent ? "The feedback email was already sent, so it won't go again." : "Attendees who chose the VW Newsletter get an email asking what the next show should be about."}
       </p>
     </Modal>
   );

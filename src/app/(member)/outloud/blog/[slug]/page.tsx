@@ -10,6 +10,7 @@ import { TagRow } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { blogBySlug, mySavedKeys } from "@/lib/content/queries";
 import { formatDate } from "@/lib/events/format";
+import { blogCategoryLabel } from "@/lib/content/format";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const post = await blogBySlug((await params).slug);
@@ -37,7 +38,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </Link>
       <article className="mx-auto flex w-full max-w-[720px] flex-col gap-3.5">
         <div className="overflow-hidden rounded-xl">
-          <Banner src={post.banner_url} choice={post.banner as BannerChoice} thread="Outloud" height={220} chip={post.category} />
+          <Banner src={post.banner_url} choice={post.banner as BannerChoice} thread="Outloud" height={220} chip={blogCategoryLabel(post.category)} />
         </div>
         {post.tags.length ? <TagRow tags={post.tags} /> : null}
         <h1 className="font-display text-[26px] leading-tight font-semibold desk:text-[30px]">{post.title}</h1>

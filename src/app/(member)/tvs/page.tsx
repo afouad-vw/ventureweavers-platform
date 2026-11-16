@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/ui/misc";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { myHomeProfile } from "@/lib/content/queries";
-import { formatDate, formatEGP, formatTime, MASTERCLASS_FORMATS } from "@/lib/events/format";
+import { formatDate, formatPrice, formatTime, MASTERCLASS_FORMATS } from "@/lib/events/format";
 import { listUpcomingEvents, myActiveEventIds, paymentInstructions } from "@/lib/events/queries";
 import { listPrograms, myTvs, publicCohorts } from "@/lib/tvs/queries";
 
@@ -96,8 +96,8 @@ async function Programs({
             const meta = p.status === "in_development"
               ? "In development"
               : next
-                ? `${next.starts_on ? formatDate(`${next.starts_on}T12:00:00Z`) : "[DATE]"} · ${next.format ?? "Format TBA"} · ${formatEGP(next.price_piasters)}`
-                : `${p.weeks} weeks · next cohort [DATE]`;
+                ? `${next.starts_on ? formatDate(`${next.starts_on}T12:00:00Z`) : "Date TBA"} · ${next.format ?? "Format TBA"} · ${formatPrice(next.price_piasters)}`
+                : `${p.weeks} weeks · next cohort TBA`;
             return (
               <ContentCard
                 key={p.id}
@@ -181,7 +181,7 @@ async function Masterclasses({ classes, format, signedIn }: { classes: Awaited<R
               description={e.short_description || e.description || undefined}
               meta={
                 <>
-                  {e.starts_at ? formatTime(e.starts_at) : ""} · {e.seats_left} seats left · {formatEGP(e.price_piasters)}
+                  {e.starts_at ? formatTime(e.starts_at) : ""} · {e.seats_left} seats left · {formatPrice(e.price_piasters)}
                 </>
               }
               cta={

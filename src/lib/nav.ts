@@ -7,25 +7,24 @@ export type NavItem = {
   label: string;
   icon: LucideIcon;
   thread?: Thread;
+  /** Short, faded label after the name in the menu, e.g. "Content". */
+  kind?: string;
 };
 
 export const memberHome: NavItem = { href: "/", label: "Home", icon: House };
 
 export const memberSpaces: NavItem[] = [
-  { href: "/outloud", label: "Outloud", icon: Mic, thread: "Outloud" },
-  { href: "/tvs", label: "TVS", icon: GraduationCap, thread: "TVS" },
-  { href: "/brickr", label: "BRICKR", icon: Briefcase, thread: "BRICKR" },
-  { href: "/quidquo", label: "QuidQuo", icon: Cpu, thread: "QuidQuo" },
-  { href: "/library", label: "Library", icon: BookOpen },
+  { href: "/outloud", label: "Outloud", icon: Mic, thread: "Outloud", kind: "Content" },
+  { href: "/tvs", label: "TVS", icon: GraduationCap, thread: "TVS", kind: "Education" },
+  { href: "/brickr", label: "BRICKR", icon: Briefcase, thread: "BRICKR", kind: "Services" },
+  { href: "/quidquo", label: "QuidQuo", icon: Cpu, thread: "QuidQuo", kind: "Technology" },
+  { href: "/library", label: "Library", icon: BookOpen, kind: "Resources" },
 ];
 
 export const memberAccount: NavItem = { href: "/my-space", label: "My space", icon: User };
 
 /** Shown under My space while live mode is open for a show the member has a ticket to. */
 export const memberLive: NavItem = { href: "/live", label: "Live now", icon: Radio };
-
-/** Bottom bar on phones: four destinations plus a More button that opens the full menu. */
-export const memberTabBar: NavItem[] = [memberHome, memberSpaces[0], memberSpaces[1], memberSpaces[2]];
 
 export const adminMain: NavItem[] = [
   { href: "/admin", label: "Overview", icon: BarChart3 },

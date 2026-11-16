@@ -41,14 +41,14 @@ export async function suggestTopic(text: string): Promise<Result> {
   return { ok: true, message: "Topic sent to the hosts" };
 }
 
-/** The Floor Notes on or off (same setting as in My space › Profile & settings). */
+/** The VW Newsletter on or off (same setting as in My space › Profile & settings). */
 export async function setNewsletter(on: boolean): Promise<Result> {
   const s = await signedInClient();
-  if (!s) return { ok: false, error: "Sign in to get The Floor Notes." };
+  if (!s) return { ok: false, error: "Sign in to get the VW Newsletter." };
   const { error } = await s.supabase.from("profiles").update({ consent_newsletter: on }).eq("id", s.id);
   if (error) return { ok: false, error: "Couldn't update the setting." };
   revalidatePath("/my-space");
-  return { ok: true, message: on ? "You'll get The Floor Notes by email" : "The Floor Notes turned off" };
+  return { ok: true, message: on ? "You'll get the VW Newsletter by email" : "VW Newsletter turned off" };
 }
 
 /**

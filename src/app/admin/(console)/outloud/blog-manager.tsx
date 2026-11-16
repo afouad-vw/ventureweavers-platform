@@ -8,7 +8,7 @@ import { Markdown } from "@/components/content/markdown";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill } from "@/components/ui/tag";
-import { AUTHORS, BLOG_CATEGORIES } from "@/lib/content/format";
+import { AUTHORS, BLOG_CATEGORY_OPTIONS, blogCategoryLabel } from "@/lib/content/format";
 import { readTime } from "@/lib/content/markdown";
 import type { BlogPost } from "@/lib/content/queries";
 import { formatDate } from "@/lib/events/format";
@@ -30,7 +30,7 @@ export function BlogManager({ posts, appOrigin }: { posts: BlogPost[]; appOrigin
         {posts.map((p) => (
           <tr key={p.id} className="border-b border-line last:border-b-0">
             <td className={td}><b className="block">{p.title}</b><span className="text-faint">{p.read_time} read</span></td>
-            <td className={td}>{p.category}</td>
+            <td className={td}>{blogCategoryLabel(p.category)}</td>
             <td className={`${td} text-muted`}>{p.author}</td>
             <td className={`${td} whitespace-nowrap text-muted`}>{formatDate(p.published_on + "T12:00:00Z")}</td>
             <td className={td}><StatusPill tone={p.status === "published" ? "ok" : "draft"}>{p.status === "published" ? "Published" : "Draft"}</StatusPill></td>
@@ -63,7 +63,7 @@ export function BlogManager({ posts, appOrigin }: { posts: BlogPost[]; appOrigin
         {b ? <input type="hidden" name="id" value={b.id} /> : null}
         <TextField label="Title" name="title" defaultValue={b?.title ?? ""} required minLength={3} maxLength={160} />
         <div className="grid gap-3 sm:grid-cols-4">
-          <SelectField label="Category" name="category" defaultValue={b?.category ?? "Article"} options={BLOG_CATEGORIES} />
+          <SelectField label="Category" name="category" defaultValue={b?.category ?? "Article"} options={BLOG_CATEGORY_OPTIONS} />
           <SelectField label="Author" name="author" defaultValue={b?.author ?? AUTHORS[0]} options={AUTHORS} />
           <TextField label="Date" name="published_on" type="date" defaultValue={b?.published_on ?? today()} required />
           <SelectField label="Status" name="status" defaultValue={b?.status ?? "draft"} options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />

@@ -1,6 +1,7 @@
 /**
- * The VentureWeavers weave: fine threads that cross and slowly drift. A brand pattern, not an illustration.
- * Motion stops for reduced motion (see .weave in globals.css).
+ * Hero backdrop: a slow, soft glow that drifts behind the fine VentureWeavers threads.
+ * The threads are cropped, never stretched, so they keep their shape on narrow phones.
+ * Only the glow moves (transform only); it stops for reduced motion (see .weave-aurora in globals.css).
  */
 const THREADS = [
   "M-20 120 C 180 20, 320 220, 520 110 S 860 30, 1220 140",
@@ -13,18 +14,21 @@ const THREADS = [
 export function Weave({ id = "weave", className = "", color = "#29BE9C", opacity = 0.55 }: { id?: string; className?: string; color?: string; opacity?: number }) {
   const g = `${id}-g`;
   return (
-    <svg className={`weave pointer-events-none ${className}`} viewBox="0 0 1200 240" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id={g} x1="0" x2="1">
-          <stop offset="0" stopColor={color} stopOpacity="0" />
-          <stop offset=".25" stopColor={color} stopOpacity={opacity} />
-          <stop offset=".75" stopColor={color} stopOpacity={opacity} />
-          <stop offset="1" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {THREADS.map((d, i) => <path key={`b${i}`} d={d} stroke={`url(#${g})`} strokeWidth={1} opacity={0.35} />)}
-      {THREADS.map((d, i) => <path key={i} className="t" d={d} stroke={`url(#${g})`} strokeWidth={i % 2 ? 1.6 : 2.2} />)}
-    </svg>
+    <div className={`weave-aurora pointer-events-none overflow-hidden ${className}`} aria-hidden="true">
+      <span className="glow a" style={{ background: `radial-gradient(closest-side, ${color}, transparent)` }} />
+      <span className="glow b" style={{ background: "radial-gradient(closest-side, #02686F, transparent)" }} />
+      <svg className="weave absolute inset-0 h-full w-full" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid slice" focusable="false">
+        <defs>
+          <linearGradient id={g} x1="0" x2="1">
+            <stop offset="0" stopColor={color} stopOpacity="0" />
+            <stop offset=".3" stopColor={color} stopOpacity={opacity} />
+            <stop offset=".7" stopColor={color} stopOpacity={opacity} />
+            <stop offset="1" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {THREADS.map((d, i) => <path key={i} d={d} stroke={`url(#${g})`} strokeWidth={i % 2 ? 1 : 1.4} opacity={0.45} vectorEffect="non-scaling-stroke" />)}
+      </svg>
+    </div>
   );
 }
 

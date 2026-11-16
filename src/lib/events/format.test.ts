@@ -8,7 +8,7 @@ describe("money", () => {
     expect(formatEGP(1250000)).toBe("EGP 12,500");
   });
   it("shows a placeholder when the price isn't set", () => {
-    expect(formatEGP(null)).toBe("[PRICE]");
+    expect(formatEGP(null)).toBe("TBA");
   });
   it("parses prices to whole piasters", () => {
     expect(toPiasters("450")).toBe(45000);

@@ -87,13 +87,13 @@ export function PublishingBoard({ posts, log, subscribers, emailReady }: { posts
               <legend className="pb-1.5 text-[12.5px] font-bold text-muted">Channels</legend>
               <div className="flex flex-wrap gap-1.5">
                 <Channel name="ch_feed" label="Home feed" defaultChecked />
-                <Channel name="ch_email" label={`The Floor Notes · ${subscribers} subscriber${subscribers === 1 ? "" : "s"}`} checked={email} onChange={setEmail} disabled={!emailReady} />
+                <Channel name="ch_email" label={`VW Newsletter · ${subscribers} subscriber${subscribers === 1 ? "" : "s"}`} checked={email} onChange={setEmail} disabled={!emailReady} />
                 <Channel label="WhatsApp · later" disabled />
                 <Channel label="Push · later" disabled />
               </div>
               {!emailReady ? <span className="text-[12px] text-faint">Email switches on once RESEND_API_KEY is added in Vercel.</span> : null}
             </fieldset>
-            <SelectField label="Audience" name="audience" defaultValue="all" options={[{ value: "all", label: "All members (email: The Floor Notes subscribers)" }]} hint="Audiences by role, stage and space arrive with TVS, BRICKR and QuidQuo memberships." />
+            <SelectField label="Audience" name="audience" defaultValue="all" options={[{ value: "all", label: "All members (email: the VW Newsletter subscribers)" }]} hint="Audiences by role, stage and space arrive with TVS, BRICKR and QuidQuo memberships." />
             <PostFields />
             <TextField
               label="Schedule for the feed (optional, Cairo time)"
@@ -216,7 +216,7 @@ export function PublishingBoard({ posts, log, subscribers, emailReady }: { posts
           </>
         }
       >
-        <p className="text-[13.5px]">It goes to <b>{subscribers}</b> member{subscribers === 1 ? "" : "s"} who chose The Floor Notes, each with an unsubscribe link. Emails can&apos;t be recalled once sent.</p>
+        <p className="text-[13.5px]">It goes to <b>{subscribers}</b> member{subscribers === 1 ? "" : "s"} who chose the VW Newsletter, each with an unsubscribe link. Emails can&apos;t be recalled once sent.</p>
       </Modal>
     </>
   );

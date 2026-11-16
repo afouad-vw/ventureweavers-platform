@@ -9,11 +9,11 @@ import { Card } from "@/components/ui/card";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { myHomeProfile } from "@/lib/content/queries";
-import { formatDate, formatEGP } from "@/lib/events/format";
+import { formatDate, formatPerSeat } from "@/lib/events/format";
 import { getProgram, myTvs, publicCohorts, type PublicCohort } from "@/lib/tvs/queries";
 
 type Props = { params: Promise<{ slug: string }> };
-const day = (d: string | null) => (d ? formatDate(`${d}T12:00:00Z`) : "[DATE]");
+const day = (d: string | null) => (d ? formatDate(`${d}T12:00:00Z`) : "TBA");
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getProgram((await params).slug);
@@ -48,7 +48,7 @@ export default async function ProgramPage({ params }: Props) {
           <Facts
             items={[
               { icon: <Clock size={16} aria-hidden="true" />, text: `${p.weeks} weeks${p.outline.length ? ` · ${outlineSummary(p.outline)}` : ""}` },
-              ...(next ? cohortFacts(next) : p.status === "in_development" ? [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "In development: ask to be notified" }] : [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "Next cohort: [DATE]" }]),
+              ...(next ? cohortFacts(next) : p.status === "in_development" ? [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "In development: ask to be notified" }] : [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "Next cohort: TBA" }]),
             ]}
           />
           <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">
@@ -69,11 +69,11 @@ export default async function ProgramPage({ params }: Props) {
                 {cohorts.map((c) => (
                   <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-line py-2.5 last:border-b-0">
                     <span>
-                      <b className="block text-[13.5px]">{c.label}</b>
-                      <span className="text-[12.5px] text-faint">{day(c.starts_on)}{c.ends_on ? ` – ${day(c.ends_on)}` : ""} · {c.format === "In person" ? c.location || "Location TBA" : c.format ?? "Format TBA"}</span>
+                      <b className="block text-[13.5px]">{day(c.starts_on)}{c.ends_on ? ` – ${day(c.ends_on)}` : ""}</b>
+                      <span className="text-[12.5px] text-faint">{c.format === "In person" ? c.location || "Location TBA" : c.format ?? "Format TBA"}</span>
                     </span>
                     <span className="text-right text-[12.5px]">
-                      <b className="block">{formatEGP(c.price_piasters)} per seat</b>
+                      <b className="block">{formatPerSeat(c.price_piasters)}</b>
                       <span className="text-faint">{c.seats_left == null ? "Open" : c.seats_left ? `${c.seats_left} seats left` : "Full"}</span>
                     </span>
                   </li>
@@ -95,9 +95,9 @@ export default async function ProgramPage({ params }: Props) {
 
 function cohortFacts(c: PublicCohort) {
   return [
-    { icon: <CalendarDays size={16} aria-hidden="true" />, text: `${c.label}: ${day(c.starts_on)}${c.ends_on ? ` – ${day(c.ends_on)}` : ""}` },
+    { icon: <CalendarDays size={16} aria-hidden="true" />, text: `Next cohort: ${day(c.starts_on)}${c.ends_on ? ` – ${day(c.ends_on)}` : ""}` },
     { icon: c.format === "Online" ? <Video size={16} aria-hidden="true" /> : <MapPin size={16} aria-hidden="true" />, text: c.format === "In person" ? c.location || "Location TBA" : c.format === "Online" ? "Online (Google Meet)" : "Format TBA" },
-    { icon: <Ticket size={16} aria-hidden="true" />, text: `${formatEGP(c.price_piasters)} per seat` },
+    { icon: <Ticket size={16} aria-hidden="true" />, text: formatPerSeat(c.price_piasters) },
     { icon: <Users size={16} aria-hidden="true" />, text: c.capacity ? `${c.seats_left} of ${c.capacity} seats left` : "Seats open" },
   ];
 }
