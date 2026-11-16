@@ -13,7 +13,7 @@ import {
 
 /**
  * Pulls the latest Shorts from the @ventureweavers accounts into content_items.
- * YouTube needs YOUTUBE_API_KEY (and optionally YOUTUBE_HANDLE, default "ventureweavers").
+ * YouTube needs YOUTUBE_API_KEY (and optionally YOUTUBE_HANDLE, default "Venture_Weavers").
  * Instagram needs INSTAGRAM_ACCESS_TOKEN (Instagram API with Instagram Login, a 60-day token).
  * Synced posts are published straight away; admins can set one to Draft to hide it (it stays hidden).
  */
@@ -35,7 +35,7 @@ async function getJson(url: string, init?: RequestInit): Promise<{ status: numbe
 
 async function fetchYouTube(): Promise<SyncedShort[]> {
   const key = process.env.YOUTUBE_API_KEY!;
-  const handle = (process.env.YOUTUBE_HANDLE ?? "ventureweavers").replace(/^@/, "");
+  const handle = (process.env.YOUTUBE_HANDLE ?? "Venture_Weavers").replace(/^@/, "");
   const ch = await getJson(`${YT}/channels?part=id&forHandle=${encodeURIComponent("@" + handle)}&key=${key}`);
   const channelId = (ch.json as { items?: { id?: string }[] })?.items?.[0]?.id;
   if (!channelId) throw new Error(ch.status === 200 ? `No YouTube channel @${handle}` : `YouTube said ${ch.status}`);

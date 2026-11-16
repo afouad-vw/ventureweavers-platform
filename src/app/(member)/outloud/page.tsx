@@ -148,7 +148,7 @@ function Kv({ k, v }: { k: string; v: string }) {
 }
 
 const ACCOUNTS = [
-  { label: "YouTube", href: "https://www.youtube.com/@ventureweavers" },
+  { label: "YouTube", href: "https://www.youtube.com/@Venture_Weavers" },
   { label: "Instagram", href: "https://www.instagram.com/ventureweavers" },
   { label: "TikTok", href: "https://www.tiktok.com/@ventureweavers" },
 ];
