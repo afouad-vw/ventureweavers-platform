@@ -81,7 +81,7 @@ select pg_temp.as_user('00000000-0000-0000-0000-0000000000a7');
 insert into public.content_series (name, description, position) values ('Founder Stories', 'Long conversations', 10);
 update public.content_series set name = 'Founder Stories S1' where name = 'Founder Stories';
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a1');
-select pg_temp.check((select count(*) >= 7 from public.content_series), 'members read the series list');
+select pg_temp.check((select count(*) >= 6 from public.content_series) and not exists (select 1 from public.content_series where name = 'Full episodes'), 'members read the series list (no Full episodes placeholder)');
 select pg_temp.expect_error($$insert into public.content_series (name) values ('Hacked')$$, '%row-level security%', 'members cannot add series');
 reset role;
 insert into public.content_items (title, series, format, platform, url, status, source, external_id)

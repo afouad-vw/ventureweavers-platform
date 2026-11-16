@@ -38,16 +38,20 @@ select pg_temp.check((select avatar_url like 'https://%' from public.profiles wh
 select pg_temp.expect_error($$update public.profiles set avatar_url = 'javascript:alert(1)' where id = '00000000-0000-0000-0000-0000000000f1'$$, '%check%', 'photos must be https addresses');
 
 -- Ecosystem Roles
-update public.profiles set roles = array['Investor or angel', 'Founder'] where id = '00000000-0000-0000-0000-0000000000f1';
-select pg_temp.check((select role = 'Investor or angel' and roles = array['Investor or angel', 'Founder'] from public.profiles where id = '00000000-0000-0000-0000-0000000000f1'), 'members pick several roles; the first is their main role');
+update public.profiles set roles = array['Angel Investor', 'Founder'] where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.check((select role = 'Angel Investor' and roles = array['Angel Investor', 'Founder'] from public.profiles where id = '00000000-0000-0000-0000-0000000000f1'), 'members pick several roles; the first is their main role');
 select pg_temp.expect_error($$update public.profiles set roles = array['Pirate'] where id = '00000000-0000-0000-0000-0000000000f1'$$, '%check%', 'roles come from the list');
 select pg_temp.expect_error($$update public.profiles set roles = array['Founder', 'Founder'] where id = '00000000-0000-0000-0000-0000000000f1'$$, '%check%', 'no repeated roles');
 update public.profiles set role = 'Founder' where id = '00000000-0000-0000-0000-0000000000f1';
-select pg_temp.check((select roles = array['Founder', 'Investor or angel'] from public.profiles where id = '00000000-0000-0000-0000-0000000000f1'), 'setting the single role moves it to the front of the list');
+select pg_temp.check((select roles = array['Founder', 'Angel Investor'] from public.profiles where id = '00000000-0000-0000-0000-0000000000f1'), 'setting the single role moves it to the front of the list');
 
 -- Businesses
 select public.set_my_businesses('[{"name":"Nile Pay","type":"Venture","website":"https://nilepay.example","member_role":"Co-founder","linkedin":"https://www.linkedin.com/company/nilepay"},{"name":"Delta Angels","type":"Angel Investor"}]');
 select pg_temp.check((select count(*) = 2 from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f1'), 'members add several businesses');
+select pg_temp.check((select stage is null from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f1' and name = 'Nile Pay'), 'stage is optional');
+select public.set_my_businesses('[{"name":"Nile Pay","type":"Venture","stage":"Seed"},{"name":"Delta Angels","type":"Angel Investor","stage":"Seed"}]');
+select pg_temp.check((select string_agg(coalesce(stage, '-'), ',' order by position) = 'Seed,-' from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f1'), 'stage is saved for ventures only');
+select pg_temp.expect_error($$select public.set_my_businesses('[{"name":"X","type":"Venture","stage":"Series Z"}]')$$, '%check%', 'stage comes from the list');
 select pg_temp.check((select string_agg(name, ',' order by position) = 'Nile Pay,Delta Angels' from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f1'), 'businesses keep their order');
 select public.set_my_businesses('[{"name":"Nile Pay","type":"Venture"}]');
 select pg_temp.check((select count(*) = 1 from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f1'), 'saving replaces the list');
@@ -64,11 +68,11 @@ select pg_temp.check((select count(*) = 0 from public.member_businesses where me
 -- Partners edit roles and businesses from Contacts
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000fa');
 select pg_temp.check((select count(*) = 1 from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f1'), 'Contacts viewers see members'' businesses');
-select public.admin_update_member('00000000-0000-0000-0000-0000000000f2', 'Biz Two', '+20 1001234567', null, 'Egypt', array['Expert or mentor', 'Career professional'], array['Education'], array['Email'],
+select public.admin_update_member('00000000-0000-0000-0000-0000000000f2', 'Biz Two', '+20 1001234567', null, 'Egypt', array['Mentor', 'Exploring the ecosystem'], array['Education'], array['Email'],
   '[{"name":"Two Co","type":"Institutional investor","website":"https://two.example"}]');
 select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000f2', 'Biz Two', '+20 1001234567', null, 'Egypt', array[]::text[], array['Education'], array['Email'], '[]')$$, '%bad_roles%', 'at least one role');
 reset role;
-select pg_temp.check((select role = 'Expert or mentor' and cardinality(roles) = 2 from public.profiles where id = '00000000-0000-0000-0000-0000000000f2'), 'partners edit roles');
+select pg_temp.check((select role = 'Mentor' and cardinality(roles) = 2 from public.profiles where id = '00000000-0000-0000-0000-0000000000f2'), 'partners edit roles');
 select pg_temp.check((select name = 'Two Co' and type = 'Institutional investor' from public.member_businesses where member_id = '00000000-0000-0000-0000-0000000000f2'), 'partners edit businesses');
 select pg_temp.check((select after -> 'businesses' -> 0 ->> 'name' = 'Two Co' and before -> 'businesses' = '[]'::jsonb from public.audit_log where action = 'member.update' and entity_id = '00000000-0000-0000-0000-0000000000f2'), 'business edits are logged');
 

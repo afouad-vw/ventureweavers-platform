@@ -142,7 +142,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                     <ul className="flex flex-col gap-1.5">
                       {c.businesses.map((b, i) => (
                         <li key={i} className="flex flex-col">
-                          <span><b>{b.name}</b>{b.type ? <span className="text-faint"> · {b.type}</span> : null}</span>
+                          <span><b>{b.name}</b>{b.type ? <span className="text-faint"> · {b.type}{b.stage ? `, ${b.stage}` : ""}</span> : null}</span>
                           {b.member_role ? <span className="text-[12.5px] text-muted">{b.member_role}</span> : null}
                           {b.website || b.linkedin ? (
                             <span className="flex flex-wrap gap-3 text-[12.5px]">

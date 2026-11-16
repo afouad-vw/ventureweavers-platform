@@ -5,7 +5,7 @@ const form = (o: Record<string, string | string[]>) => ({
   get: (k: string) => (Array.isArray(o[k]) ? (o[k] as string[])[0] : o[k]),
   getAll: (k: string) => (Array.isArray(o[k]) ? (o[k] as string[]) : o[k] ? [o[k]] : []),
 });
-const good = { name: "Mona Adel", dial_country: "EG", phone: "0100 123 4567", country: "Egypt", roles: ["Founder", "Expert or mentor"], interests: ["Education", "QuidQuo"], contact: ["WhatsApp", "Email"], newsletter: "on" };
+const good = { name: "Mona Adel", dial_country: "EG", phone: "0100 123 4567", country: "Egypt", roles: ["Founder", "Mentor"], interests: ["Education", "QuidQuo"], contact: ["WhatsApp", "Email"], newsletter: "on" };
 
 describe("phone numbers", () => {
   it("joins the country code and number", () => {
@@ -31,7 +31,7 @@ describe("about you", () => {
       expect(r.value.consent_whatsapp).toBe(true);
       expect(r.value.linkedin).toBeNull();
       expect(r.value.consent_newsletter).toBe(true);
-      expect(r.value.roles).toEqual(["Founder", "Expert or mentor"]);
+      expect(r.value.roles).toEqual(["Founder", "Mentor"]);
       expect(r.businesses).toEqual([]);
     }
   });
@@ -61,19 +61,19 @@ describe("about you", () => {
 
 describe("Ecosystem Roles and businesses", () => {
   it("keeps known roles once, in the order picked", () => {
-    const f = form({ ...good, roles: ["Expert or mentor", "Pirate", "Expert or mentor", "Founder"] });
+    const f = form({ ...good, roles: ["Mentor", "Pirate", "Mentor", "Founder"] });
     const r = parseAbout(f.get, f.getAll);
-    expect(r.ok && r.value.roles).toEqual(["Expert or mentor", "Founder"]);
+    expect(r.ok && r.value.roles).toEqual(["Mentor", "Founder"]);
   });
   it("reads several businesses and cleans their links", () => {
     const r = parseBusinesses(JSON.stringify([
-      { name: " Nile  Pay ", type: "Venture", website: "nilepay.com", member_role: "Co-founder", linkedin: "linkedin.com/company/nilepay/" },
-      { name: "Delta Angels", type: "Angel Investor" },
+      { name: " Nile  Pay ", type: "Venture", stage: "Seed", website: "nilepay.com", member_role: "Co-founder", linkedin: "linkedin.com/company/nilepay/" },
+      { name: "Delta Angels", type: "Angel Investor", stage: "Seed" },
       { name: "", type: "", website: "", member_role: "", linkedin: "" },
     ]));
     expect(r).toEqual({ ok: true, value: [
-      { name: "Nile Pay", type: "Venture", website: "https://nilepay.com", member_role: "Co-founder", linkedin: "https://www.linkedin.com/company/nilepay" },
-      { name: "Delta Angels", type: "Angel Investor", website: null, member_role: null, linkedin: null },
+      { name: "Nile Pay", type: "Venture", stage: "Seed", website: "https://nilepay.com", member_role: "Co-founder", linkedin: "https://www.linkedin.com/company/nilepay" },
+      { name: "Delta Angels", type: "Angel Investor", stage: null, website: null, member_role: null, linkedin: null },
     ] });
   });
   it("refuses bad business details", () => {

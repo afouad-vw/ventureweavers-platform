@@ -1,7 +1,7 @@
 /** The "About you" details every member gives at sign-up (Phase 12). Shared by the form and the server. */
 import { cleanLinkedIn } from "@/lib/details";
 import { COUNTRIES, countryByCode } from "./countries";
-import { ROLES } from "./options";
+import { ROLES, STAGES } from "./options";
 
 export const INTERESTS = ["Education", "Services", "Content", "QuidQuo"] as const;
 export const INTEREST_HINT: Record<(typeof INTERESTS)[number], string> = { Education: "TVS", Services: "BRICKR", Content: "Outloud", QuidQuo: "QuidQuo" };
@@ -23,7 +23,8 @@ export type About = {
 export const BUSINESS_TYPES = ["Venture", "Angel Investor", "Institutional investor", "Corporate", "Institutional Enabler", "Venture Studio", "Expert", "Mentor", "Other"] as const;
 export const MAX_BUSINESSES = 10;
 
-export type Business = { name: string; type: string | null; website: string | null; member_role: string | null; linkedin: string | null };
+export type Business = { name: string; type: string | null; stage: string | null; website: string | null; member_role: string | null; linkedin: string | null };
+export const BUSINESS_STAGES = STAGES.map(([s]) => s);
 
 /** A business LinkedIn page: linkedin.com/company/… (also school, showcase or a personal /in/ page). */
 export function cleanCompanyLinkedIn(v: string): string | null {
@@ -64,7 +65,8 @@ export function parseBusinesses(raw: unknown): { ok: true; value: Business[] } |
     if (rawSite && !website) return { ok: false, error: `The website for ${name} doesn't look right. Try something like yourcompany.com.` };
     const linkedin = rawLinkedIn ? cleanCompanyLinkedIn(rawLinkedIn) : null;
     if (rawLinkedIn && !linkedin) return { ok: false, error: `The LinkedIn page for ${name} doesn't look right. It should look like linkedin.com/company/name.` };
-    out.push({ name, type, website, member_role, linkedin });
+    const stage = type === "Venture" && (BUSINESS_STAGES as string[]).includes(t("stage")) ? t("stage") : null;
+    out.push({ name, type, stage, website, member_role, linkedin });
   }
   if (out.length > MAX_BUSINESSES) return { ok: false, error: `You can add up to ${MAX_BUSINESSES} businesses.` };
   return { ok: true, value: out };

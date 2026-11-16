@@ -136,7 +136,7 @@ export function buildReminders(bookings: ReminderBooking[], now = new Date()): R
 /** How complete a profile is, 0–100, from the fields the partners use to prepare. */
 export function profileCompletion(p: { full_name?: string | null; avatar_url?: string | null; phone?: string | null; role?: string | null; stage?: string | null; goals?: string[] | null; interests?: string[] | null } | null) {
   if (!p) return 0;
-  const parts = [p.full_name, p.avatar_url, p.phone, p.role, p.stage, p.goals?.length ? "y" : "", p.interests?.length ? "y" : ""];
+  const parts = [p.full_name, p.avatar_url, p.phone, p.role, p.goals?.length ? "y" : "", p.interests?.length ? "y" : ""];
   return Math.round((parts.filter(Boolean).length / parts.length) * 100);
 }
 
@@ -146,7 +146,7 @@ export function tunedTo(p: { role?: string | null; stage?: string | null; intere
   return bits.join(" · ");
 }
 
-/** High-resolution YouTube thumbnail for a YouTube link (watch, youtu.be, shorts, embed), or null. */
+/** YouTube thumbnail for a YouTube link (watch, youtu.be, shorts, embed), or null. hqdefault exists for every video, Shorts included. */
 export function youtubeThumb(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
@@ -155,7 +155,7 @@ export function youtubeThumb(url: string | null | undefined): string | null {
     let id: string | null = null;
     if (host === "youtu.be") id = u.pathname.slice(1).split("/")[0];
     else if (host === "youtube.com" || host === "music.youtube.com") id = u.searchParams.get("v") ?? /^\/(?:shorts|embed|live)\/([^/?#]+)/.exec(u.pathname)?.[1] ?? null;
-    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : null;
+    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
   } catch {
     return null;
   }

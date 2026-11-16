@@ -8,7 +8,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://accounts.google.com/gsi/client${dev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
-  "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://*.cdninstagram.com https://*.fbcdn.net https://*.googleusercontent.com https://media.licdn.com",
+  "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://*.cdninstagram.com https://*.fbcdn.net https://*.tiktokcdn.com https://*.tiktokcdn-us.com https://*.tiktokcdn-eu.com https://*.googleusercontent.com https://media.licdn.com",
   "font-src 'self' data:",
   `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com/gsi/${dev ? " ws:" : ""}`,
   "frame-src https://challenges.cloudflare.com https://accounts.google.com/gsi/",

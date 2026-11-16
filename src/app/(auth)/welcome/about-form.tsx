@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SelectField, TextField, Toggle } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
 import { Plus, Trash2 } from "lucide-react";
-import { BUSINESS_TYPES, CONTACT, INTEREST_HINT, INTERESTS, MAX_BUSINESSES, type Business } from "@/lib/profile/about";
+import { BUSINESS_STAGES, BUSINESS_TYPES, CONTACT, INTEREST_HINT, INTERESTS, MAX_BUSINESSES, type Business } from "@/lib/profile/about";
 import { AvatarField } from "@/components/profile/avatar-field";
 import { COUNTRIES, MENA_COUNT } from "@/lib/profile/countries";
 import { ROLES } from "@/lib/profile/options";
@@ -28,9 +28,9 @@ export type AboutInitial = {
   businesses: Business[];
 };
 
-type BizRow = { key: number; name: string; type: string; website: string; member_role: string; linkedin: string };
+type BizRow = { key: number; name: string; type: string; stage: string; website: string; member_role: string; linkedin: string };
 let bizKey = 0;
-const toRow = (b?: Business): BizRow => ({ key: ++bizKey, name: b?.name ?? "", type: b?.type ?? "", website: b?.website ?? "", member_role: b?.member_role ?? "", linkedin: b?.linkedin ?? "" });
+const toRow = (b?: Business): BizRow => ({ key: ++bizKey, name: b?.name ?? "", type: b?.type ?? "", stage: b?.stage ?? "", website: b?.website ?? "", member_role: b?.member_role ?? "", linkedin: b?.linkedin ?? "" });
 
 const control =
   "h-11 rounded-lg border border-line2 bg-card/80 px-2.5 text-[14px] text-fg focus:border-primary focus:bg-card focus:shadow-glow focus:outline-none";
@@ -73,7 +73,7 @@ export function AboutForm({
       {interests.map((x) => <input key={x} type="hidden" name="interests" value={x} />)}
       {contact.map((x) => <input key={x} type="hidden" name="contact" value={x} />)}
       {roles.map((x) => <input key={x} type="hidden" name="roles" value={x} />)}
-      <input type="hidden" name="businesses" value={JSON.stringify(biz.map((r) => ({ name: r.name, type: r.type, website: r.website, member_role: r.member_role, linkedin: r.linkedin })))} />
+      <input type="hidden" name="businesses" value={JSON.stringify(biz.map((r) => ({ name: r.name, type: r.type, stage: r.type === "Venture" ? r.stage : "", website: r.website, member_role: r.member_role, linkedin: r.linkedin })))} />
       {inProfile ? null : (
         <div>
           <h1 className="font-display text-[24px] font-semibold">About you</h1>
@@ -113,7 +113,7 @@ export function AboutForm({
       />
 
       <fieldset className="flex flex-col gap-1.5">
-        <legend className="pb-1.5 text-[12.5px] font-bold text-muted">Ecosystem Role (pick any)</legend>
+        <legend className="pb-1.5 text-[12.5px] font-bold text-muted">Ecosystem Role <span className="font-normal text-faint">(you can choose more than one)</span></legend>
         <div className="grid grid-cols-2 gap-2">
           {ROLES.map((x) => (
             <Choice key={x} on={roles.includes(x)} onClick={() => toggle(roles, setRoles, x)} label={x} />
@@ -141,6 +141,9 @@ export function AboutForm({
               <TextField label="Business name" value={b.name} onChange={(e) => setBizField(b.key, "name", e.target.value)} maxLength={120} autoComplete="organization" required />
               <SelectField label="Type" value={b.type} onChange={(e) => setBizField(b.key, "type", e.target.value)} options={[{ value: "", label: "Choose" }, ...BUSINESS_TYPES.map((t) => ({ value: t, label: t }))]} />
             </div>
+            {b.type === "Venture" ? (
+              <SelectField label="Stage" value={b.stage} onChange={(e) => setBizField(b.key, "stage", e.target.value)} options={[{ value: "", label: "Choose the stage" }, ...BUSINESS_STAGES.map((t) => ({ value: t, label: t }))]} />
+            ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               <TextField label="Your role in the business" value={b.member_role} onChange={(e) => setBizField(b.key, "member_role", e.target.value)} maxLength={80} placeholder="Co-founder, Partner, Advisor…" />
               <TextField label="Website" value={b.website} onChange={(e) => setBizField(b.key, "website", e.target.value)} inputMode="url" placeholder="yourcompany.com" maxLength={200} />

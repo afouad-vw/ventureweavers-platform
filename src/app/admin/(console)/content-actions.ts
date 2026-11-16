@@ -260,8 +260,12 @@ export async function saveContent(form: FormData): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: known } = await supabase.from("content_series").select("name").eq("name", s("series")).maybeSingle();
   if (!known) return { ok: false, error: "Choose a series (or add it under Series first)." };
+  // A preview from the post itself (YouTube, TikTok, Instagram, LinkedIn) when no image is uploaded.
+  const { findPreview } = await import("@/lib/content/preview");
+  const thumb_url = image_url ? null : await findPreview(url || null);
   return save("content_items", s("id") || null, {
     image_url: image_url || null,
+    ...(thumb_url ? { thumb_url } : {}),
     title: s("title").slice(0, 160),
     series: known.name,
     format: oneOf(s("format"), CONTENT_FORMATS, "Short"),

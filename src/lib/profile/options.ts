@@ -1,11 +1,14 @@
 /** Onboarding choices, taken from the prototype's join flow. */
-export const ROLES = ["Founder", "Investor or angel", "Corporate innovator", "Career professional", "Expert or mentor", "Exploring my first venture"] as const;
+/** Ecosystem Roles (members pick one or more). Mirrors public.role_list() in the database. */
+export const ROLES = ["Founder", "Angel Investor", "Institutional investor", "Corporate", "Institutional Enabler", "Venture Studio", "Expert", "Mentor", "Exploring the ecosystem"] as const;
+/** Venture stages (a business of type Venture, and TVS founder applications). Mirrors public.stage_list(). */
 export const STAGES = [
   ["Idea", "Exploring a problem"],
   ["Pre-seed", "Building the first version"],
   ["Seed", "Early customers and revenue"],
-  ["Series A+", "Scaling the team and market"],
-  ["Not building now", "Learning, investing or advising"],
+  ["Series A", "Scaling the team and market"],
+  ["Series B", "Expanding into new markets"],
+  ["Series C+", "Growth at scale"],
 ] as const;
 export const GOALS = [
   ["Learn with a cohort", "TVS"],

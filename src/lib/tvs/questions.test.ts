@@ -15,15 +15,15 @@ describe("TVS application questions", () => {
     expect(r.ok && r.summary).toBe("Payments for SMEs in Egypt");
   });
   it("requires the role's required answers", () => {
-    const r = parseAnswers("Investor or angel", form({ q_investor_type: "Angel", q_sectors: "Fintech" }));
+    const r = parseAnswers("Angel Investor", form({ q_investor_type: "Angel", q_sectors: "Fintech" }));
     expect(r).toEqual({ ok: false, error: "Answer “Typical ticket size”." });
   });
   it("only accepts listed options", () => {
-    const r = parseAnswers("Investor or angel", form({ q_investor_type: "Angel", q_ticket: "A billion", q_sectors: "x", q_goal: "y" }));
+    const r = parseAnswers("Angel Investor", form({ q_investor_type: "Angel", q_ticket: "A billion", q_sectors: "x", q_goal: "y" }));
     expect(r.ok).toBe(false);
   });
   it("rejects unknown roles and long answers", () => {
     expect(parseAnswers("Pirate", form({})).ok).toBe(false);
-    expect(parseAnswers("Expert or mentor", form({ q_expertise: "x", q_contribute: "y".repeat(1001) })).ok).toBe(false);
+    expect(parseAnswers("Mentor", form({ q_expertise: "x", q_contribute: "y".repeat(1001) })).ok).toBe(false);
   });
 });

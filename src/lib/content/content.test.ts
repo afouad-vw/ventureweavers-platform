@@ -98,7 +98,7 @@ describe("content helpers", () => {
 
   it("measures profile completion and the feed line", () => {
     expect(profileCompletion(null)).toBe(0);
-    expect(profileCompletion({ full_name: "Nour", role: "Founder", stage: "Seed", interests: ["Growth"], goals: [], phone: null, avatar_url: null })).toBe(57);
+    expect(profileCompletion({ full_name: "Nour", role: "Founder", stage: "Seed", interests: ["Growth"], goals: [], phone: null, avatar_url: null })).toBe(50);
     expect(tunedTo({ role: "Founder", stage: "Seed", interests: ["Growth", "Fundraising", "Hiring", "Pricing"] })).toBe("founder · seed · growth, fundraising, hiring");
     expect(tunedTo(null)).toBe("");
   });

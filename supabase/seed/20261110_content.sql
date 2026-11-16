@@ -33,7 +33,7 @@ insert into public.content_items (title, series, format, platform, url, publish_
 ('Your first head of sales, in 60 seconds', 'In 60 Seconds', 'Short', 'TikTok', null, '2026-11-22', 'scheduled'),
 ('Pricing when the currency moves: 3 rules', 'The Answer', 'Carousel', 'LinkedIn', null, '2026-11-24', 'scheduled'),
 ('Next show: Fri 27 Nov', 'Next Show', 'Reel', 'Instagram', null, '2026-11-21', 'scheduled'),
-('Open Floor Show 01, full episode', 'Full episodes', 'Episode', 'YouTube', null, '2027-01-15', 'scheduled');
+('Open Floor Show 01, full episode', 'Open Floor', 'Episode', 'YouTube', null, '2027-01-15', 'scheduled');
 
 insert into public.library_resources (title, kind, space, access, description, status) values
 ('Venture building in MENA: what founders asked us in 2026', 'Report', 'House', 'all_members', 'Patterns from our sessions, diagnostics and shows.', 'published'),

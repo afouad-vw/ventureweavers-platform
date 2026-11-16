@@ -6,46 +6,57 @@ export type Role = (typeof ROLES)[number];
 
 const WHY: Question = { id: "why_now", label: "Why this program, and why now?", kind: "long" };
 
+const FOUNDER: Question[] = [
+  { id: "venture", label: "Venture name", kind: "text", required: true },
+  { id: "website", label: "Website (optional)", kind: "text", placeholder: "https://" },
+  { id: "stage", label: "Stage", kind: "stage", required: true },
+  { id: "building", label: "What are you building, and for whom?", kind: "long", required: true },
+  { id: "team", label: "Team size", kind: "choice", options: ["Just me", "2–5", "6–20", "21–50", "50+"] },
+  { id: "traction", label: "Traction so far (customers, revenue, funding)", kind: "long" },
+  WHY,
+];
+const INVESTOR: Question[] = [
+  { id: "investor_type", label: "How you invest", kind: "choice", required: true, options: ["Angel", "Angel network or syndicate", "VC fund", "Family office", "Corporate venture", "Other"] },
+  { id: "ticket", label: "Typical ticket size", kind: "choice", required: true, options: ["Under $25k", "$25k–$100k", "$100k–$500k", "$500k–$2M", "Over $2M"] },
+  { id: "sectors", label: "Sectors and stages you invest in", kind: "text", required: true },
+  { id: "portfolio", label: "Investments so far (how many, any you can name)", kind: "long" },
+  { id: "goal", label: "What do you want from the program?", kind: "long", required: true },
+];
+const CORPORATE: Question[] = [
+  { id: "company", label: "Company", kind: "text", required: true },
+  { id: "title", label: "Your role", kind: "text", required: true },
+  { id: "mandate", label: "Your innovation mandate or what you're working on", kind: "long", required: true },
+  { id: "team", label: "Team size", kind: "choice", options: ["Just me", "2–5", "6–20", "21–50", "50+"] },
+  { id: "goal", label: "What do you want from the program?", kind: "long", required: true },
+];
+const STUDIO: Question[] = [
+  { id: "studio", label: "Studio name", kind: "text", required: true },
+  { id: "website", label: "Website (optional)", kind: "text", placeholder: "https://" },
+  { id: "model", label: "How the studio works (ventures built, model, funding)", kind: "long", required: true },
+  { id: "goal", label: "What do you want from the program?", kind: "long", required: true },
+];
+const MENTOR: Question[] = [
+  { id: "expertise", label: "Your area of expertise", kind: "text", required: true },
+  { id: "experience", label: "Ventures or teams you've worked with", kind: "long" },
+  { id: "contribute", label: "How would you like to contribute?", kind: "long", required: true },
+];
+const EXPLORING: Question[] = [
+  { id: "background", label: "Your background", kind: "long", required: true },
+  { id: "idea", label: "The problem or idea you're exploring", kind: "long", required: true },
+  { id: "current", label: "Current role and company (optional)", kind: "text" },
+  WHY,
+];
+
 export const QUESTIONS: Record<Role, Question[]> = {
-  Founder: [
-    { id: "venture", label: "Venture name", kind: "text", required: true },
-    { id: "website", label: "Website (optional)", kind: "text", placeholder: "https://" },
-    { id: "stage", label: "Stage", kind: "stage", required: true },
-    { id: "building", label: "What are you building, and for whom?", kind: "long", required: true },
-    { id: "team", label: "Team size", kind: "choice", options: ["Just me", "2–5", "6–20", "21–50", "50+"] },
-    { id: "traction", label: "Traction so far (customers, revenue, funding)", kind: "long" },
-    WHY,
-  ],
-  "Investor or angel": [
-    { id: "investor_type", label: "How you invest", kind: "choice", required: true, options: ["Angel", "Angel network or syndicate", "VC fund", "Family office", "Corporate venture", "Other"] },
-    { id: "ticket", label: "Typical ticket size", kind: "choice", required: true, options: ["Under $25k", "$25k–$100k", "$100k–$500k", "$500k–$2M", "Over $2M"] },
-    { id: "sectors", label: "Sectors and stages you invest in", kind: "text", required: true },
-    { id: "portfolio", label: "Investments so far (how many, any you can name)", kind: "long" },
-    { id: "goal", label: "What do you want from the program?", kind: "long", required: true },
-  ],
-  "Corporate innovator": [
-    { id: "company", label: "Company", kind: "text", required: true },
-    { id: "title", label: "Your role", kind: "text", required: true },
-    { id: "mandate", label: "Your innovation mandate or what you're working on", kind: "long", required: true },
-    { id: "team", label: "Team size", kind: "choice", options: ["Just me", "2–5", "6–20", "21–50", "50+"] },
-    { id: "goal", label: "What do you want from the program?", kind: "long", required: true },
-  ],
-  "Career professional": [
-    { id: "current", label: "Current role and company", kind: "text", required: true },
-    { id: "years", label: "Years of experience", kind: "choice", options: ["Under 3", "3–7", "8–15", "Over 15"] },
-    { id: "aim", label: "What venture role are you aiming for?", kind: "long", required: true },
-    WHY,
-  ],
-  "Expert or mentor": [
-    { id: "expertise", label: "Your area of expertise", kind: "text", required: true },
-    { id: "experience", label: "Ventures or teams you've worked with", kind: "long" },
-    { id: "contribute", label: "How would you like to contribute?", kind: "long", required: true },
-  ],
-  "Exploring my first venture": [
-    { id: "background", label: "Your background", kind: "long", required: true },
-    { id: "idea", label: "The problem or idea you're exploring", kind: "long", required: true },
-    WHY,
-  ],
+  Founder: FOUNDER,
+  "Angel Investor": INVESTOR,
+  "Institutional investor": INVESTOR,
+  Corporate: CORPORATE,
+  "Institutional Enabler": CORPORATE,
+  "Venture Studio": STUDIO,
+  Expert: MENTOR,
+  Mentor: MENTOR,
+  "Exploring the ecosystem": EXPLORING,
 };
 
 export type Answer = { q: string; a: string };

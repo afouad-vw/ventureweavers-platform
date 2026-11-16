@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { WeaveHero } from "@/components/ui/weave";
 import Link from "next/link";
+import { ContentTile } from "@/components/content/content-tile";
+import { ScrollRow } from "@/components/content/scroll-row";
 import { after } from "next/server";
-import { CheckCircle2, ChevronDown, MessageSquare } from "lucide-react";
+import { CheckCircle2, MessageSquare } from "lucide-react";
 import { MeetingButton } from "@/components/brickr/meeting-button";
 import { NewsletterToggle, TopicForm } from "@/components/content/member-buttons";
 import { listServices } from "@/lib/brickr/queries";
 import { ChipLinks } from "@/components/ui/chip-link";
 import { ContentCard } from "@/components/ui/content-card";
 import { BLOG_CATEGORIES, CONTENT_FORMATS, blogCategoryLabel } from "@/lib/content/format";
-import { youtubeThumb } from "@/lib/content/format";
-import { blogPosts, episodesBySeries, latestShorts, myHomeProfile, type ContentItem } from "@/lib/content/queries";
+import { blogPosts, episodesBySeries, latestShorts, myHomeProfile } from "@/lib/content/queries";
 import { syncSocial } from "@/lib/content/social-sync";
 import { formatDate } from "@/lib/events/format";
 import { BookButton } from "@/components/events/book-button";
@@ -146,47 +147,11 @@ function Kv({ k, v }: { k: string; v: string }) {
   );
 }
 
-const TILE_TONES = [
-  "bg-deep text-white",
-  "bg-ink text-white",
-  "bg-mint text-ink",
-  "bg-teal text-ink",
-];
-
 const ACCOUNTS = [
   { label: "YouTube", href: "https://www.youtube.com/@ventureweavers" },
   { label: "Instagram", href: "https://www.instagram.com/ventureweavers" },
   { label: "TikTok", href: "https://www.tiktok.com/@ventureweavers" },
 ];
-
-/** One Short or episode as a picture tile that opens the post. */
-function ContentTile({ c, i }: { c: ContentItem; i: number }) {
-  const soon = c.status === "scheduled" || !c.url;
-  const img = c.image_url || c.thumb_url || youtubeThumb(c.url);
-  const inner = (
-    <>
-      {img ? (
-        // eslint-disable-next-line @next/next/no-img-element -- uploaded or platform preview, cropped to fit
-        <img src={img} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" />
-      ) : null}
-      {img ? <span className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-ink/10" aria-hidden="true" /> : null}
-      <span className="relative flex h-full flex-col gap-1">
-        <span className="flex items-center justify-between gap-2">
-          <span className="rounded-full bg-black/35 px-2 py-0.5 text-[10.5px] font-extrabold tracking-[1.2px] uppercase backdrop-blur-md">{c.platform}</span>
-          <small className="text-[11.5px] font-bold opacity-90">{c.format}</small>
-        </span>
-        <b className="mt-auto text-[15px] leading-snug font-extrabold">{c.title}</b>
-        <span className="text-[12px] font-bold opacity-85">{soon ? `Coming ${formatDate(c.publish_on + "T12:00:00Z")}` : formatDate(c.publish_on + "T12:00:00Z")}</span>
-      </span>
-    </>
-  );
-  const cls = `group relative flex overflow-hidden rounded-[20px] p-3.5 text-white shadow-depth ${c.format === "Short" ? "aspect-[9/16]" : "aspect-video"} ${img ? "bg-ink" : TILE_TONES[i % 4]}`;
-  return soon ? (
-    <div className={cls}>{inner}</div>
-  ) : (
-    <a href={c.url!} target="_blank" rel="noopener noreferrer" className={`${cls} vw-lift`} aria-label={`${c.title} on ${c.platform}`}>{inner}</a>
-  );
-}
 
 async function DigitalContent({ format }: { format?: string }) {
   const fm = (CONTENT_FORMATS as readonly string[]).includes(format ?? "") ? format! : "All";
@@ -216,11 +181,11 @@ async function DigitalContent({ format }: { format?: string }) {
         <section className="flex flex-col gap-3" aria-labelledby="shorts-h">
           <div className="flex items-baseline justify-between gap-2">
             <h2 id="shorts-h" className="font-display text-[18px] font-semibold">Shorts</h2>
-            <span className="text-[12.5px] text-faint">The latest {shorts.length > 1 ? shorts.length : ""} from @ventureweavers</span>
+            <span className="text-[12.5px] text-faint">The latest from @ventureweavers</span>
           </div>
           {shorts.length ? (
-            <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))]">
-              {shorts.map((c, i) => <ContentTile key={c.id} c={c} i={i} />)}
+            <div className="grid gap-x-3 gap-y-4 [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
+              {shorts.map((c) => <ContentTile key={c.id} c={c} />)}
             </div>
           ) : (
             <EmptyState>No Shorts yet. Stay tuned.</EmptyState>
@@ -229,30 +194,27 @@ async function DigitalContent({ format }: { format?: string }) {
       ) : null}
 
       {fm !== "Short" ? (
-        <section className="flex flex-col gap-3" aria-labelledby="episodes-h">
-          <h2 id="episodes-h" className="font-display text-[18px] font-semibold">Episodes</h2>
-          {groups.length ? (
-            <div className="flex flex-col gap-3">
-              {groups.map((g, gi) => (
-                <details key={g.series.name} open={gi === 0} className="group/s rounded-2xl border border-line bg-card shadow-depth-sm">
-                  <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                    <ChevronDown size={18} className="shrink-0 text-faint transition-transform group-open/s:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <b className="text-[15px] font-extrabold">{g.series.name}</b>
-                      {g.series.description ? <span className="text-[12.5px] text-muted">{g.series.description}</span> : null}
-                    </span>
-                    <span className="shrink-0 text-[12.5px] text-faint">{g.episodes.length} episode{g.episodes.length === 1 ? "" : "s"}</span>
-                  </summary>
-                  <div className="grid gap-3 border-t border-line p-4 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
-                    {g.episodes.map((c, i) => <ContentTile key={c.id} c={c} i={i} />)}
-                  </div>
-                </details>
-              ))}
-            </div>
-          ) : (
+        groups.length ? (
+          groups.map((g) => (
+            <section key={g.series.name} className="flex min-w-0 flex-col gap-3" aria-label={g.series.name}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                <div className="flex min-w-0 flex-col">
+                  <h2 className="font-display text-[18px] font-semibold">{g.series.name}</h2>
+                  {g.series.description ? <p className="text-[13px] text-muted">{g.series.description}</p> : null}
+                </div>
+                <span className="text-[12.5px] text-faint">{g.episodes.length} episode{g.episodes.length === 1 ? "" : "s"}</span>
+              </div>
+              <ScrollRow label={`${g.series.name} episodes`}>
+                {g.episodes.map((c) => <ContentTile key={c.id} c={c} wide />)}
+              </ScrollRow>
+            </section>
+          ))
+        ) : (
+          <section className="flex flex-col gap-3" aria-labelledby="episodes-h">
+            <h2 id="episodes-h" className="font-display text-[18px] font-semibold">Episodes</h2>
             <EmptyState>No episodes yet. Stay tuned.</EmptyState>
-          )}
-        </section>
+          </section>
+        )
       ) : null}
     </>
   );

@@ -76,7 +76,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
     svc.from("topic_suggestions").select("id, member_id, text, created_at").order("created_at", { ascending: false }).limit(200),
     svc.from("contacts").select("id, name, email, phone, company, role, source, tags, consent, created_at").limit(10000),
     svc.from("contact_notes").select("member_id, contact_id, note, tags"),
-    svc.from("member_businesses").select("member_id, name, type, website, member_role, linkedin, position").order("position").limit(20000),
+    svc.from("member_businesses").select("member_id, name, type, stage, website, member_role, linkedin, position").order("position").limit(20000),
   ]);
 
   const adminIds = new Set(((admins.data ?? []) as { user_id: string }[]).map((a) => a.user_id));
@@ -84,7 +84,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
   const bizOf = new Map<string, Business[]>();
   for (const b of (biz.data ?? []) as (Business & { member_id: string })[]) {
     const list = bizOf.get(b.member_id) ?? [];
-    list.push({ name: b.name, type: b.type, website: b.website, member_role: b.member_role, linkedin: b.linkedin });
+    list.push({ name: b.name, type: b.type, stage: b.stage, website: b.website, member_role: b.member_role, linkedin: b.linkedin });
     bizOf.set(b.member_id, list);
   }
   const noteByMember = new Map<string, { note: string; tags: Space[] }>();
@@ -148,7 +148,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       email: u.email ?? null,
       phone: p?.phone ?? null,
       company: (bizOf.get(u.id) ?? []).map((b) => b.name).join(", ") || null,
-      role: [(p?.roles ?? []).join(", "), p?.stage].filter(Boolean).join(" · ") || null,
+      role: (p?.roles ?? []).join(", ") || null,
       country: p?.country ?? null,
       linkedin: p?.linkedin ?? null,
       avatar: p?.avatar_url ?? null,

@@ -104,7 +104,7 @@ export async function importContacts(text: string): Promise<{ ok: true; added: n
 }
 
 /** "Nile Pay (Venture, Co-founder) https://nilepay.com https://www.linkedin.com/company/nilepay" */
-const bizLine = (b: Business) => [`${b.name}${b.type || b.member_role ? ` (${[b.type, b.member_role].filter(Boolean).join(", ")})` : ""}`, b.website, b.linkedin].filter(Boolean).join(" ");
+const bizLine = (b: Business) => [`${b.name}${b.type || b.member_role ? ` (${[b.type, b.stage, b.member_role].filter(Boolean).join(", ")})` : ""}`, b.website, b.linkedin].filter(Boolean).join(" ");
 
 export async function exportContactsCsv(space: string, q: string): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
   const admin = await requireAdmin("contacts.manage");
