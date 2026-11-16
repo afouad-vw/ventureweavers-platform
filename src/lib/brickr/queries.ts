@@ -1,4 +1,5 @@
 import "server-only";
+import type { Person } from "@/lib/details";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { peopleById } from "@/lib/tvs/queries";
@@ -21,8 +22,9 @@ export type Service = {
   offerings: string[];
   prerequisites: string[];
   brochure_url: string | null;
+  providers: Person[];
 };
-export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url";
+export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers";
 
 /** One published service, by its address. */
 /** The hidden service behind TVS custom program requests. */

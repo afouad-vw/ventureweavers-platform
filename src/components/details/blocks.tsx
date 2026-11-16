@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, Download, Linkedin } from "lucide-react";
 import { Markdown } from "@/components/content/markdown";
 import { Card, CardHeader } from "@/components/ui/card";
-import { formatHours, totalHours, type Person, type Session } from "@/lib/details";
+import { formatHours, namesOf, totalHours, type Person, type Session } from "@/lib/details";
 import { initialsOf } from "@/lib/initials";
 
 /** One titled card on a details page. Renders nothing when empty. */
@@ -60,7 +60,41 @@ export function Outline({ sessions }: { sessions: Session[] }) {
 
 export const outlineSummary = (sessions: Session[]) => `${sessions.length} ${sessions.length === 1 ? "session" : "sessions"} · ${formatHours(totalHours(sessions))}`;
 
-export function People({ people }: { people: Person[] }) {
+/** Small overlapping photos with the names, for a card (e.g. a service's providers). */
+export function ProviderStack({ people }: { people: Person[] }) {
+  if (!people.length) return null;
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <span className="flex shrink-0">
+        {people.slice(0, 3).map((p, i) => (
+          <span key={`${p.name}-${i}`} className={`inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-[linear-gradient(160deg,#0d2526,#02686f)] text-[10px] font-bold text-white ${i ? "-ml-2" : ""}`}>
+            {p.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element -- provider photo, cropped to a circle
+              <img src={p.photo} alt="" loading="lazy" className="h-full w-full object-cover" />
+            ) : (
+              initialsOf(p.name)
+            )}
+          </span>
+        ))}
+      </span>
+      <span className="min-w-0 truncate text-[12.5px] text-muted">With {namesOf(people)}</span>
+    </span>
+  );
+}
+
+export function People({ people, briefs = false }: { people: Person[]; briefs?: boolean }) {
+  if (briefs) {
+    return (
+      <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+        {people.map((p) => (
+          <li key={`${p.name}-${p.title}`} className="flex flex-col gap-2 rounded-xl border border-line bg-card/70 p-3.5">
+            <People people={[{ ...p, brief: undefined }]} />
+            {p.brief ? <p className="text-[13px] leading-relaxed text-muted">{p.brief}</p> : null}
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
     <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
       {people.map((p) => (

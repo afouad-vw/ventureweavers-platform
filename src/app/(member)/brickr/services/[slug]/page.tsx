@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Users } from "lucide-react";
 import { MeetingButton } from "@/components/brickr/meeting-button";
-import { BrochureLink, Bullets, Facts, NumberedList, Section } from "@/components/details/blocks";
+import { BrochureLink, Bullets, Facts, NumberedList, People, ProviderStack, Section } from "@/components/details/blocks";
 import { Banner, type BannerChoice } from "@/components/ui/banner";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ThreadTag } from "@/components/ui/tag";
@@ -35,6 +35,7 @@ export default async function ServicePage({ params }: Props) {
           </div>
           <h1 className="font-display text-[24px] font-semibold desk:text-[28px]">{s.name}</h1>
           {s.short_description || s.description ? <p className="max-w-[70ch] text-[14.5px] text-muted">{s.short_description || s.description}</p> : null}
+          <ProviderStack people={s.providers} />
           <Facts
             items={[
               ...(s.format ? [{ icon: <Briefcase size={16} aria-hidden="true" />, text: s.format }] : []),
@@ -50,6 +51,7 @@ export default async function ServicePage({ params }: Props) {
       <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_320px] desk:gap-[18px]">
         <div className="flex min-w-0 flex-col gap-4">
           {s.offerings.length ? <Section title="What you get"><NumberedList items={s.offerings} /></Section> : null}
+          {s.providers.length ? <Section title={s.providers.length === 1 ? "Your service provider" : "Your service providers"}><People people={s.providers} briefs /></Section> : null}
           <Card>
             <CardHeader title="How it works" />
             <NumberedList items={["Pick a time that suits you (Sunday to Thursday, Cairo time).", "We confirm within 1–2 working days, with a Google Meet link.", "We meet, then agree the scope and next steps together."]} />

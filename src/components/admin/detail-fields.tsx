@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, FileText, ImagePlus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatHours, MAX_PEOPLE, MAX_SESSIONS, totalHours, type Person, type Session } from "@/lib/details";
+import { BRIEF_MAX, formatHours, MAX_PEOPLE, MAX_SESSIONS, totalHours, type Person, type Session } from "@/lib/details";
 import { uploadFile } from "@/lib/upload-client";
 import { Markdown } from "@/components/content/markdown";
 
@@ -19,8 +19,8 @@ function move<T>(list: T[], i: number, by: number) {
   return next;
 }
 
-/** Hosts or guests: name and short title, add, remove and reorder. Saved as JSON in a hidden field. */
-export function PeopleEditor({ name, label, initial, addLabel }: { name: string; label: string; initial: Person[]; addLabel: string }) {
+/** Hosts, guests or providers: name, title, photo, LinkedIn (and a short brief when asked); add, remove and reorder. Saved as JSON. */
+export function PeopleEditor({ name, label, initial, addLabel, withBrief = false }: { name: string; label: string; initial: Person[]; addLabel: string; withBrief?: boolean }) {
   const [rows, setRows] = useState<Person[]>(initial.length ? initial : []);
   const set = (i: number, k: keyof Person, v: string) => setRows((r) => r.map((p, n) => (n === i ? { ...p, [k]: v } : p)));
   return (
@@ -34,6 +34,17 @@ export function PeopleEditor({ name, label, initial, addLabel }: { name: string;
           <input aria-label={`${label} ${i + 1} title`} value={p.title} onChange={(e) => set(i, "title", e.target.value)} maxLength={120} placeholder="Title, e.g. Co-founder, VentureWeavers" className={`${input} flex-[2] basis-[200px]`} />
           <input aria-label={`${label} ${i + 1} LinkedIn`} value={p.linkedin ?? ""} onChange={(e) => set(i, "linkedin", e.target.value)} maxLength={200} inputMode="url" placeholder="LinkedIn link (optional)" className={`${input} flex-[2] basis-[200px]`} />
           <RowButtons onUp={() => setRows((r) => move(r, i, -1))} onDown={() => setRows((r) => move(r, i, 1))} onRemove={() => setRows((r) => r.filter((_, n) => n !== i))} label={p.name || `${label} ${i + 1}`} />
+          {withBrief ? (
+            <textarea
+              aria-label={`${label} ${i + 1} brief`}
+              value={p.brief ?? ""}
+              onChange={(e) => set(i, "brief", e.target.value)}
+              maxLength={BRIEF_MAX}
+              rows={2}
+              placeholder={`Short brief (up to ${BRIEF_MAX} characters)`}
+              className="min-h-16 w-full basis-full rounded-lg border border-line2 bg-card/80 px-2.5 py-2 text-[13.5px] text-fg placeholder:text-faint focus:border-primary focus:bg-card focus:outline-none"
+            />
+          ) : null}
         </div>
       ))}
       {rows.length < MAX_PEOPLE ? (

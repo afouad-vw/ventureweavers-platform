@@ -1,10 +1,12 @@
 /** Shared shapes and checks for program, masterclass, show and service details (Phase 11). */
 
-export type Person = { name: string; title: string; linkedin?: string; photo?: string };
+export type Person = { name: string; title: string; linkedin?: string; photo?: string; brief?: string };
+export const BRIEF_MAX = 400;
 
-/** Host and guest photos come from our public upload bucket only. */
+/** Host, guest and provider photos come from our public upload bucket, or the site's own /images (the partners' photos). */
 export function cleanPhoto(v: unknown): string {
   const raw = String(v ?? "").trim();
+  if (/^\/images\/[\w.-]{1,80}\.(jpg|png|webp)$/.test(raw)) return raw;
   return /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/content-images\/[\w/.-]{1,200}\.(jpg|png|webp)$/.test(raw) ? raw : "";
 }
 
@@ -40,7 +42,8 @@ export function parsePeople(json: string | null | undefined): Person[] {
       .map((p) => {
         const linkedin = cleanLinkedIn(p?.linkedin);
         const photo = cleanPhoto(p?.photo);
-        return { name: clean(p?.name, 80), title: clean(p?.title, 120), ...(linkedin ? { linkedin } : {}), ...(photo ? { photo } : {}) };
+        const brief = String(p?.brief ?? "").replace(/[ \t]+/g, " ").trim().slice(0, BRIEF_MAX);
+        return { name: clean(p?.name, 80), title: clean(p?.title, 120), ...(linkedin ? { linkedin } : {}), ...(photo ? { photo } : {}), ...(brief ? { brief } : {}) };
       })
       .filter((p) => p.name)
       .slice(0, MAX_PEOPLE);

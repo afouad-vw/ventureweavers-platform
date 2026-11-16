@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ConfirmDelete, EditorDrawer, ListBar, RowActions, TableBox, td, useRunner } from "@/components/admin/crud";
-import { BrochureField } from "@/components/admin/detail-fields";
+import { BrochureField, PeopleEditor } from "@/components/admin/detail-fields";
 import { ImageField } from "@/components/admin/image-field";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
@@ -49,6 +49,7 @@ export function ServicesManager({ services }: { services: Service[] }) {
         </div>
         <TextArea label="Short description" name="short_description" rows={2} defaultValue={s?.short_description || s?.description || ""} maxLength={300} required hint="Shown on the card. Up to 300 characters." />
         <TextArea label="Offerings (one per line)" name="offerings" rows={5} defaultValue={s?.offerings.join("\n") ?? ""} hint="Shown as a numbered list: 1, 2, 3…" placeholder={"Market and competition read-out\nPricing and unit economics review\nFundraising plan"} />
+        <PeopleEditor name="providers" label="Service providers" initial={s?.providers ?? []} addLabel="Add a provider" withBrief />
         <TextArea label="Target audience (who the service is for)" name="audience" rows={2} defaultValue={s?.audience ?? "Founders"} maxLength={300} />
         <TextArea label="Pre-requisites (one per line)" name="prerequisites" rows={3} defaultValue={s?.prerequisites.join("\n") ?? ""} />
         <TextField label="Format" name="format" defaultValue={s?.format ?? ""} maxLength={80} placeholder="One session · written read-out" />

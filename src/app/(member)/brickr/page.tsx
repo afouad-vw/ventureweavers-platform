@@ -6,6 +6,7 @@ import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ContentCard } from "@/components/ui/content-card";
+import { ProviderStack } from "@/components/details/blocks";
 import { EmptyState } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
@@ -50,7 +51,14 @@ export default async function BrickrPage() {
                   title={s.name}
                   description={s.short_description || s.description}
                   tags={s.tags}
-                  meta={s.offerings.length ? `${s.offerings.length} offerings${s.format ? ` · ${s.format}` : ""}` : s.format}
+                  meta={
+                    s.providers.length ? (
+                      <span className="flex flex-col gap-1.5">
+                        <ProviderStack people={s.providers} />
+                        {s.offerings.length || s.format ? <span>{s.offerings.length ? `${s.offerings.length} offerings${s.format ? ` · ${s.format}` : ""}` : s.format}</span> : null}
+                      </span>
+                    ) : s.offerings.length ? `${s.offerings.length} offerings${s.format ? ` · ${s.format}` : ""}` : s.format
+                  }
                   cta={
                     <span className="flex flex-wrap justify-end gap-1.5">
                       <LinkButton href={`/brickr/services/${s.slug}`} size="sm" variant="secondary">View details</LinkButton>
