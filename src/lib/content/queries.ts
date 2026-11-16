@@ -40,6 +40,7 @@ export type Series = { id: string; name: string; description: string; position: 
 export const SERIES_COLS = "id, name, description, position";
 
 export type BlogPost = {
+  visibility?: "public" | "private";
   id: string;
   slug: string;
   title: string;
@@ -54,9 +55,10 @@ export type BlogPost = {
   tags: string[];
   status: "draft" | "published";
 };
-export const BLOG_COLS = "id, slug, title, category, author, published_on, read_time, summary, body, banner, banner_url, tags, status";
+export const BLOG_COLS = "id, slug, title, category, author, published_on, read_time, summary, body, banner, banner_url, tags, status, visibility";
 
 export type Resource = {
+  visibility?: "public" | "private";
   id: string;
   title: string;
   kind: string;
@@ -68,7 +70,7 @@ export type Resource = {
   created_at: string;
 };
 /** The columns members may read. Where a resource lives is handed out by open_resource() only. */
-export const RESOURCE_COLS = "id, title, kind, space, access, description, ready, status, created_at";
+export const RESOURCE_COLS = "id, title, kind, space, access, description, ready, status, created_at, visibility";
 
 /** Feed for Home: published and due, newest first. Members only (row level security). */
 export async function feedPosts(limit = 40): Promise<PostRow[]> {

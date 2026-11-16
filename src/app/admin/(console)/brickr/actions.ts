@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { itemHref, parseVisibility } from "@/lib/access";
+import { applyAccess } from "@/lib/access-server";
 import { parseList, parsePeople, peopleLinkError } from "@/lib/details";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
@@ -10,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers";
+const COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers, visibility";
 const STORAGE = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
 
 function refresh() {
@@ -46,6 +48,7 @@ export async function saveService(form: FormData): Promise<ActionResult> {
   if (linkError) return { ok: false, error: linkError };
   const sort = Number(s("sort") || 100);
   const row = {
+    visibility: parseVisibility(form.get("visibility")),
     providers: parsePeople(s("providers")),
     name: s("name").slice(0, 100),
     space: s("space") === "Outloud" || s("space") === "TVS" ? s("space") : "BRICKR",
@@ -63,18 +66,26 @@ export async function saveService(form: FormData): Promise<ActionResult> {
     sort: Number.isInteger(sort) ? Math.max(0, Math.min(1000, sort)) : 100,
   };
   const supabase = await createClient();
+  let savedId: string;
+  let slug: string;
   if (id) {
     const { data: before } = await supabase.from("services").select(COLS).eq("id", id).maybeSingle();
     if (!before) return { ok: false, error: "That service no longer exists." };
     const { error } = await supabase.from("services").update(row).eq("id", id);
     if (error) return { ok: false, error: "Couldn't save." };
     await audit(admin.userId, "service.update", "services", { entityId: id, before, after: row });
+    savedId = id;
+    slug = (before as { slug: string }).slug;
   } else {
-    const { data, error } = await supabase.from("services").insert({ ...row, slug: await uniqueSlug(slugify(row.name)), created_by: admin.userId }).select("id").single();
+    slug = await uniqueSlug(slugify(row.name));
+    const { data, error } = await supabase.from("services").insert({ ...row, slug, created_by: admin.userId }).select("id").single();
     if (error || !data) return { ok: false, error: "Couldn't create the service." };
     await audit(admin.userId, "service.create", "services", { entityId: data.id, after: row });
+    savedId = data.id;
   }
+  const accessError = await applyAccess(form, "service", savedId, row.name, itemHref("service", slug));
   refresh();
+  if (accessError) return { ok: false, error: accessError };
   return { ok: true, message: id ? "Service saved" : "Service created" };
 }
 

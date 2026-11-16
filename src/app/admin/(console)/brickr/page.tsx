@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { accessLists } from "@/lib/access-server";
 import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { PageHeader } from "@/components/ui/misc";
@@ -18,6 +19,7 @@ export default async function AdminBrickrPage({ searchParams }: { searchParams: 
   const tab = raw === "requests" ? "requests" : "services";
   const [items, services] = await Promise.all([adminInbox(), tab === "services" ? adminServices() : []]);
   const reqs = items.filter((i) => i.kind === "request");
+  const access = tab === "services" ? await accessLists("service", services.map((x) => x.id)) : {};
   return (
     <>
       <PageHeader
@@ -35,7 +37,7 @@ export default async function AdminBrickrPage({ searchParams }: { searchParams: 
           { value: "requests", label: "Requests", count: reqs.filter((r) => r.status === "new").length || null },
         ]}
       />
-      {tab === "requests" ? <RequestsInbox items={reqs} spaces={["BRICKR", "Outloud"]} base={base} csv={false} /> : <ServicesManager services={services} />}
+      {tab === "requests" ? <RequestsInbox items={reqs} spaces={["BRICKR", "Outloud"]} base={base} csv={false} /> : <ServicesManager services={services} access={access} />}
     </>
   );
 }

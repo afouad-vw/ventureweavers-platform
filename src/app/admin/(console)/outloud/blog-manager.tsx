@@ -8,6 +8,8 @@ import { Markdown } from "@/components/content/markdown";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill } from "@/components/ui/tag";
+import { VisibilityField } from "@/components/admin/visibility-field";
+import type { AccessPerson } from "@/lib/access";
 import { AUTHORS, BLOG_CATEGORY_OPTIONS, blogCategoryLabel } from "@/lib/content/format";
 import { readTime } from "@/lib/content/markdown";
 import type { BlogPost } from "@/lib/content/queries";
@@ -17,7 +19,7 @@ import { deleteBlog, duplicateBlog, saveBlog, setBlogStatus } from "../content-a
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** Admin › Outloud › Blog: posts with Markdown, live preview, banner upload, tags and status. */
-export function BlogManager({ posts, appOrigin }: { posts: BlogPost[]; appOrigin: string }) {
+export function BlogManager({ posts, appOrigin, access = {} }: { posts: BlogPost[]; appOrigin: string; access?: Record<string, AccessPerson[]> }) {
   const [editing, setEditing] = useState<BlogPost | "new" | null>(null);
   const [del, setDel] = useState<BlogPost | null>(null);
   const { pending, error, setError, run } = useRunner();
@@ -33,7 +35,12 @@ export function BlogManager({ posts, appOrigin }: { posts: BlogPost[]; appOrigin
             <td className={td}>{blogCategoryLabel(p.category)}</td>
             <td className={`${td} text-muted`}>{p.author}</td>
             <td className={`${td} whitespace-nowrap text-muted`}>{formatDate(p.published_on + "T12:00:00Z")}</td>
-            <td className={td}><StatusPill tone={p.status === "published" ? "ok" : "draft"}>{p.status === "published" ? "Published" : "Draft"}</StatusPill></td>
+            <td className={td}>
+              <span className="flex flex-wrap gap-1">
+                <StatusPill tone={p.status === "published" ? "ok" : "draft"}>{p.status === "published" ? "Published" : "Draft"}</StatusPill>
+                {p.visibility === "private" ? <StatusPill tone="blue">Private · {(access[p.id] ?? []).length}</StatusPill> : null}
+              </span>
+            </td>
             <td className={td}>
               <RowActions
                 name={p.title}
@@ -68,6 +75,7 @@ export function BlogManager({ posts, appOrigin }: { posts: BlogPost[]; appOrigin
           <TextField label="Date" name="published_on" type="date" defaultValue={b?.published_on ?? today()} required />
           <SelectField label="Status" name="status" defaultValue={b?.status ?? "draft"} options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
         </div>
+        <VisibilityField initial={b?.visibility ?? "public"} people={b ? access[b.id] ?? [] : []} />
         <TextArea label="Summary" name="summary" rows={2} defaultValue={b?.summary ?? ""} maxLength={400} hint="One or two sentences for the card and for search results." />
         <BodyEditor initial={b?.body ?? ""} initialReadTime={b?.read_time ?? ""} />
         <div className="grid gap-3 sm:grid-cols-2">

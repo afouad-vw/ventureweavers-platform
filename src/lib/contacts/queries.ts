@@ -39,7 +39,7 @@ export type Contact = {
 
 type AuthUser = { id: string; email?: string; created_at: string; app_metadata?: { provider?: string; providers?: string[] } };
 
-async function allAuthUsers(): Promise<AuthUser[]> {
+export async function allAuthUsers(): Promise<AuthUser[]> {
   const svc = createServiceClient();
   const out: AuthUser[] = [];
   for (let page = 1; page <= 50; page++) {

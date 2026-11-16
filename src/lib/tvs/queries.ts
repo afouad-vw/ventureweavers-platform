@@ -18,6 +18,7 @@ export type Program = {
   banner: string;
   banner_url: string | null;
   status: ProgramStatus;
+  visibility?: "public" | "private";
   sort: number;
   short_description: string;
   details: string;
@@ -30,7 +31,7 @@ export type Program = {
   brochure_url: string | null;
 };
 export const PROGRAM_COLS =
-  "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort, short_description, details, audience, outline, prerequisites, activities, hosts, guests, brochure_url";
+  "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort, short_description, details, audience, outline, prerequisites, activities, hosts, guests, brochure_url, visibility";
 
 /** What members may see about a cohort (never the Meet link). */
 export type PublicCohort = {

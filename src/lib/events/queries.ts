@@ -19,6 +19,7 @@ export type EventRow = {
   banner: string;
   banner_url: string | null;
   status: "draft" | "published";
+  visibility?: "public" | "private";
   created_at: string;
   space: string;
   format: string | null;

@@ -23,8 +23,9 @@ export type Service = {
   prerequisites: string[];
   brochure_url: string | null;
   providers: Person[];
+  visibility: "public" | "private";
 };
-export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers";
+export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers, visibility";
 
 /** One published service, by its address. */
 /** The hidden service behind TVS custom program requests. */

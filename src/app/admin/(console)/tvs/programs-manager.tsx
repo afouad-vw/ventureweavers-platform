@@ -9,6 +9,8 @@ import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { Modal } from "@/components/ui/overlay";
 import { StatusPill } from "@/components/ui/tag";
+import { VisibilityField } from "@/components/admin/visibility-field";
+import type { AccessPerson } from "@/lib/access";
 import { formatHours, totalHours } from "@/lib/details";
 import { PROGRAM_KINDS, PROGRAM_STATUSES } from "@/lib/tvs/format";
 import type { AdminProgram } from "@/lib/tvs/queries";
@@ -17,7 +19,7 @@ import { deleteProgram, duplicateProgram, saveProgram, setProgramStatus } from "
 const tone = (s: string) => (s === "open" ? "ok" : s === "in_development" ? "blue" : s === "closed" ? "warn" : "draft") as "ok" | "blue" | "warn" | "draft";
 const label = (s: string) => PROGRAM_STATUSES.find((x) => x.value === s)?.label ?? s;
 
-export function ProgramsManager({ programs }: { programs: AdminProgram[] }) {
+export function ProgramsManager({ programs, access = {} }: { programs: AdminProgram[]; access?: Record<string, AccessPerson[]> }) {
   const [editing, setEditing] = useState<AdminProgram | "new" | null>(null);
   const [del, setDel] = useState<AdminProgram | null>(null);
   const [interest, setInterest] = useState<AdminProgram | null>(null);
@@ -35,7 +37,12 @@ export function ProgramsManager({ programs }: { programs: AdminProgram[] }) {
             <td className={`${td} text-muted`}>{x.weeks} weeks</td>
             <td className={`${td} whitespace-nowrap text-muted`}>{x.outline.length ? `${x.outline.length} sessions · ${formatHours(totalHours(x.outline))}` : "—"}</td>
             <td className={td}>{x.requires_tvac ? "Yes" : "No"}</td>
-            <td className={td}><StatusPill tone={tone(x.status)}>{label(x.status)}</StatusPill></td>
+            <td className={td}>
+              <span className="flex flex-wrap gap-1">
+                <StatusPill tone={tone(x.status)}>{label(x.status)}</StatusPill>
+                {x.visibility === "private" ? <StatusPill tone="blue">Private · {(access[x.id] ?? []).length}</StatusPill> : null}
+              </span>
+            </td>
             <td className={td}>
               <RowActions
                 name={x.name}
@@ -82,6 +89,7 @@ export function ProgramsManager({ programs }: { programs: AdminProgram[] }) {
           <TextArea label="Pre-requisites (one per line)" name="prerequisites" rows={4} defaultValue={p?.prerequisites.join("\n") ?? ""} />
           <TextArea label="Activities (one per line)" name="activities" rows={4} defaultValue={p?.activities.join("\n") ?? ""} />
         </div>
+        <VisibilityField initial={p?.visibility ?? "public"} people={p ? access[p.id] ?? [] : []} />
         <PeopleEditor name="hosts" label="Hosts" addLabel="Add host" initial={p?.hosts ?? []} />
         <PeopleEditor name="guests" label="Guests" addLabel="Add guest" initial={p?.guests ?? []} />
         <div className="grid grid-cols-2 gap-3">

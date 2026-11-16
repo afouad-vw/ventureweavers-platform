@@ -8,9 +8,11 @@ import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
 import type { Service } from "@/lib/brickr/queries";
+import type { AccessPerson } from "@/lib/access";
+import { VisibilityField } from "@/components/admin/visibility-field";
 import { deleteService, duplicateService, saveService, setServiceStatus } from "./actions";
 
-export function ServicesManager({ services }: { services: Service[] }) {
+export function ServicesManager({ services, access = {} }: { services: Service[]; access?: Record<string, AccessPerson[]> }) {
   const [edit, setEdit] = useState<Service | "new" | null>(null);
   const [del, setDel] = useState<Service | null>(null);
   const r = useRunner();
@@ -25,7 +27,12 @@ export function ServicesManager({ services }: { services: Service[] }) {
             <td className={td}><ThreadTag thread={x.space} /></td>
             <td className={`${td} max-w-[220px] text-muted`}><span className="line-clamp-2">{x.audience}</span></td>
             <td className={`${td} text-muted`}>{x.format}</td>
-            <td className={td}><StatusPill tone={x.status === "published" ? "ok" : "draft"}>{x.status === "published" ? "Published" : "Draft"}</StatusPill></td>
+            <td className={td}>
+              <span className="flex flex-wrap gap-1">
+                <StatusPill tone={x.status === "published" ? "ok" : "draft"}>{x.status === "published" ? "Published" : "Draft"}</StatusPill>
+                {x.visibility === "private" ? <StatusPill tone="blue">Private · {(access[x.id] ?? []).length}</StatusPill> : null}
+              </span>
+            </td>
             <td className={td}>
               <RowActions
                 name={x.name}
@@ -49,6 +56,7 @@ export function ServicesManager({ services }: { services: Service[] }) {
         </div>
         <TextArea label="Short description" name="short_description" rows={2} defaultValue={s?.short_description || s?.description || ""} maxLength={300} required hint="Shown on the card. Up to 300 characters." />
         <TextArea label="Offerings (one per line)" name="offerings" rows={5} defaultValue={s?.offerings.join("\n") ?? ""} hint="Shown as a numbered list: 1, 2, 3…" placeholder={"Market and competition read-out\nPricing and unit economics review\nFundraising plan"} />
+        <VisibilityField initial={s?.visibility ?? "public"} people={s ? access[s.id] ?? [] : []} />
         <PeopleEditor name="providers" label="Service providers" initial={s?.providers ?? []} addLabel="Add a provider" withBrief />
         <TextArea label="Target audience (who the service is for)" name="audience" rows={2} defaultValue={s?.audience ?? "Founders"} maxLength={300} />
         <TextArea label="Pre-requisites (one per line)" name="prerequisites" rows={3} defaultValue={s?.prerequisites.join("\n") ?? ""} />

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/misc";
 import { requireAdmin } from "@/lib/auth/guards";
 import { adminLibrary } from "@/lib/content/admin-queries";
+import { accessLists } from "@/lib/access-server";
 import { LibraryManager } from "./library-manager";
 
 export const metadata: Metadata = { title: "Library admin" };
@@ -12,7 +13,7 @@ export default async function AdminLibraryPage() {
   return (
     <>
       <PageHeader title="Library" description="Reports, guides, templates and AI skills, with who can open each one." />
-      <LibraryManager items={items} />
+      <LibraryManager items={items} access={await accessLists("resource", items.map((x) => x.id))} />
     </>
   );
 }

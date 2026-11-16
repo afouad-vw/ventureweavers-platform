@@ -7,6 +7,8 @@ import { uploadFile } from "@/lib/upload-client";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
+import { VisibilityField } from "@/components/admin/visibility-field";
+import type { AccessPerson } from "@/lib/access";
 import { useToast } from "@/components/ui/toast";
 import type { AdminResource } from "@/lib/content/admin-queries";
 import { accessLabel, ACCESS_LEVELS, isSpace, LIBRARY_KINDS, OPEN_LEVELS, SPACES } from "@/lib/content/format";
@@ -15,7 +17,7 @@ import { deleteResource, duplicateResource, previewResource, saveResource, setRe
 const mb = (n: number | null) => (n ? `${(n / 1024 / 1024).toFixed(n < 1024 * 1024 ? 2 : 1)} MB` : "");
 
 /** Admin › Library: resources with type, space, who can open them, and a file or link. */
-export function LibraryManager({ items }: { items: AdminResource[] }) {
+export function LibraryManager({ items, access = {} }: { items: AdminResource[]; access?: Record<string, AccessPerson[]> }) {
   const [editing, setEditing] = useState<AdminResource | "new" | null>(null);
   const [del, setDel] = useState<AdminResource | null>(null);
   const { pending, error, setError, run } = useRunner();
@@ -52,7 +54,12 @@ export function LibraryManager({ items }: { items: AdminResource[] }) {
             <td className={`${td} text-muted`}>
               {it.file_path ? <span className="block max-w-[180px] truncate" title={it.file_name ?? ""}>{it.file_name} · {mb(it.file_size)}</span> : it.link_url ? <span className="block max-w-[180px] truncate" title={it.link_url}>{it.link_url.replace(/^https:\/\//, "")}</span> : <span className="text-faint">None yet</span>}
             </td>
-            <td className={td}><StatusPill tone={it.status === "published" ? "ok" : "draft"}>{it.status === "published" ? "Published" : "Draft"}</StatusPill></td>
+            <td className={td}>
+              <span className="flex flex-wrap gap-1">
+                <StatusPill tone={it.status === "published" ? "ok" : "draft"}>{it.status === "published" ? "Published" : "Draft"}</StatusPill>
+                {it.visibility === "private" ? <StatusPill tone="blue">Private · {(access[it.id] ?? []).length}</StatusPill> : null}
+              </span>
+            </td>
             <td className={td}>
               <RowActions
                 name={it.title}
@@ -87,6 +94,7 @@ export function LibraryManager({ items }: { items: AdminResource[] }) {
           <SelectField label="Type" name="kind" defaultValue={r?.kind ?? "Guide"} options={LIBRARY_KINDS} />
           <SelectField label="Space" name="space" defaultValue={r?.space ?? "House"} options={SPACES} />
         </div>
+        <VisibilityField initial={r?.visibility ?? "public"} people={r ? access[r.id] ?? [] : []} />
         <SelectField label="Who can open it" name="access" defaultValue={r?.access ?? "all_members"} options={ACCESS_LEVELS} />
         <TextArea label="Description" name="description" rows={3} defaultValue={r?.description ?? ""} maxLength={600} />
         <SourceField resource={r} />

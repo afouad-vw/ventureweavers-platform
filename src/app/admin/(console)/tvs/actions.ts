@@ -1,5 +1,7 @@
 "use server";
 
+import { itemHref, parseVisibility } from "@/lib/access";
+import { applyAccess } from "@/lib/access-server";
 import { revalidatePath } from "next/cache";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
@@ -16,7 +18,7 @@ export type ActionResult = { ok: true; message?: string } | { ok: false; error: 
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const STORAGE = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
 const PROGRAM_COLS =
-  "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort, short_description, details, audience, outline, prerequisites, activities, hosts, guests, brochure_url";
+  "id, slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, banner_url, status, sort, short_description, details, audience, outline, prerequisites, activities, hosts, guests, brochure_url, visibility";
 const MEET = /^https:\/\/[^\s<>"]{3,290}$/;
 
 function refresh() {
@@ -80,20 +82,29 @@ export async function saveProgram(form: FormData): Promise<ActionResult> {
     banner_url,
     status: PROGRAM_STATUSES.some((x) => x.value === s("status")) ? s("status") : "draft",
     sort: Number.isInteger(sort) ? Math.max(0, Math.min(1000, sort)) : 100,
+    visibility: parseVisibility(form.get("visibility")),
   };
   const supabase = await createClient();
+  let savedId: string;
+  let savedSlug: string;
   if (id) {
     const { data: before } = await supabase.from("programs").select(PROGRAM_COLS).eq("id", id).maybeSingle();
     if (!before) return { ok: false, error: "That program no longer exists." };
     const { error } = await supabase.from("programs").update(row).eq("id", id);
     if (error) return { ok: false, error: "Couldn't save. Please try again." };
     await audit(admin.userId, "program.update", "programs", { entityId: id, before, after: row });
+    savedId = id;
+    savedSlug = (before as { slug: string }).slug;
   } else {
-    const { data, error } = await supabase.from("programs").insert({ ...row, slug: await uniqueSlug(slugify(name)), created_by: admin.userId }).select("id").single();
+    savedSlug = await uniqueSlug(slugify(name));
+    const { data, error } = await supabase.from("programs").insert({ ...row, slug: savedSlug, created_by: admin.userId }).select("id").single();
     if (error || !data) return { ok: false, error: "Couldn't create the program." };
     await audit(admin.userId, "program.create", "programs", { entityId: data.id, after: row });
+    savedId = data.id;
   }
+  const accessError = await applyAccess(form, "program", savedId, name, itemHref("program", savedSlug));
   refresh();
+  if (accessError) return { ok: false, error: accessError };
   return { ok: true, message: id ? "Program saved" : "Program created. Add a cohort with dates and price in Cohorts." };
 }
 

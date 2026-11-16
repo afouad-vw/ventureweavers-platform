@@ -1,5 +1,7 @@
 "use server";
 
+import { itemHref, parseVisibility } from "@/lib/access";
+import { applyAccess } from "@/lib/access-server";
 import { revalidatePath } from "next/cache";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { audit, requireAdmin } from "@/lib/auth/guards";
@@ -24,7 +26,7 @@ import { cairoLocalToISO, slugify } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
-export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
+export type ActionResult = { ok: true; message?: string; id?: string } | { ok: false; error: string };
 
 type Table = "posts" | "content_items" | "blog_posts" | "library_resources";
 /** Who may change each kind of item (Phase 14 access levels). */
@@ -34,8 +36,8 @@ const ENTITY: Record<Table, string> = { posts: "post", content_items: "content",
 const COLS: Record<Table, string> = {
   posts: "id, space, kind, title, body, image_url, banner, link_url, link_label, pinned_until, status, published_at",
   content_items: "id, title, series, format, platform, url, publish_on, status",
-  blog_posts: "id, slug, title, category, author, published_on, read_time, summary, body, banner, banner_url, tags, status",
-  library_resources: "id, title, kind, space, access, description, status",
+  blog_posts: "id, slug, title, category, author, published_on, read_time, summary, body, banner, banner_url, tags, status, visibility",
+  library_resources: "id, title, kind, space, access, description, status, visibility",
 };
 const APP = `https://${process.env.APP_HOST ?? "app.ventureweavers.com"}`;
 const STORAGE = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
@@ -67,6 +69,7 @@ async function uniqueSlug(base: string, exceptId?: string) {
 async function save(table: Table, id: string | null, row: Record<string, unknown>): Promise<ActionResult> {
   const admin = await requireAdmin(TABLE_PERM[table]);
   const supabase = await createClient();
+  let savedId = id;
   if (id) {
     if (!ID.test(id)) return { ok: false, error: "Unknown item." };
     const { data: before } = await supabase.from(table).select(COLS[table]).eq("id", id).maybeSingle();
@@ -78,9 +81,10 @@ async function save(table: Table, id: string | null, row: Record<string, unknown
     const { data, error } = await supabase.from(table).insert({ ...row, created_by: admin.userId }).select("id").single();
     if (error || !data) return { ok: false, error: dbError(error, "Couldn't create it. Please try again.") };
     await audit(admin.userId, `${ENTITY[table]}.create`, table, { entityId: data.id, after: row });
+    savedId = data.id;
   }
   refresh();
-  return { ok: true, message: id ? `${NOUN[table]} saved` : `${NOUN[table]} created` };
+  return { ok: true, message: id ? `${NOUN[table]} saved` : `${NOUN[table]} created`, id: savedId ?? undefined };
 }
 
 async function duplicate(table: Table, id: string): Promise<ActionResult> {
@@ -342,8 +346,10 @@ export async function saveBlog(form: FormData): Promise<ActionResult> {
   const body = String(form.get("body") ?? "").slice(0, 60000);
   const wanted = slugify(s("slug") || title);
   if (!wanted) return { ok: false, error: "Add a title with letters or numbers." };
-  return save("blog_posts", id, {
-    slug: await uniqueSlug(wanted, id ?? undefined),
+  const slug = await uniqueSlug(wanted, id ?? undefined);
+  const r = await save("blog_posts", id, {
+    visibility: parseVisibility(form.get("visibility")),
+    slug,
     title: title.slice(0, 160),
     category: oneOf(s("category"), BLOG_CATEGORIES, "Article"),
     author: oneOf(s("author"), AUTHORS, "Fouad & Karim"),
@@ -356,6 +362,9 @@ export async function saveBlog(form: FormData): Promise<ActionResult> {
     tags: parseTags(s("tags")),
     status: s("status") === "published" ? "published" : "draft",
   });
+  if (!r.ok || !r.id) return r;
+  const accessError = await applyAccess(form, "blog", r.id, title.slice(0, 160), itemHref("blog", slug));
+  return accessError ? { ok: false, error: accessError } : r;
 }
 export async function duplicateBlog(id: string) { return duplicate("blog_posts", id); }
 export async function deleteBlog(id: string) { return remove("blog_posts", id); }
@@ -387,6 +396,7 @@ export async function saveResource(form: FormData): Promise<ActionResult> {
     oldFile = ((t ?? []) as { id: string; file_path: string | null }[]).find((x) => x.id === id)?.file_path ?? null;
   }
   const r = await save("library_resources", id, {
+    visibility: parseVisibility(form.get("visibility")),
     title: s("title").slice(0, 160),
     kind: oneOf(s("kind"), LIBRARY_KINDS, "Guide"),
     space: isSpace(s("space")) ? s("space") : "House",
@@ -396,7 +406,9 @@ export async function saveResource(form: FormData): Promise<ActionResult> {
     status: s("status") === "published" ? "published" : "draft",
   });
   if (r.ok && oldFile && oldFile !== target.file_path) await createServiceClient().storage.from("library-files").remove([oldFile]);
-  return r;
+  if (!r.ok || !r.id) return r;
+  const accessError = await applyAccess(form, "resource", r.id, s("title").slice(0, 160), itemHref("resource", ""));
+  return accessError ? { ok: false, error: accessError } : r;
 }
 export async function duplicateResource(id: string) { return duplicate("library_resources", id); }
 export async function deleteResource(id: string) { return remove("library_resources", id); }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { accessLists } from "@/lib/access-server";
 import { ScanLine } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
@@ -51,9 +52,9 @@ export default async function AdminOutloudPage({ searchParams }: { searchParams:
         actions={<LinkButton href={`${base}/check-in`} variant="secondary"><ScanLine size={15} aria-hidden="true" />Door check-in</LinkButton>}
       />
       <LinkTabs label="Outloud admin sections" items={TABS} value={tab} hrefFor={(v) => `${base}/outloud${v === "events" ? "" : `?tab=${v}`}`} />
-      {tab === "events" ? <EventsManager events={events} base={base} /> : null}
+      {tab === "events" ? <EventsManager events={events} base={base} access={await accessLists("event", events.map((x) => x.id))} /> : null}
       {tab === "content" ? <ContentManager items={content} series={series} sync={sync} /> : null}
-      {tab === "blog" ? <BlogManager posts={blog} appOrigin={appOrigin} /> : null}
+      {tab === "blog" ? <BlogManager posts={blog} appOrigin={appOrigin} access={await accessLists("blog", blog.map((x) => x.id))} /> : null}
       {tab === "live" && live ? (
         <>
           <LiveControl data={live} base={base} />

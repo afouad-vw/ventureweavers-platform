@@ -1,5 +1,7 @@
 "use server";
 
+import { itemHref, parseVisibility } from "@/lib/access";
+import { applyAccess } from "@/lib/access-server";
 import { revalidatePath } from "next/cache";
 import { namesOf, parseList, parseOutline, parsePeople, peopleLinkError } from "@/lib/details";
 import { audit, requireAdmin } from "@/lib/auth/guards";
@@ -107,11 +109,14 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     banner,
     banner_url,
     status,
+    visibility: parseVisibility(form.get("visibility")),
     space: type === "masterclass" ? "TVS" : "Outloud",
     format,
   };
 
   const supabase = await createClient();
+  let savedId: string;
+  let savedSlug: string;
   if (id) {
     const { data: before } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
     if (!before) return { ok: false, error: "That event no longer exists." };
@@ -123,14 +128,20 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     if (error) return { ok: false, error: "Couldn't save. Please try again." };
     await saveMeetLink(supabase, id, meetUrl);
     await audit(admin.userId, "event.update", "events", { entityId: id, before, after: { ...row, meet_url: meetUrl || null } });
+    savedId = id;
+    savedSlug = before.slug;
   } else {
     const slug = await uniqueSlug(slugify(title));
     const { data, error } = await supabase.from("events").insert({ ...row, slug, created_by: admin.userId }).select("id").single();
     if (error || !data) return { ok: false, error: "Couldn't create the event. Please try again." };
     await saveMeetLink(supabase, data.id, meetUrl);
     await audit(admin.userId, "event.create", "events", { entityId: data.id, after: { ...row, meet_url: meetUrl || null } });
+    savedId = data.id;
+    savedSlug = slug;
   }
+  const accessError = await applyAccess(form, "event", savedId, title, itemHref("event", savedSlug, { masterclass: type === "masterclass" }));
   refresh();
+  if (accessError) return { ok: false, error: accessError };
   const noun = type === "masterclass" ? "Masterclass" : "Event";
   return { ok: true, message: id ? `${noun} saved` : `${noun} created` };
 }

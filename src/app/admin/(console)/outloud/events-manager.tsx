@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { Drawer, Modal } from "@/components/ui/overlay";
 import { StatusPill } from "@/components/ui/tag";
+import { VisibilityField } from "@/components/admin/visibility-field";
+import type { AccessPerson } from "@/lib/access";
 import { useToast } from "@/components/ui/toast";
 import { EVENT_TYPES, formatDateTime, formatEGP, isoToCairoLocal, MASTERCLASS_FORMATS, typeLabel } from "@/lib/events/format";
 import type { AdminEvent } from "@/lib/events/admin-queries";
@@ -18,7 +20,7 @@ import { ImageField } from "@/components/admin/image-field";
 const priceInput = (p: number | null) => (p == null ? "" : (p / 100).toString());
 
 /** Admin › Outloud › Events: table with create, edit, duplicate, delete and Published/Draft. */
-export function EventsManager({ events, base, mode = "outloud" }: { events: AdminEvent[]; base: string; mode?: "outloud" | "masterclasses" }) {
+export function EventsManager({ events, base, mode = "outloud", access = {} }: { events: AdminEvent[]; base: string; mode?: "outloud" | "masterclasses"; access?: Record<string, AccessPerson[]> }) {
   const mc = mode === "masterclasses";
   const [editing, setEditing] = useState<AdminEvent | "new" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminEvent | null>(null);
@@ -82,7 +84,12 @@ export function EventsManager({ events, base, mode = "outloud" }: { events: Admi
                   )}
                 </td>
                 <td className="px-3 py-2.5 whitespace-nowrap">{ev.type === "private_session" ? "On request" : formatEGP(ev.price_piasters)}</td>
-                <td className="px-3 py-2.5"><StatusPill tone={ev.status === "published" ? "ok" : "draft"}>{ev.status === "published" ? "Published" : "Draft"}</StatusPill></td>
+                <td className="px-3 py-2.5">
+                  <span className="flex flex-wrap gap-1">
+                    <StatusPill tone={ev.status === "published" ? "ok" : "draft"}>{ev.status === "published" ? "Published" : "Draft"}</StatusPill>
+                    {ev.visibility === "private" ? <StatusPill tone="blue">Private · {(access[ev.id] ?? []).length}</StatusPill> : null}
+                  </span>
+                </td>
                 <td className="px-3 py-2.5">
                   <div className="flex justify-end gap-1">
                     {mode === "outloud" && ev.type === "public_show" ? (
@@ -161,6 +168,7 @@ export function EventsManager({ events, base, mode = "outloud" }: { events: Admi
                 <TextArea label="Activities (one per line)" name="activities" rows={3} defaultValue={e?.activities.join("\n") ?? ""} />
               </div>
             ) : null}
+            <VisibilityField initial={e?.visibility ?? "public"} people={e ? access[e.id] ?? [] : []} />
             <PeopleEditor name="host_list" label="Hosts" addLabel="Add host" initial={e?.host_list?.length ? e.host_list : e ? [] : [{ name: "Ahmed Fouad", title: "Co-founder, VentureWeavers" }, { name: "Karim Hemdan", title: "Co-founder, VentureWeavers" }]} />
             <PeopleEditor name="guest_list" label="Guests" addLabel="Add guest" initial={e?.guest_list ?? []} />
             <ImageField name="banner_url" target="event-banners" initial={e?.banner_url ?? null} />
