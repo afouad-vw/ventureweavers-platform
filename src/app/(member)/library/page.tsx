@@ -89,6 +89,11 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
             );
           })}
         </div>
+      ) : all.length === 0 || (type !== "All" && !needle && !all.some((r) => r.kind === type)) ? (
+        <EmptyState>
+          <span className="block text-[15px] font-extrabold text-fg">No resources available yet</span>
+          Stay tuned. New reports, guides, templates and AI skills are on the way.
+        </EmptyState>
       ) : (
         <EmptyState>No resources match. Try another word or type.</EmptyState>
       )}
