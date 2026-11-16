@@ -30,6 +30,14 @@ export function safeNext(next: string | null | undefined, fallback = "/") {
   return next;
 }
 
+/** A Google ID token from Google's sign-in button: three base64url parts, sensible length. Supabase verifies the signature. */
+export function looksLikeGoogleIdToken(t: unknown): t is string {
+  return typeof t === "string" && t.length >= 100 && t.length <= 4096 && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(t);
+}
+
+/** The raw nonce we send with the token: 64 hex characters, made in the browser. */
+export const isNonce = (n: unknown): n is string => typeof n === "string" && /^[a-f0-9]{64}$/.test(n);
+
 export function normalizeUsername(u: string) {
   return u.trim().toLowerCase();
 }

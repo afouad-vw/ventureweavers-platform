@@ -2,16 +2,16 @@ import type { NextConfig } from "next";
 
 const dev = process.env.NODE_ENV !== "production";
 
-// Content Security Policy. The browser talks to Supabase and Cloudflare Turnstile (bot check);
+// Content Security Policy. The browser talks to Supabase, Cloudflare Turnstile (bot check) and Google sign-in;
 // add Paymob, Mux and others here as they arrive. Next.js needs inline scripts for hydration.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${dev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://accounts.google.com/gsi/client${dev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
   "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://*.googleusercontent.com https://media.licdn.com",
   "font-src 'self' data:",
-  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${dev ? " ws:" : ""}`,
-  "frame-src https://challenges.cloudflare.com",
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com/gsi/${dev ? " ws:" : ""}`,
+  "frame-src https://challenges.cloudflare.com https://accounts.google.com/gsi/",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adminSessionVerdict, allowedOtpType, clientIp, isLockedOut, safeNext } from "./policy";
+import { adminSessionVerdict, allowedOtpType, clientIp, isLockedOut, isNonce, looksLikeGoogleIdToken, safeNext } from "./policy";
 
 describe("lockout", () => {
   it("allows up to four failures", () => {
@@ -56,5 +56,25 @@ describe("email link types", () => {
   it("app host never accepts invites", () => {
     expect(allowedOtpType("app", "invite")).toBe(false);
     expect(allowedOtpType("app", "recovery")).toBe(true);
+  });
+});
+
+describe("Google ID token checks", () => {
+  const part = "a".repeat(40);
+  it("accepts a three-part base64url token", () => {
+    expect(looksLikeGoogleIdToken(`${part}.${part}.${part}_-`)).toBe(true);
+  });
+  it("rejects short, malformed or non-string values", () => {
+    expect(looksLikeGoogleIdToken("a.b.c")).toBe(false);
+    expect(looksLikeGoogleIdToken(`${part}.${part}`)).toBe(false);
+    expect(looksLikeGoogleIdToken(`${part}.${part}.${part}<`)).toBe(false);
+    expect(looksLikeGoogleIdToken(null)).toBe(false);
+    expect(looksLikeGoogleIdToken("x".repeat(5000))).toBe(false);
+  });
+  it("accepts only a 64-character hex nonce", () => {
+    expect(isNonce("ab".repeat(32))).toBe(true);
+    expect(isNonce("AB".repeat(32))).toBe(false);
+    expect(isNonce("ab".repeat(31))).toBe(false);
+    expect(isNonce(undefined)).toBe(false);
   });
 });

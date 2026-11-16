@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { signInWithProvider } from "@/app/(auth)/actions";
 import { FormNote } from "./form-note";
+import { GoogleButton } from "./google-button";
 
 function GoogleMark() {
   return (
@@ -29,25 +30,32 @@ const providers = [
   { id: "linkedin_oidc", label: "LinkedIn", Mark: LinkedInMark },
 ] as const;
 
-/** Google and LinkedIn sign-in through Supabase Auth. */
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+
+/**
+ * Google and LinkedIn sign-in. With NEXT_PUBLIC_GOOGLE_CLIENT_ID set, Google uses its own button
+ * (the popup names our app, not the Supabase address); without it, both go through the Supabase redirect.
+ */
 export function ProviderButtons({ verb, next }: { verb: "Sign in" | "Sign up"; next?: string }) {
   const [state, action, pending] = useActionState(signInWithProvider, null);
+  const button = ({ id, label, Mark }: (typeof providers)[number]) => (
+    <button
+      key={id}
+      type="submit"
+      name="provider"
+      value={id}
+      disabled={pending}
+      className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-line2 bg-card text-[14px] font-bold text-fg hover:bg-hover disabled:cursor-wait disabled:opacity-60"
+    >
+      <Mark />
+      {verb === "Sign in" ? "Continue" : "Sign up"} with {label}
+    </button>
+  );
   return (
     <form action={action} className="flex flex-col gap-2.5">
       {next ? <input type="hidden" name="next" value={next} /> : null}
-      {providers.map(({ id, label, Mark }) => (
-        <button
-          key={id}
-          type="submit"
-          name="provider"
-          value={id}
-          disabled={pending}
-          className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-line2 bg-card text-[14px] font-bold text-fg hover:bg-hover disabled:cursor-wait disabled:opacity-60"
-        >
-          <Mark />
-          {verb === "Sign in" ? "Continue" : "Sign up"} with {label}
-        </button>
-      ))}
+      {GOOGLE_CLIENT_ID ? <GoogleButton clientId={GOOGLE_CLIENT_ID} verb={verb} next={next} fallback={button(providers[0])} /> : button(providers[0])}
+      {button(providers[1])}
       <FormNote state={state} />
     </form>
   );

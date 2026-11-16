@@ -1,11 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { SURFACE_HEADER } from "@/lib/hosts";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { requestOrigin } from "@/lib/origin";
 import { NOT_SWITCHED_ON, type FormState } from "@/lib/auth/form-state";
-import { PASSWORD_MIN, safeNext } from "@/lib/auth/policy";
+import { isNonce, looksLikeGoogleIdToken, PASSWORD_MIN, safeNext } from "@/lib/auth/policy";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const captcha = (f: FormData) => (f.get("cf-turnstile-response") as string | null) || undefined;
@@ -23,6 +25,25 @@ export async function signInWithProvider(_: FormState, form: FormData): Promise<
   });
   if (error || !data.url) return { error: "We couldn't reach the sign-in service. Please try again." };
   redirect(data.url);
+}
+
+/**
+ * Google's own sign-in button (Google Identity Services). The popup runs on our domain, so Google shows
+ * our app instead of the Supabase project address. Supabase checks the token's signature, audience and nonce.
+ */
+export async function signInWithGoogleToken(input: { credential: unknown; nonce: unknown; next?: unknown }): Promise<FormState> {
+  if (!supabaseConfigured) return { error: NOT_SWITCHED_ON };
+  if ((await headers()).get(SURFACE_HEADER) === "admin") return { error: "Unknown sign-in option." };
+  if (!looksLikeGoogleIdToken(input.credential) || !isNonce(input.nonce)) return { error: "Google sign-in didn't complete. Please try again." };
+  const next = safeNext(typeof input.next === "string" ? input.next : "");
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithIdToken({ provider: "google", token: input.credential, nonce: input.nonce });
+  if (error || !data.user) {
+    if (error?.code === "user_banned" || /banned/i.test(error?.message ?? "")) return { error: "This account is suspended. If you think this is a mistake, email us at info@ventureweavers.com." };
+    return { error: "We couldn't sign you in with Google. Please try again." };
+  }
+  const { data: p } = await supabase.from("profiles").select("onboarded_at").eq("id", data.user.id).maybeSingle();
+  redirect(p?.onboarded_at ? next : `/welcome?next=${encodeURIComponent(next)}`);
 }
 
 export async function signInWithEmail(_: FormState, form: FormData): Promise<FormState> {
