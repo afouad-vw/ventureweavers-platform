@@ -3,6 +3,8 @@ import { Play } from "lucide-react";
 import { youtubeThumb } from "@/lib/content/format";
 import type { ContentItem } from "@/lib/content/queries";
 import { formatDate } from "@/lib/events/format";
+import { embedFor } from "@/lib/content/embed";
+import { EmbedPreview } from "./embed-preview";
 import { PreviewImage } from "./preview-image";
 
 /** One Short or episode: the post's preview image, then its title and date. Opens the post. */
@@ -17,7 +19,7 @@ export function ContentTile({ c, wide = false }: { c: ContentItem; wide?: boolea
           <Image src="/brand/icon-192.png" alt="" width={44} height={44} className="h-11 w-11 rounded-xl opacity-90" />
           <span className="text-[11px] font-extrabold tracking-[1.4px] uppercase">{soon ? "Coming soon" : c.platform}</span>
         </span>
-        {img ? <PreviewImage src={img} /> : null}
+        {img ? <PreviewImage src={img} /> : !soon && embedFor(c.url) ? <EmbedPreview url={c.url!} title={c.title} /> : null}
         <span className="absolute top-2 left-2 rounded-full bg-black/45 px-2 py-0.5 text-[10.5px] font-extrabold tracking-[1.2px] text-white uppercase backdrop-blur-md">{c.platform}</span>
         {!soon ? (
           <span className="absolute right-2 bottom-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-depth transition-transform group-hover:scale-110 motion-reduce:transition-none" aria-hidden="true">

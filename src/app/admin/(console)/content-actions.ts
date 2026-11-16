@@ -314,7 +314,7 @@ export async function deleteSeries(id: string): Promise<ActionResult> {
   return { ok: true, message: "Series deleted." };
 }
 
-/** Pull the latest Shorts from the @ventureweavers accounts now. */
+/** Pull the latest episodes (YouTube) and Shorts (Instagram) now. */
 export async function syncShortsNow(): Promise<ActionResult> {
   const admin = await requireAdmin("content.manage");
   const { configuredSources, syncSocial } = await import("@/lib/content/social-sync");
@@ -325,7 +325,7 @@ export async function syncShortsNow(): Promise<ActionResult> {
   const failed = results.filter((r) => !r.ok);
   const added = results.reduce((n, r) => n + r.added, 0);
   if (failed.length === results.length) return { ok: false, error: failed.map((f) => `${f.source}: ${f.error}`).join(" · ") };
-  return { ok: true, message: `${added ? `${added} new Short${added === 1 ? "" : "s"} added` : "Up to date"}${failed.length ? ` (${failed.map((f) => `${f.source}: ${f.error}`).join(" · ")})` : ""}.` };
+  return { ok: true, message: `${added ? `${added} new item${added === 1 ? "" : "s"} added` : "Up to date"}${failed.length ? ` (${failed.map((f) => `${f.source}: ${f.error}`).join(" · ")})` : ""}.` };
 }
 
 // ---------------------------------------------------------------- blog

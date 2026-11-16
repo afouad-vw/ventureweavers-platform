@@ -1,26 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { cairoDate, isoSeconds, parseInstagramMedia, parseYouTubePlaylist, shortIdsFromVideos, shortTitle, shortsPlaylist, uploadsPlaylist } from "./social-parse";
+import { cairoDate, isoSeconds, parseInstagramMedia, parsePlaylists, parseYouTubePlaylist, shortIdsFromVideos, shortTitle, shortsPlaylist, uploadsPlaylist } from "./social-parse";
 import { groupEpisodes } from "./series";
 
-describe("Shorts from YouTube", () => {
+describe("Episodes from YouTube", () => {
   it("finds the channel's Shorts and uploads playlists", () => {
     expect(shortsPlaylist("UCabcdefghijklmnopqrstuv")).toBe("UUSHabcdefghijklmnopqrstuv");
     expect(uploadsPlaylist("UCabcdefghijklmnopqrstuv")).toBe("UUabcdefghijklmnopqrstuv");
     expect(shortsPlaylist("not a channel")).toBeNull();
   });
-  it("reads playlist items into Shorts", () => {
+  it("reads a playlist's videos as episodes of that show", () => {
     const rows = parseYouTubePlaylist({
       items: [
         { snippet: { title: "What do angels look for? #shorts #vc", publishedAt: "2026-11-16T23:30:00Z", thumbnails: { high: { url: "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg" } } }, contentDetails: { videoId: "abcdefghijk", videoPublishedAt: "2026-11-16T23:30:00Z" } },
         { snippet: { title: "Private video" }, contentDetails: { videoId: "zzzzzzzzzzz" } },
         { snippet: { title: "Bad id" }, contentDetails: { videoId: "<script>" } },
       ],
-    });
+    }, "Open Floor");
     expect(rows).toEqual([
-      { source: "youtube", external_id: "abcdefghijk", title: "What do angels look for?", platform: "YouTube", url: "https://www.youtube.com/shorts/abcdefghijk", thumb_url: "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg", publish_on: "2026-11-17" },
+      { source: "youtube", external_id: "abcdefghijk", title: "What do angels look for?", platform: "YouTube", format: "Episode", series: "Open Floor", url: "https://www.youtube.com/watch?v=abcdefghijk", thumb_url: "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg", publish_on: "2026-11-17" },
     ]);
   });
-  it("tells Shorts by length when the Shorts playlist isn't available", () => {
+  it("reads the channel's public playlists as shows", () => {
+    expect(parsePlaylists({ items: [
+      { id: "PLabcdefghij123", snippet: { title: " Open  Floor ", description: "Real stories." }, status: { privacyStatus: "public" } },
+      { id: "PLsecretsecret12", snippet: { title: "Drafts" }, status: { privacyStatus: "private" } },
+      { id: "bad id!", snippet: { title: "X" } },
+    ] })).toEqual([{ id: "PLabcdefghij123", title: "Open Floor", description: "Real stories." }]);
+  });
+  it("tells YouTube Shorts by length so they stay out of episodes", () => {
     expect(isoSeconds("PT59S")).toBe(59);
     expect(isoSeconds("PT1M5S")).toBe(65);
     expect(isoSeconds("PT1H")).toBe(3600);
@@ -39,7 +46,7 @@ describe("Reels from Instagram", () => {
       ],
     });
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ external_id: "17900000000000001", title: "Open Floor 01: the room asked about pricing", platform: "Instagram", publish_on: "2026-11-10" });
+    expect(rows[0]).toMatchObject({ external_id: "17900000000000001", title: "Open Floor 01: the room asked about pricing", platform: "Instagram", format: "Short", series: "Shorts", publish_on: "2026-11-10" });
   });
 });
 

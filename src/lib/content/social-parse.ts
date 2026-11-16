@@ -1,17 +1,23 @@
 /**
- * Turns the YouTube and Instagram API replies into Shorts rows for content_items.
+ * Turns the YouTube and Instagram API replies into rows for content_items:
+ * YouTube videos are Episodes (grouped by playlist = show), Instagram reels are Shorts.
  * Pure functions, so they are tested without calling the APIs (social-parse.test.ts).
  */
 
-export type SyncedShort = {
+export type SyncedItem = {
   source: "youtube" | "instagram";
   external_id: string;
   title: string;
   platform: "YouTube" | "Instagram";
+  format: "Episode" | "Short";
+  series: string;
   url: string;
   thumb_url: string | null;
   publish_on: string; // YYYY-MM-DD (Cairo date)
 };
+
+/** The show for YouTube videos that aren't in any playlist. */
+export const LOOSE_EPISODES = "More episodes";
 
 export const SHORTS_LIMIT = 10;
 
@@ -42,9 +48,10 @@ type YtPlaylistItem = {
 export const shortsPlaylist = (channelId: string) => (/^UC[\w-]{22}$/.test(channelId) ? `UUSH${channelId.slice(2)}` : null);
 export const uploadsPlaylist = (channelId: string) => (/^UC[\w-]{22}$/.test(channelId) ? `UU${channelId.slice(2)}` : null);
 
-export function parseYouTubePlaylist(json: unknown): SyncedShort[] {
+/** A playlist's videos as Episodes of the show `series`. */
+export function parseYouTubePlaylist(json: unknown, series = LOOSE_EPISODES): SyncedItem[] {
   const items = ((json as { items?: YtPlaylistItem[] })?.items ?? []) as YtPlaylistItem[];
-  const out: SyncedShort[] = [];
+  const out: SyncedItem[] = [];
   for (const it of items) {
     const id = it.contentDetails?.videoId ?? it.snippet?.resourceId?.videoId ?? "";
     if (!/^[A-Za-z0-9_-]{11}$/.test(id)) continue;
@@ -54,9 +61,11 @@ export function parseYouTubePlaylist(json: unknown): SyncedShort[] {
     out.push({
       source: "youtube",
       external_id: id,
-      title: shortTitle(title),
+      title: shortTitle(title, "Episode"),
       platform: "YouTube",
-      url: `https://www.youtube.com/shorts/${id}`,
+      format: "Episode",
+      series,
+      url: `https://www.youtube.com/watch?v=${id}`,
       thumb_url: httpsOrNull(th?.maxres?.url ?? th?.standard?.url ?? th?.high?.url ?? th?.medium?.url ?? th?.default?.url),
       publish_on: cairoDate(it.contentDetails?.videoPublishedAt ?? it.snippet?.publishedAt ?? ""),
     });
@@ -77,12 +86,20 @@ export function shortIdsFromVideos(json: unknown): Set<string> {
   return new Set(items.filter((v) => v.id && isoSeconds(v.contentDetails?.duration) <= 180).map((v) => v.id!));
 }
 
+/** A channel's public playlists (each one is a show), from a playlists?part=snippet reply. */
+export function parsePlaylists(json: unknown): { id: string; title: string; description: string }[] {
+  const items = ((json as { items?: { id?: string; snippet?: { title?: string; description?: string }; status?: { privacyStatus?: string } }[] })?.items ?? []);
+  return items
+    .filter((p) => p.id && /^[A-Za-z0-9_-]{10,64}$/.test(p.id) && (p.snippet?.title ?? "").trim() && p.status?.privacyStatus !== "private")
+    .map((p) => ({ id: p.id!, title: p.snippet!.title!.replace(/\s+/g, " ").trim().slice(0, 60), description: (p.snippet?.description ?? "").replace(/\s+/g, " ").trim().slice(0, 300) }));
+}
+
 type IgMedia = { id?: string; caption?: string; media_type?: string; media_product_type?: string; permalink?: string; thumbnail_url?: string; timestamp?: string };
 
 /** Reels from an Instagram me/media reply. */
-export function parseInstagramMedia(json: unknown): SyncedShort[] {
+export function parseInstagramMedia(json: unknown): SyncedItem[] {
   const items = ((json as { data?: IgMedia[] })?.data ?? []) as IgMedia[];
-  const out: SyncedShort[] = [];
+  const out: SyncedItem[] = [];
   for (const m of items) {
     if (!m.id || !/^\d{1,40}$/.test(m.id)) continue;
     if (m.media_product_type !== "REELS" && m.media_type !== "VIDEO") continue;
@@ -93,6 +110,8 @@ export function parseInstagramMedia(json: unknown): SyncedShort[] {
       external_id: m.id,
       title: shortTitle(m.caption, "Reel"),
       platform: "Instagram",
+      format: "Short",
+      series: "Shorts",
       url,
       thumb_url: httpsOrNull(m.thumbnail_url),
       publish_on: cairoDate(m.timestamp ?? ""),

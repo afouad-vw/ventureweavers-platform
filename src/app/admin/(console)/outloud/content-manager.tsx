@@ -35,7 +35,7 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
     <>
       <Card>
         <CardHeader
-          title="Shorts from @ventureweavers"
+          title="Pulled from your accounts"
           action={
             <Button variant="secondary" size="sm" disabled={pending} onClick={() => run(() => syncShortsNow())}>
               <RefreshCw size={14} aria-hidden="true" />
@@ -44,7 +44,7 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
           }
         />
         <p className="text-[13px] text-muted">
-          The latest Shorts are pulled in automatically (every hour while members visit Outloud, and daily). Members see the 10 most recent. Set a pulled Short to Draft to hide it; it stays hidden.
+          Episodes come from the YouTube channel (each playlist is a show) and Shorts from Instagram reels, automatically every hour while members visit Outloud, and daily. Members see the 10 latest Shorts. Add TikTok reels by link; their preview is found for you. Set a pulled item to Draft to hide it; it stays hidden.
         </p>
         <ul className="flex flex-col gap-1 text-[13px]">
           {["youtube", "instagram"].map((src) => {
@@ -52,7 +52,7 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
             const r = sync.runs.find((x) => x.source === src);
             return (
               <li key={src} className="flex flex-wrap items-center gap-2">
-                <b className="w-[84px]">{SOURCE_LABEL[src]}</b>
+                <b className="w-[150px]">{src === "youtube" ? "YouTube · Episodes" : "Instagram · Shorts"}</b>
                 {!on ? (
                   <span className="text-faint">Not connected ({src === "youtube" ? "YOUTUBE_API_KEY" : "INSTAGRAM_ACCESS_TOKEN"} in Vercel)</span>
                 ) : r?.last_error ? (
@@ -65,7 +65,7 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
               </li>
             );
           })}
-          <li className="flex flex-wrap items-center gap-2"><b className="w-[84px]">TikTok</b><span className="text-faint">Add TikTok Shorts by hand for now</span></li>
+          <li className="flex flex-wrap items-center gap-2"><b className="w-[150px]">TikTok · Shorts</b><span className="text-faint">Add reels by link (New content); the preview is found for you</span></li>
         </ul>
       </Card>
 
@@ -127,7 +127,7 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
         open={del !== null}
         onClose={() => setDel(null)}
         pending={pending}
-        note={del && del.source !== "manual" ? "This Short was pulled from @ventureweavers and will come back at the next sync. Set it to Draft instead to hide it for good." : undefined}
+        note={del && del.source !== "manual" ? "This was pulled from your account and will come back at the next sync. Set it to Draft instead to hide it for good." : undefined}
         onConfirm={() => del && run(() => deleteContent(del.id), () => setDel(null))}
       />
 
