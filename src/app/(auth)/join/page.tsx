@@ -38,7 +38,9 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
       <OrDivider />
       <EmailPasswordForm mode="sign-up" next={safe || undefined} />
       <p className="text-xs text-faint">
-        After you sign up we ask for your role, stage and interests to shape your feed. By joining you agree to the [TERMS] and [PRIVACY POLICY].
+        After you sign up we ask for your role, stage and interests to shape your feed. By joining you agree to the{" "}
+        <Link href="/terms" className="font-bold text-link hover:underline">Terms of Use</Link> and{" "}
+        <Link href="/privacy" className="font-bold text-link hover:underline">Privacy Policy</Link>.
       </p>
       <p className="text-[13px] text-muted">
         Already a member?{" "}
