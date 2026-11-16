@@ -13,12 +13,13 @@ import { canAny, PAGE_PERMS, type AdminAccess } from "@/lib/auth/permissions";
 import type { NavItem } from "@/lib/nav";
 import type { Notice } from "@/lib/notifications/format";
 import { AppShell, Who } from "./app-shell";
+import { MessagesButton } from "./messages-button";
 import { NotificationsBell } from "./notifications-bell";
 
 export type ShellMember = { name: string; initials: string; sub: string; avatar?: string | null } | null;
 
 /** Member app layout. Shows the signed-in member, or Sign in and Join. */
-export function MemberShell({ member, live = false, notifications = [], children }: { member: ShellMember; live?: boolean; notifications?: Notice[]; children: React.ReactNode }) {
+export function MemberShell({ member, live = false, notifications = [], unreadMessages = 0, children }: { member: ShellMember; live?: boolean; notifications?: Notice[]; unreadMessages?: number; children: React.ReactNode }) {
   return (
     <AppShell
       sections={[{ items: [memberHome] }, { label: "Spaces", items: memberSpaces }, { items: live ? [memberAccount, memberLive] : [memberAccount] }]}
@@ -29,6 +30,7 @@ export function MemberShell({ member, live = false, notifications = [], children
         <>
           {member ? (
             <>
+              <MessagesButton initial={unreadMessages} />
               <NotificationsBell initial={notifications} />
               <Who initials={member.initials} name={member.name} sub={member.sub} href="/my-space" avatar={member.avatar} />
             </>

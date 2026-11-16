@@ -1,4 +1,5 @@
 import "server-only";
+import type { Business } from "@/lib/profile/about";
 import type { TagTone } from "@/components/ui/tag";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -24,8 +25,7 @@ export type Contact = {
   country: string | null;
   linkedin: string | null;
   avatar: string | null;
-  businessWebsite: string | null;
-  businessType: string | null;
+  businesses: Business[];
   interests: string[];
   spaces: Space[];
   adminTags: Space[];
@@ -64,9 +64,9 @@ function consentOf(p: { contact_prefs?: string[] | null; consent_whatsapp?: bool
 export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Activity[] }> {
   if (!supabaseConfigured) return { contacts: [], activity: [] };
   const svc = createServiceClient();
-  const [users, profiles, admins, bookings, enrolments, applications, requests, waitlist, topics, added, notes] = await Promise.all([
+  const [users, profiles, admins, bookings, enrolments, applications, requests, waitlist, topics, added, notes, biz] = await Promise.all([
     allAuthUsers(),
-    svc.from("profiles").select("id, full_name, phone, role, stage, country, linkedin, goals, contact_prefs, consent_whatsapp, consent_push, consent_newsletter, created_at, avatar_url, business_name, business_website, business_type"),
+    svc.from("profiles").select("id, full_name, phone, roles, stage, country, linkedin, goals, contact_prefs, consent_whatsapp, consent_push, consent_newsletter, created_at, avatar_url"),
     svc.from("admin_users").select("user_id"),
     svc.from("bookings").select("id, member_id, status, seats, created_at, events(title, type)").order("created_at", { ascending: false }).limit(5000),
     svc.from("enrolments").select("id, member_id, status, offered_at, confirmed_at, cohorts(label, programs(name))").limit(5000),
@@ -76,10 +76,17 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
     svc.from("topic_suggestions").select("id, member_id, text, created_at").order("created_at", { ascending: false }).limit(200),
     svc.from("contacts").select("id, name, email, phone, company, role, source, tags, consent, created_at").limit(10000),
     svc.from("contact_notes").select("member_id, contact_id, note, tags"),
+    svc.from("member_businesses").select("member_id, name, type, website, member_role, linkedin, position").order("position").limit(20000),
   ]);
 
   const adminIds = new Set(((admins.data ?? []) as { user_id: string }[]).map((a) => a.user_id));
-  const prof = new Map(((profiles.data ?? []) as { id: string; full_name: string | null; phone: string | null; role: string | null; stage: string | null; country: string | null; linkedin: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_whatsapp: boolean; consent_push: boolean; consent_newsletter: boolean; created_at: string; avatar_url: string | null; business_name: string | null; business_website: string | null; business_type: string | null }[]).map((p) => [p.id, p]));
+  const prof = new Map(((profiles.data ?? []) as { id: string; full_name: string | null; phone: string | null; roles: string[] | null; stage: string | null; country: string | null; linkedin: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_whatsapp: boolean; consent_push: boolean; consent_newsletter: boolean; created_at: string; avatar_url: string | null }[]).map((p) => [p.id, p]));
+  const bizOf = new Map<string, Business[]>();
+  for (const b of (biz.data ?? []) as (Business & { member_id: string })[]) {
+    const list = bizOf.get(b.member_id) ?? [];
+    list.push({ name: b.name, type: b.type, website: b.website, member_role: b.member_role, linkedin: b.linkedin });
+    bizOf.set(b.member_id, list);
+  }
   const noteByMember = new Map<string, { note: string; tags: Space[] }>();
   const noteByContact = new Map<string, { note: string; tags: Space[] }>();
   for (const n of (notes.data ?? []) as { member_id: string | null; contact_id: string | null; note: string; tags: Space[] }[]) {
@@ -140,13 +147,12 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       name: nameOf(u.id, u.email),
       email: u.email ?? null,
       phone: p?.phone ?? null,
-      company: p?.business_name ?? null,
-      role: [p?.role, p?.stage].filter(Boolean).join(" · ") || null,
+      company: (bizOf.get(u.id) ?? []).map((b) => b.name).join(", ") || null,
+      role: [(p?.roles ?? []).join(", "), p?.stage].filter(Boolean).join(" · ") || null,
       country: p?.country ?? null,
       linkedin: p?.linkedin ?? null,
       avatar: p?.avatar_url ?? null,
-      businessWebsite: p?.business_website ?? null,
-      businessType: p?.business_type ?? null,
+      businesses: bizOf.get(u.id) ?? [],
       interests: (p?.goals ?? []).filter((g) => ["Education", "Services", "Content", "QuidQuo"].includes(g)),
       spaces: Array.from(new Set([...mine.map((i) => i.space), ...(n?.tags ?? [])])),
       adminTags: n?.tags ?? [],
@@ -184,8 +190,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       country: null,
       linkedin: null,
       avatar: null,
-      businessWebsite: null,
-      businessType: null,
+      businesses: [],
       interests: [],
       spaces: Array.from(new Set([...c.tags, ...(n?.tags ?? [])])),
       adminTags: c.tags,
@@ -208,8 +213,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       country: null,
       linkedin: null,
       avatar: null,
-      businessWebsite: null,
-      businessType: null,
+      businesses: [],
       interests: [],
       name: w.name || w.email,
       email: w.email,

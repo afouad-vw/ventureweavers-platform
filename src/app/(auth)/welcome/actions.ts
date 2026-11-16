@@ -20,5 +20,7 @@ export async function saveAbout(_: FormState, form: FormData): Promise<FormState
     .update({ ...parsed.value, onboarded_at: before?.onboarded_at ?? new Date().toISOString() })
     .eq("id", id);
   if (error) return { error: "We couldn't save your details. Please try again." };
+  const { error: bizError } = await supabase.rpc("set_my_businesses", { p_list: parsed.businesses });
+  if (bizError) return { error: "We saved your details but couldn't save your businesses. Please check them and try again." };
   redirect(safeNext(String(form.get("next") ?? "")));
 }

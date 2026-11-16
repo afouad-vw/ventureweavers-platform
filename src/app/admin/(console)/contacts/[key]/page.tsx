@@ -95,14 +95,12 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                         phone: splitPhone(a.edit.phone).number,
                         linkedin: a.edit.linkedin ?? "",
                         country: a.edit.country ?? "",
-                        role: a.edit.role ?? "",
+                        roles: a.edit.roles,
                         interests: a.edit.goals,
                         contact: a.edit.contact,
                         newsletter: a.newsletter,
                         avatar: c.avatar,
-                        businessName: a.edit.businessName ?? "",
-                        businessWebsite: a.edit.businessWebsite ?? "",
-                        businessType: a.edit.businessType ?? "",
+                        businesses: a.edit.businesses,
                       },
                     }
                   : null
@@ -138,9 +136,29 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
               <Row label="Email">{c.email}</Row>
               <Row label="Mobile">{c.phone}</Row>
               {c.memberId ? <Row label="Country">{c.country}</Row> : null}
-              <Row label="Business">{c.company ? <>{c.company}{c.businessType ? <span className="text-faint"> · {c.businessType}</span> : null}</> : null}</Row>
-              {c.memberId ? <Row label="Website">{c.businessWebsite ? <a href={c.businessWebsite} target="_blank" rel="noopener noreferrer" className="font-bold text-link hover:underline">{c.businessWebsite.replace(/^https?:\/\//, "")}</a> : null}</Row> : null}
-              <Row label="Role">{c.role}</Row>
+              {c.memberId ? (
+                <Row label={c.businesses.length > 1 ? "Businesses" : "Business"}>
+                  {c.businesses.length ? (
+                    <ul className="flex flex-col gap-1.5">
+                      {c.businesses.map((b, i) => (
+                        <li key={i} className="flex flex-col">
+                          <span><b>{b.name}</b>{b.type ? <span className="text-faint"> · {b.type}</span> : null}</span>
+                          {b.member_role ? <span className="text-[12.5px] text-muted">{b.member_role}</span> : null}
+                          {b.website || b.linkedin ? (
+                            <span className="flex flex-wrap gap-3 text-[12.5px]">
+                              {b.website ? <a href={b.website} target="_blank" rel="noopener noreferrer" className="font-bold text-link hover:underline">{b.website.replace(/^https?:\/\//, "")}</a> : null}
+                              {b.linkedin ? <a href={b.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-link hover:underline"><Linkedin size={13} aria-hidden="true" />LinkedIn page</a> : null}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </Row>
+              ) : (
+                <Row label="Business">{c.company}</Row>
+              )}
+              <Row label={c.memberId ? "Ecosystem Role" : "Role"}>{c.role}</Row>
               {c.memberId ? (
                 <Row label="LinkedIn">
                   {c.linkedin ? <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-link hover:underline"><Linkedin size={14} aria-hidden="true" />Profile</a> : null}

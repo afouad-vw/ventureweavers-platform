@@ -257,10 +257,13 @@ export async function saveContent(form: FormData): Promise<ActionResult> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s("publish_on"))) return { ok: false, error: "Choose a publish date." };
   const image_url = s("image_url");
   if (!imageOk(image_url)) return { ok: false, error: "That preview image isn't from the upload folder." };
+  const supabase = await createClient();
+  const { data: known } = await supabase.from("content_series").select("name").eq("name", s("series")).maybeSingle();
+  if (!known) return { ok: false, error: "Choose a series (or add it under Series first)." };
   return save("content_items", s("id") || null, {
     image_url: image_url || null,
     title: s("title").slice(0, 160),
-    series: (s("series") || "The Question").slice(0, 60),
+    series: known.name,
     format: oneOf(s("format"), CONTENT_FORMATS, "Short"),
     platform: oneOf(s("platform"), PLATFORMS, "Instagram"),
     url: url || null,
@@ -271,6 +274,55 @@ export async function saveContent(form: FormData): Promise<ActionResult> {
 export async function duplicateContent(id: string) { return duplicate("content_items", id); }
 export async function deleteContent(id: string) { return remove("content_items", id); }
 export async function setContentStatus(id: string, status: "draft" | "scheduled" | "published") { return setStatus("content_items", id, status); }
+
+// ---------------------------------------------------------------- series (shows and series that group episodes)
+
+export async function saveSeries(form: FormData): Promise<ActionResult> {
+  const admin = await requireAdmin("content.manage");
+  const s = field(form);
+  const name = s("name").replace(/\s+/g, " ").slice(0, 60);
+  if (!name) return { ok: false, error: "Add a name for the series." };
+  const description = s("description").slice(0, 300);
+  const id = s("id");
+  if (id && !ID.test(id)) return { ok: false, error: "Unknown series." };
+  const supabase = await createClient();
+  const { data: row, error } = id
+    ? await supabase.from("content_series").update({ name, description }).eq("id", id).select("id").single()
+    : await supabase.from("content_series").insert({ name, description, position: Math.floor(Date.now() / 1000) }).select("id").single();
+  if (error || !row) return { ok: false, error: error?.code === "23505" ? "A series with that name already exists." : "Couldn't save the series." };
+  await audit(admin.userId, id ? "update" : "create", "series", { entityId: row.id, after: { name, description } });
+  refresh();
+  return { ok: true, message: id ? "Series saved. Its episodes moved with it." : "Series added." };
+}
+
+export async function deleteSeries(id: string): Promise<ActionResult> {
+  const admin = await requireAdmin("content.manage");
+  if (!ID.test(id)) return { ok: false, error: "Unknown series." };
+  const supabase = await createClient();
+  const { data: srs } = await supabase.from("content_series").select("name").eq("id", id).maybeSingle();
+  if (!srs) return { ok: false, error: "Unknown series." };
+  const { count } = await supabase.from("content_items").select("id", { count: "exact", head: true }).eq("series", srs.name);
+  if (count) return { ok: false, error: `${count} item${count === 1 ? " is" : "s are"} still in this series. Move or delete ${count === 1 ? "it" : "them"} first.` };
+  const { error } = await supabase.from("content_series").delete().eq("id", id);
+  if (error) return { ok: false, error: "Couldn't delete the series." };
+  await audit(admin.userId, "delete", "series", { entityId: id, before: { name: srs.name } });
+  refresh();
+  return { ok: true, message: "Series deleted." };
+}
+
+/** Pull the latest Shorts from the @ventureweavers accounts now. */
+export async function syncShortsNow(): Promise<ActionResult> {
+  const admin = await requireAdmin("content.manage");
+  const { configuredSources, syncSocial } = await import("@/lib/content/social-sync");
+  if (!configuredSources().length) return { ok: false, error: "No account is connected yet. Add YOUTUBE_API_KEY (and INSTAGRAM_ACCESS_TOKEN for Instagram) in Vercel." };
+  const results = await syncSocial({ force: true });
+  await audit(admin.userId, "sync", "content", { after: { results } });
+  refresh();
+  const failed = results.filter((r) => !r.ok);
+  const added = results.reduce((n, r) => n + r.added, 0);
+  if (failed.length === results.length) return { ok: false, error: failed.map((f) => `${f.source}: ${f.error}`).join(" · ") };
+  return { ok: true, message: `${added ? `${added} new Short${added === 1 ? "" : "s"} added` : "Up to date"}${failed.length ? ` (${failed.map((f) => `${f.source}: ${f.error}`).join(" · ")})` : ""}.` };
+}
 
 // ---------------------------------------------------------------- blog
 

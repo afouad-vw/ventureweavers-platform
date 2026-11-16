@@ -8,6 +8,7 @@ export const AREAS = [
   { key: "overview", label: "Overview", levels: ["view"], hint: "Numbers and what needs attention" },
   { key: "contacts", label: "Contacts", levels: ["view", "manage"], hint: "Manage: notes, edit details, password reset, suspend" },
   { key: "requests", label: "Requests", levels: ["view", "manage"], hint: "Manage: move, assign, confirm meetings" },
+  { key: "messages", label: "Messages", levels: ["view", "manage"], hint: "Manage: reply to members, mark conversations done" },
   { key: "payments", label: "Payments", levels: ["view", "manage"], hint: "Manage: mark paid, cancel, refund, payment requests" },
   { key: "events", label: "Outloud events & shows", levels: ["view", "manage"], hint: "Manage: create and edit events, bookings" },
   { key: "checkin", label: "Door check-in", levels: ["manage"], hint: "Scan tickets at the door" },
@@ -51,7 +52,7 @@ export function cleanPerms(input: readonly unknown[]): Perm[] {
 
 export const PRESETS: { key: string; label: string; perms: Perm[] }[] = [
   { key: "door", label: "Door staff", perms: ["checkin.manage"] },
-  { key: "requests", label: "Requests manager", perms: ["requests.manage", "contacts.view"] },
+  { key: "requests", label: "Requests manager", perms: ["requests.manage", "messages.manage", "contacts.view"] },
   { key: "content", label: "Content editor", perms: ["content.manage", "library.manage", "publishing.manage"] },
   { key: "programs", label: "Program manager", perms: ["tvs.manage", "classroom.manage", "contacts.view"] },
 ];
@@ -74,6 +75,7 @@ export const PAGE_PERMS: Record<string, Perm[]> = {
   "/admin": ["overview.view"],
   "/admin/contacts": ["contacts.view"],
   "/admin/requests": ["requests.view"],
+  "/admin/messages": ["messages.view"],
   "/admin/payments": ["payments.view"],
   "/admin/outloud": ["events.view", "content.view", "live.manage"],
   "/admin/check-in": ["checkin.manage", "events.manage"],

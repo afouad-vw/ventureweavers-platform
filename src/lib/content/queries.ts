@@ -1,4 +1,5 @@
 import "server-only";
+import { groupEpisodes } from "./series";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { AccessLevel, ContentStatus } from "./format";
@@ -30,8 +31,13 @@ export type ContentItem = {
   publish_on: string;
   status: ContentStatus;
   image_url: string | null;
+  thumb_url: string | null;
+  source: "manual" | "youtube" | "instagram" | "tiktok";
 };
-export const CONTENT_COLS = "id, title, series, format, platform, url, publish_on, status, image_url";
+export const CONTENT_COLS = "id, title, series, format, platform, url, publish_on, status, image_url, thumb_url, source";
+
+export type Series = { id: string; name: string; description: string; position: number };
+export const SERIES_COLS = "id, name, description, position";
 
 export type BlogPost = {
   id: string;
@@ -77,6 +83,33 @@ export async function contentItems(): Promise<ContentItem[]> {
   const supabase = await createClient();
   const { data } = await supabase.from("content_items").select(CONTENT_COLS).in("status", ["published", "scheduled"]).order("publish_on", { ascending: false }).limit(100);
   return (data ?? []) as ContentItem[];
+}
+
+/** The latest published Shorts, newest first (10 by default). */
+export async function latestShorts(limit = 10): Promise<ContentItem[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("content_items")
+    .select(CONTENT_COLS)
+    .eq("format", "Short")
+    .eq("status", "published")
+    .lte("publish_on", new Date().toISOString().slice(0, 10))
+    .order("publish_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as ContentItem[];
+}
+
+/** Episodes (published or coming soon) and the series they belong to. */
+export async function episodesBySeries(): Promise<{ series: Series; episodes: ContentItem[] }[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const [{ data: eps }, { data: series }] = await Promise.all([
+    supabase.from("content_items").select(CONTENT_COLS).eq("format", "Episode").in("status", ["published", "scheduled"]).order("publish_on", { ascending: false }).limit(300),
+    supabase.from("content_series").select(SERIES_COLS),
+  ]);
+  return groupEpisodes((eps ?? []) as ContentItem[], (series ?? []) as Series[]);
 }
 
 export async function blogPosts(): Promise<BlogPost[]> {

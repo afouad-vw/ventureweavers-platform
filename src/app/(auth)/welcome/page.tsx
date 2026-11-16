@@ -4,6 +4,7 @@ import { requireMember } from "@/lib/auth/guards";
 import { safeNext } from "@/lib/auth/policy";
 import { INTERESTS, splitPhone } from "@/lib/profile/about";
 import { countryByName } from "@/lib/profile/countries";
+import { businessesOf } from "@/lib/profile/businesses";
 import { createClient } from "@/lib/supabase/server";
 import { AboutForm } from "./about-form";
 
@@ -14,11 +15,10 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const member = await requireMember("/welcome");
   const { next } = await searchParams;
   const supabase = await createClient();
-  const { data: p } = await supabase
-    .from("profiles")
-    .select("full_name, phone, linkedin, country, role, goals, contact_prefs, consent_newsletter, onboarded_at, avatar_url, business_name, business_website, business_type")
-    .eq("id", member.id)
-    .maybeSingle();
+  const [{ data: p }, businesses] = await Promise.all([
+    supabase.from("profiles").select("full_name, phone, linkedin, country, roles, goals, contact_prefs, consent_newsletter, onboarded_at, avatar_url").eq("id", member.id).maybeSingle(),
+    businessesOf(member.id),
+  ]);
   const country = countryByName(p?.country);
   const phone = splitPhone(p?.phone, country?.code ?? "EG");
   return (
@@ -33,14 +33,12 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
           phone: phone.number,
           linkedin: p?.linkedin ?? "",
           country: p?.country ?? "",
-          role: p?.role ?? "",
+          roles: (p?.roles as string[] | null) ?? [],
           interests: ((p?.goals as string[] | null) ?? []).filter((g) => (INTERESTS as readonly string[]).includes(g)),
           contact: (p?.contact_prefs as string[] | null) ?? [],
           newsletter: p?.consent_newsletter ?? !p?.onboarded_at,
           avatar: p?.avatar_url ?? null,
-          businessName: p?.business_name ?? "",
-          businessWebsite: p?.business_website ?? "",
-          businessType: p?.business_type ?? "",
+          businesses,
         }}
       />
     </AuthLayout>

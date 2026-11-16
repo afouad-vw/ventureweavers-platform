@@ -1,4 +1,5 @@
 import "server-only";
+import type { Business } from "@/lib/profile/about";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -23,7 +24,7 @@ export type MemberAccount = {
   isAdmin: boolean;
   newsletter: boolean;
   stage: string | null;
-  edit: { name: string; phone: string | null; linkedin: string | null; country: string | null; role: string | null; goals: string[]; contact: string[]; businessName: string | null; businessWebsite: string | null; businessType: string | null };
+  edit: { name: string; phone: string | null; linkedin: string | null; country: string | null; roles: string[]; goals: string[]; contact: string[]; businesses: Business[] };
 };
 
 export type PersonRequest = {
@@ -82,7 +83,7 @@ export async function loadPerson(slug: string): Promise<Person | null> {
 
   const [user, profile, suspension, bookings, apps, enrols, reqs, payReqs, waitlist, questions, topics, subs, ledger] = await Promise.all([
     svc.auth.admin.getUserById(id),
-    svc.from("profiles").select("full_name, phone, linkedin, country, role, stage, goals, contact_prefs, consent_newsletter, created_at, business_name, business_website, business_type").eq("id", id).maybeSingle(),
+    svc.from("profiles").select("full_name, phone, linkedin, country, roles, stage, goals, contact_prefs, consent_newsletter, created_at").eq("id", id).maybeSingle(),
     svc.from("member_suspensions").select("reason, suspended_by, suspended_at").eq("member_id", id).maybeSingle(),
     svc.from("bookings").select("id, status, seats, amount_piasters, created_at, events(title, type)").eq("member_id", id),
     svc.from("applications").select("id, status, created_at, programs(name)").eq("member_id", id),
@@ -98,7 +99,7 @@ export async function loadPerson(slug: string): Promise<Person | null> {
   ]);
 
   const u = user.data?.user as { email_confirmed_at?: string | null; last_sign_in_at?: string | null; app_metadata?: { provider?: string; providers?: string[] } } | undefined;
-  const p = profile.data as { full_name: string | null; phone: string | null; linkedin: string | null; country: string | null; role: string | null; stage: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_newsletter: boolean; created_at: string; business_name: string | null; business_website: string | null; business_type: string | null } | null;
+  const p = profile.data as { full_name: string | null; phone: string | null; linkedin: string | null; country: string | null; roles: string[] | null; stage: string | null; goals: string[] | null; contact_prefs: string[] | null; consent_newsletter: boolean; created_at: string } | null;
   const s = suspension.data as { reason: string; suspended_by: string | null; suspended_at: string } | null;
   const providers = u?.app_metadata?.providers ?? [u?.app_metadata?.provider ?? "email"];
 
@@ -148,7 +149,7 @@ export async function loadPerson(slug: string): Promise<Person | null> {
       isAdmin: adminName.has(id),
       newsletter: Boolean(p?.consent_newsletter),
       stage: p?.stage ?? null,
-      edit: { name: p?.full_name ?? "", phone: p?.phone ?? null, linkedin: p?.linkedin ?? null, country: p?.country ?? null, role: p?.role ?? null, goals: p?.goals ?? [], contact: p?.contact_prefs ?? [], businessName: p?.business_name ?? null, businessWebsite: p?.business_website ?? null, businessType: p?.business_type ?? null },
+      edit: { name: p?.full_name ?? "", phone: p?.phone ?? null, linkedin: p?.linkedin ?? null, country: p?.country ?? null, roles: p?.roles ?? [], goals: p?.goals ?? [], contact: p?.contact_prefs ?? [], businesses: contact.businesses },
     },
     timeline: sortTimeline(timeline),
     payments,

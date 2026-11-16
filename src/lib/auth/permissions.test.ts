@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ALL_PERMS, can, canAny, cleanPerms, describePerms, PRESETS } from "./permissions";
 
@@ -28,5 +29,19 @@ describe("admin permissions", () => {
     expect(describePerms(["requests.manage", "contacts.view"])).toBe("Contacts (view), Requests (manage)");
     expect(describePerms(["checkin.manage"])).toBe("Door check-in");
     expect(describePerms([])).toBe("No access yet");
+  });
+});
+
+describe("permission list matches the database", () => {
+  it("has the same areas as the newest public.admin_perm_list()", () => {
+    const dir = "supabase/migrations";
+    const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
+    let latest = "";
+    for (const f of files) {
+      const m = /function public\.admin_perm_list\(\)[\s\S]*?array\[([\s\S]*?)\]::text\[\]/.exec(readFileSync(`${dir}/${f}`, "utf8"));
+      if (m) latest = m[1];
+    }
+    const db = [...latest.matchAll(/'([a-z]+\.[a-z]+)'/g)].map((m) => m[1]).sort();
+    expect(db).toEqual([...ALL_PERMS].sort());
   });
 });

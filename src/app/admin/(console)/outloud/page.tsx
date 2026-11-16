@@ -7,7 +7,7 @@ import { ThreadTag } from "@/components/ui/tag";
 import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
 import { canAny } from "@/lib/auth/permissions";
 import { adminListEvents } from "@/lib/events/admin-queries";
-import { adminBlog, adminContent, adminTopics } from "@/lib/content/admin-queries";
+import { adminBlog, adminContent, adminSeries, adminTopics, socialStatus } from "@/lib/content/admin-queries";
 import { hostConfig } from "@/lib/hosts";
 import { adminLive } from "@/lib/live/queries";
 import { BlogManager } from "./blog-manager";
@@ -32,12 +32,14 @@ export default async function AdminOutloudPage({ searchParams }: { searchParams:
   // Only the sections this admin may open (Phase 14 access levels).
   const TABS = ALL_TABS.filter((t) => canAny(admin, t.need)).map(({ value, label }) => ({ value, label }));
   const tab = TABS.some((t) => t.value === raw) ? raw! : TABS[0].value;
-  const [events, content, blog, topics, live] = await Promise.all([
+  const [events, content, blog, topics, live, series, sync] = await Promise.all([
     tab === "events" ? adminListEvents() : [],
     tab === "content" ? adminContent() : [],
     tab === "blog" ? adminBlog() : [],
     tab === "live" ? adminTopics() : [],
     tab === "live" ? adminLive(event) : null,
+    tab === "content" ? adminSeries() : [],
+    tab === "content" ? socialStatus() : { connected: [], runs: [] },
   ]);
   const appOrigin = process.env.HOST_MODE === "strict" ? `https://${hostConfig().app}` : "";
   return (
@@ -50,7 +52,7 @@ export default async function AdminOutloudPage({ searchParams }: { searchParams:
       />
       <LinkTabs label="Outloud admin sections" items={TABS} value={tab} hrefFor={(v) => `${base}/outloud${v === "events" ? "" : `?tab=${v}`}`} />
       {tab === "events" ? <EventsManager events={events} base={base} /> : null}
-      {tab === "content" ? <ContentManager items={content} /> : null}
+      {tab === "content" ? <ContentManager items={content} series={series} sync={sync} /> : null}
       {tab === "blog" ? <BlogManager posts={blog} appOrigin={appOrigin} /> : null}
       {tab === "live" && live ? (
         <>

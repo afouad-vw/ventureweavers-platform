@@ -24,6 +24,7 @@ import { INTERESTS, splitPhone } from "@/lib/profile/about";
 import { countryByName } from "@/lib/profile/countries";
 import { WithdrawButton } from "@/components/brickr/brickr-client";
 import { CancelReservation } from "./cancel-button";
+import { businessesOf } from "@/lib/profile/businesses";
 import { ProfileForm, type ProfileValues } from "./profile-form";
 
 export const metadata: Metadata = { title: "My space" };
@@ -32,11 +33,12 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
   const member = await requireMember("/my-space");
   const { tab: raw } = await searchParams;
   const supabase = await createClient();
-  const [{ data: p }, bookings, { count: savedCount }, payments] = await Promise.all([
-    supabase.from("profiles").select("full_name, phone, linkedin, country, role, stage, goals, interests, contact_prefs, consent_push, consent_newsletter, avatar_url, business_name, business_website, business_type").eq("id", member.id).maybeSingle(),
+  const [{ data: p }, bookings, { count: savedCount }, payments, businesses] = await Promise.all([
+    supabase.from("profiles").select("full_name, phone, linkedin, country, role, roles, stage, goals, interests, contact_prefs, consent_push, consent_newsletter, avatar_url").eq("id", member.id).maybeSingle(),
     myBookings(),
     supabase.from("saved_items").select("item_id", { count: "exact", head: true }),
     myPayments(),
+    businessesOf(member.id),
   ]);
   const owed = payments.filter((x) => x.status === "pending").length;
   const active = bookings.filter((b) => ["reserved", "confirmed"].includes(b.status));
@@ -64,7 +66,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
         </span>
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-xl font-semibold">{name}</h1>
-          <span className="text-[13px] text-faint">{[p?.role, p?.business_name, p?.country].filter(Boolean).join(" · ")}</span>
+          <span className="text-[13px] text-faint">{[((p?.roles as string[] | null) ?? []).join(", "), businesses[0]?.name, p?.country].filter(Boolean).join(" · ")}</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             <ThreadTag thread="Outloud" label="Outloud member" />
           </div>
@@ -92,7 +94,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
                 })(),
                 linkedin: p?.linkedin ?? "",
                 country: p?.country ?? "",
-                role: p?.role ?? "",
+                roles: (p?.roles as string[] | null) ?? [],
                 interests: ((p?.goals as string[] | null) ?? []).filter((g) => (INTERESTS as readonly string[]).includes(g)),
                 contact: (p?.contact_prefs as string[] | null) ?? [],
                 newsletter: !!p?.consent_newsletter,
@@ -100,9 +102,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
                 topics: (p?.interests as string[]) ?? [],
                 push: !!p?.consent_push,
                 avatar: p?.avatar_url ?? null,
-                businessName: p?.business_name ?? "",
-                businessWebsite: p?.business_website ?? "",
-                businessType: p?.business_type ?? "",
+                businesses,
               } satisfies ProfileValues}
             />
           </Card>

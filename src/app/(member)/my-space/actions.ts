@@ -27,6 +27,8 @@ export async function saveProfile(_: FormState, form: FormData): Promise<FormSta
     })
     .eq("id", id);
   if (error) return { error: "We couldn't save your changes. Please try again." };
+  const { error: bizError } = await supabase.rpc("set_my_businesses", { p_list: parsed.businesses });
+  if (bizError) return { error: "We saved your details but couldn't save your businesses. Please check them and try again." };
   revalidatePath("/my-space");
   return { message: "Saved." };
 }

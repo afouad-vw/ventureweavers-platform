@@ -58,7 +58,7 @@ select pg_temp.check((select count(*) from public.audit_log) = 0, 'only super ad
 select pg_temp.check((select count(*) from public.site_settings) >= 1, 'team members read settings');
 update public.site_settings set value = 'hacked' where key = 'bank_details';
 select pg_temp.check((select value <> 'hacked' from public.site_settings where key = 'bank_details'), 'team members cannot change settings');
-select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000e5', 'X Y', '+20 1001234567', null, 'Egypt', 'Founder', array['Education'], array['Email'])$$, '%not_admin%', 'contacts view cannot edit member details');
+select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000e5', 'X Y', '+20 1001234567', null, 'Egypt', array['Founder'], array['Education'], array['Email'], '[]'::jsonb)$$, '%not_admin%', 'contacts view cannot edit member details');
 select pg_temp.expect_error($$select public.admin_team_add('00000000-0000-0000-0000-0000000000e4', 'new.four', 'New Four', '{}')$$, '%not_super%', 'team members cannot add team members');
 select pg_temp.expect_error($$update public.admin_users set is_super = true where user_id = '00000000-0000-0000-0000-0000000000e2'$$, '%permission denied%', 'team members cannot change admin rows');
 

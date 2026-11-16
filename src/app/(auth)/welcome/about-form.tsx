@@ -5,7 +5,8 @@ import { FormNote } from "@/components/auth/form-note";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextField, Toggle } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
-import { BUSINESS_TYPES, CONTACT, INTEREST_HINT, INTERESTS } from "@/lib/profile/about";
+import { Plus, Trash2 } from "lucide-react";
+import { BUSINESS_TYPES, CONTACT, INTEREST_HINT, INTERESTS, MAX_BUSINESSES, type Business } from "@/lib/profile/about";
 import { AvatarField } from "@/components/profile/avatar-field";
 import { COUNTRIES, MENA_COUNT } from "@/lib/profile/countries";
 import { ROLES } from "@/lib/profile/options";
@@ -19,15 +20,17 @@ export type AboutInitial = {
   phone: string;
   linkedin: string;
   country: string;
-  role: string;
+  roles: string[];
   interests: string[];
   contact: string[];
   newsletter: boolean;
   avatar: string | null;
-  businessName: string;
-  businessWebsite: string;
-  businessType: string;
+  businesses: Business[];
 };
+
+type BizRow = { key: number; name: string; type: string; website: string; member_role: string; linkedin: string };
+let bizKey = 0;
+const toRow = (b?: Business): BizRow => ({ key: ++bizKey, name: b?.name ?? "", type: b?.type ?? "", website: b?.website ?? "", member_role: b?.member_role ?? "", linkedin: b?.linkedin ?? "" });
 
 const control =
   "h-11 rounded-lg border border-line2 bg-card/80 px-2.5 text-[14px] text-fg focus:border-primary focus:bg-card focus:shadow-glow focus:outline-none";
@@ -59,6 +62,9 @@ export function AboutForm({
   }, [state, onSaved]);
   const [interests, setInterests] = useState<string[]>(initial.interests);
   const [contact, setContact] = useState<string[]>(initial.contact.length ? initial.contact : ["Email"]);
+  const [roles, setRoles] = useState<string[]>(initial.roles);
+  const [biz, setBiz] = useState<BizRow[]>(() => initial.businesses.map(toRow));
+  const setBizField = (key: number, field: keyof Omit<BizRow, "key">, value: string) => setBiz((rows) => rows.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
   const toggle = (list: string[], set: (v: string[]) => void, v: string) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
   return (
@@ -66,6 +72,8 @@ export function AboutForm({
       <input type="hidden" name="next" value={next} />
       {interests.map((x) => <input key={x} type="hidden" name="interests" value={x} />)}
       {contact.map((x) => <input key={x} type="hidden" name="contact" value={x} />)}
+      {roles.map((x) => <input key={x} type="hidden" name="roles" value={x} />)}
+      <input type="hidden" name="businesses" value={JSON.stringify(biz.map((r) => ({ name: r.name, type: r.type, website: r.website, member_role: r.member_role, linkedin: r.linkedin })))} />
       {inProfile ? null : (
         <div>
           <h1 className="font-display text-[24px] font-semibold">About you</h1>
@@ -96,24 +104,56 @@ export function AboutForm({
       <TextField label="Email" value={initial.email} readOnly disabled hint={byAdmin ? "Members change their own sign-in email." : "From your account."} />
       <TextField label="LinkedIn (optional)" name="linkedin" defaultValue={initial.linkedin} inputMode="url" placeholder="linkedin.com/in/your-name" maxLength={200} />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <SelectField
-          label="Country"
-          name="country"
-          defaultValue={initial.country}
-          required
-          options={[{ value: "", label: "Choose your country" }, ...COUNTRIES.map((c) => ({ value: c.name, label: c.name }))]}
-        />
-        <SelectField label="Role" name="role" defaultValue={initial.role} required options={[{ value: "", label: "Choose your role" }, ...ROLES.map((r) => ({ value: r, label: r }))]} />
-      </div>
+      <SelectField
+        label="Country"
+        name="country"
+        defaultValue={initial.country}
+        required
+        options={[{ value: "", label: "Choose your country" }, ...COUNTRIES.map((c) => ({ value: c.name, label: c.name }))]}
+      />
 
-      <fieldset className="flex flex-col gap-3 rounded-xl border border-line p-3">
-        <legend className="px-1 text-[12.5px] font-bold text-muted">Your business (optional)</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="Business name" name="business_name" defaultValue={initial.businessName} maxLength={120} autoComplete="organization" />
-          <SelectField label="Type" name="business_type" defaultValue={initial.businessType} options={[{ value: "", label: "Choose" }, ...BUSINESS_TYPES.map((t) => ({ value: t, label: t }))]} />
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="pb-1.5 text-[12.5px] font-bold text-muted">Ecosystem Role (pick any)</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {ROLES.map((x) => (
+            <Choice key={x} on={roles.includes(x)} onClick={() => toggle(roles, setRoles, x)} label={x} />
+          ))}
         </div>
-        <TextField label="Website" name="business_website" defaultValue={initial.businessWebsite} inputMode="url" placeholder="yourcompany.com" maxLength={200} />
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="pb-1.5 text-[12.5px] font-bold text-muted">Your businesses (optional)</legend>
+        {biz.map((b, i) => (
+          <div key={b.key} className="flex flex-col gap-3 rounded-xl border border-line p-3">
+            <div className="flex items-center justify-between gap-2">
+              <b className="text-[13px]">{b.name.trim() || `Business ${i + 1}`}</b>
+              <button
+                type="button"
+                onClick={() => setBiz((rows) => rows.filter((r) => r.key !== b.key))}
+                className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-[12.5px] font-bold text-muted hover:bg-hover hover:text-fg desk:min-h-8"
+                aria-label={`Remove ${b.name.trim() || `business ${i + 1}`}`}
+              >
+                <Trash2 size={14} aria-hidden="true" />
+                Remove
+              </button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField label="Business name" value={b.name} onChange={(e) => setBizField(b.key, "name", e.target.value)} maxLength={120} autoComplete="organization" required />
+              <SelectField label="Type" value={b.type} onChange={(e) => setBizField(b.key, "type", e.target.value)} options={[{ value: "", label: "Choose" }, ...BUSINESS_TYPES.map((t) => ({ value: t, label: t }))]} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField label="Your role in the business" value={b.member_role} onChange={(e) => setBizField(b.key, "member_role", e.target.value)} maxLength={80} placeholder="Co-founder, Partner, Advisor…" />
+              <TextField label="Website" value={b.website} onChange={(e) => setBizField(b.key, "website", e.target.value)} inputMode="url" placeholder="yourcompany.com" maxLength={200} />
+            </div>
+            <TextField label="LinkedIn page" value={b.linkedin} onChange={(e) => setBizField(b.key, "linkedin", e.target.value)} inputMode="url" placeholder="linkedin.com/company/your-company" maxLength={200} />
+          </div>
+        ))}
+        {biz.length < MAX_BUSINESSES ? (
+          <Button type="button" variant="secondary" size="sm" className="self-start" onClick={() => setBiz((rows) => [...rows, toRow()])}>
+            <Plus size={15} aria-hidden="true" />
+            {biz.length ? "Add another business" : "Add a business"}
+          </Button>
+        ) : null}
       </fieldset>
 
       <fieldset className="flex flex-col gap-1.5">

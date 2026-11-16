@@ -13,7 +13,6 @@ export const isSpace = (v: string): v is TagTone => SPACES.some((s) => s.value =
 /** Digital content is Shorts and Episodes. (Older Carousel and Reel rows stay in the database but are not shown.) */
 export const CONTENT_FORMATS = ["Short", "Episode"] as const;
 export const PLATFORMS = ["Instagram", "TikTok", "LinkedIn", "YouTube"] as const;
-export const SERIES = ["The Question", "In 60 Seconds", "The Answer", "Next Show", "Full episodes"] as const;
 export type ContentStatus = "draft" | "scheduled" | "published";
 export const CONTENT_STATUSES: { value: ContentStatus; label: string }[] = [
   { value: "draft", label: "Draft" },

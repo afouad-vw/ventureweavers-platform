@@ -10,6 +10,7 @@ import { initialsOf } from "@/lib/initials";
 import { getMember } from "@/lib/auth/guards";
 import { myLiveShows } from "@/lib/live/queries";
 import { myNotifications } from "@/lib/notifications/queries";
+import { myUnreadMessages } from "@/lib/messages/queries";
 
 /** Member pages are for signed-in members only; keep them out of search engines. */
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -28,10 +29,12 @@ export default async function MemberLayout({ children }: { children: React.React
     }
   }
   const name = m?.name || m?.email || "Member";
-  const [liveShows, notifications] = m ? await Promise.all([myLiveShows().catch(() => []), myNotifications().catch(() => [])]) : [[], []];
+  const [liveShows, notifications, unreadMessages] = m
+    ? await Promise.all([myLiveShows().catch(() => []), myNotifications().catch(() => []), myUnreadMessages().catch(() => 0)])
+    : [[], [], 0];
   const live = liveShows.length > 0;
   return (
-    <MemberShell live={live} notifications={notifications} member={m ? { name, initials: initialsOf(name), sub: "My space", avatar: m.avatar } : null}>
+    <MemberShell live={live} notifications={notifications} unreadMessages={unreadMessages} member={m ? { name, initials: initialsOf(name), sub: "My space", avatar: m.avatar } : null}>
       {children}
     </MemberShell>
   );

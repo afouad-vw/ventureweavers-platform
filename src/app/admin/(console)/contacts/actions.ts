@@ -8,7 +8,7 @@ import { toCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { parseAbout } from "@/lib/profile/about";
+import { parseAbout, type Business } from "@/lib/profile/about";
 import { sendPartnerPasswordReset } from "@/lib/email/account";
 import type { FormState } from "@/lib/auth/form-state";
 
@@ -103,6 +103,9 @@ export async function importContacts(text: string): Promise<{ ok: true; added: n
   return { ok: true, added: rows.length, skipped };
 }
 
+/** "Nile Pay (Venture, Co-founder) https://nilepay.com https://www.linkedin.com/company/nilepay" */
+const bizLine = (b: Business) => [`${b.name}${b.type || b.member_role ? ` (${[b.type, b.member_role].filter(Boolean).join(", ")})` : ""}`, b.website, b.linkedin].filter(Boolean).join(" ");
+
 export async function exportContactsCsv(space: string, q: string): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
   const admin = await requireAdmin("contacts.manage");
   const { contacts } = await loadPeople();
@@ -114,8 +117,8 @@ export async function exportContactsCsv(space: string, q: string): Promise<{ ok:
   return {
     ok: true,
     csv: toCsv(
-      ["Name", "Email", "Mobile", "Business", "Business type", "Website", "Role", "Country", "Spaces", "Source", "Consent", "Last activity", "Joined"],
-      rows.map((c) => [c.name, c.email, c.phone, c.company, c.businessType, c.businessWebsite, c.role, c.country, c.spaces.join(", "), c.source, c.consent, c.last?.text ?? "", formatDate(c.joinedAt)]),
+      ["Name", "Email", "Mobile", "Businesses", "Business details", "Ecosystem Role", "Country", "Spaces", "Source", "Consent", "Last activity", "Joined"],
+      rows.map((c) => [c.name, c.email, c.phone, c.company, c.businesses.map(bizLine).join("; "), c.role, c.country, c.spaces.join(", "), c.source, c.consent, c.last?.text ?? "", formatDate(c.joinedAt)]),
     ),
   };
 }
@@ -131,6 +134,8 @@ function dbError(message: string | undefined, fallback: string) {
   if (m.includes("not_admin")) return "Only partners can do that.";
   if (m.includes("bad_phone")) return "Add the mobile number with its country code.";
   if (m.includes("bad_interests")) return "Pick at least one interest.";
+  if (m.includes("bad_roles")) return "Pick at least one Ecosystem Role.";
+  if (m.includes("too_many_businesses")) return "Up to 10 businesses.";
   if (m.includes("bad_contact")) return "Choose at least one way to communicate.";
   if (m.includes("linkedin")) return "That LinkedIn link doesn't look right.";
   if (m.includes("too_many_resets")) return "Three reset emails were sent in the last hour. Try again later.";
@@ -152,12 +157,10 @@ export async function updateMember(memberId: string, _state: FormState, form: Fo
     p_phone: v.phone,
     p_linkedin: v.linkedin ?? "",
     p_country: v.country,
-    p_role: v.role,
+    p_roles: v.roles,
     p_goals: v.goals,
     p_contact_prefs: v.contact_prefs,
-    p_business_name: v.business_name ?? "",
-    p_business_website: v.business_website ?? "",
-    p_business_type: v.business_type ?? "",
+    p_businesses: parsed.businesses,
   });
   if (error) return { error: dbError(error.message, "Couldn't save the details.") };
   refresh();

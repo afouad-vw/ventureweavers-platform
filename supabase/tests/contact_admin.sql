@@ -34,10 +34,10 @@ grant execute on function pg_temp.as_user(text) to anon, authenticated;
 -- ---------------------------------------------------------------- edit details
 set local role authenticated;
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000d2');
-select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Hacked', '+20 1001234567', null, 'Egypt', 'Founder', array['Education'], array['Email'])$$, '%not_admin%', 'members cannot edit other members through the admin function');
+select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Hacked', '+20 1001234567', null, 'Egypt', array['Founder'], array['Education'], array['Email'], '[]'::jsonb)$$, '%not_admin%', 'members cannot edit other members through the admin function');
 
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000da');
-select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee Updated', '+20 1001234567', 'https://www.linkedin.com/in/dee', 'Egypt', 'Founder', array['Education', 'QuidQuo'], array['WhatsApp', 'Email']);
+select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee Updated', '+20 1001234567', 'https://www.linkedin.com/in/dee', 'Egypt', array['Founder'], array['Education', 'QuidQuo'], array['WhatsApp', 'Email'], '[]'::jsonb);
 reset role;
 select pg_temp.check((select full_name = 'Dee Updated' and phone = '+20 1001234567' and consent_whatsapp and cardinality(goals) = 2 from public.profiles where id = '00000000-0000-0000-0000-0000000000d1'), 'admins edit member details');
 select pg_temp.check((select count(*) from public.audit_log where action = 'member.update' and entity_id = '00000000-0000-0000-0000-0000000000d1' and before ->> 'full_name' is distinct from after ->> 'full_name') = 1, 'every edit is logged with before and after');
@@ -45,16 +45,16 @@ select pg_temp.check((select count(*) from public.notifications where member_id 
 
 set local role authenticated;
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000da');
-select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee Updated', '+20 1001234567', 'https://www.linkedin.com/in/dee', 'Egypt', 'Founder', array['Education', 'QuidQuo'], array['WhatsApp', 'Email']);
+select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee Updated', '+20 1001234567', 'https://www.linkedin.com/in/dee', 'Egypt', array['Founder'], array['Education', 'QuidQuo'], array['WhatsApp', 'Email'], '[]'::jsonb);
 reset role;
 select pg_temp.check((select count(*) from public.audit_log where action = 'member.update' and entity_id = '00000000-0000-0000-0000-0000000000d1') = 1, 'saving without changes logs nothing');
 
 set local role authenticated;
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000da');
-select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee', '01001234567', null, 'Egypt', 'Founder', array['Education'], array['Email'])$$, '%bad_phone%', 'mobile must be in international format');
-select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee', '+20 1001234567', 'https://evil.example/x', 'Egypt', 'Founder', array['Education'], array['Email'])$$, '%check%', 'LinkedIn must be a linkedin.com link');
-select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee', '+20 1001234567', null, 'Egypt', 'Founder', array['Gold'], array['Email'])$$, '%bad_interests%', 'interests come from the list');
-select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000da', 'Admin', '+20 1001234567', null, 'Egypt', 'Founder', array['Education'], array['Email'])$$, '%admin_account%', 'admin accounts cannot be edited from Contacts');
+select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee', '01001234567', null, 'Egypt', array['Founder'], array['Education'], array['Email'], '[]'::jsonb)$$, '%bad_phone%', 'mobile must be in international format');
+select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee', '+20 1001234567', 'https://evil.example/x', 'Egypt', array['Founder'], array['Education'], array['Email'], '[]'::jsonb)$$, '%check%', 'LinkedIn must be a linkedin.com link');
+select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000d1', 'Dee', '+20 1001234567', null, 'Egypt', array['Founder'], array['Gold'], array['Email'], '[]'::jsonb)$$, '%bad_interests%', 'interests come from the list');
+select pg_temp.expect_error($$select public.admin_update_member('00000000-0000-0000-0000-0000000000da', 'Admin', '+20 1001234567', null, 'Egypt', array['Founder'], array['Education'], array['Email'], '[]'::jsonb)$$, '%admin_account%', 'admin accounts cannot be edited from Contacts');
 
 -- ---------------------------------------------------------------- suspend / lift
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000d2');

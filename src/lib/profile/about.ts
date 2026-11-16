@@ -12,17 +12,63 @@ export type About = {
   phone: string;
   linkedin: string | null;
   country: string;
-  role: string;
+  roles: string[];
   goals: string[];
   contact_prefs: string[];
   consent_whatsapp: boolean;
   consent_newsletter: boolean;
-  business_name: string | null;
-  business_website: string | null;
-  business_type: string | null;
 };
 
-export const BUSINESS_TYPES = ["Venture", "Corporate", "Capital", "Government & non-profit", "Education", "Other"] as const;
+/** Mirrors public.business_type_list() in the database. */
+export const BUSINESS_TYPES = ["Venture", "Angel Investor", "Institutional investor", "Corporate", "Institutional Enabler", "Venture Studio", "Expert", "Mentor", "Other"] as const;
+export const MAX_BUSINESSES = 10;
+
+export type Business = { name: string; type: string | null; website: string | null; member_role: string | null; linkedin: string | null };
+
+/** A business LinkedIn page: linkedin.com/company/… (also school, showcase or a personal /in/ page). */
+export function cleanCompanyLinkedIn(v: string): string | null {
+  const raw = v.trim();
+  if (!raw) return null;
+  const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const u = new URL(url);
+    if (!/^https?:$/.test(u.protocol) || !/(^|\.)linkedin\.com$/i.test(u.hostname)) return null;
+    if (!/^\/(company|school|showcase|in)\/[^/\s<>"]+/i.test(u.pathname)) return null;
+    return `https://www.linkedin.com${u.pathname.replace(/\/+$/, "")}`.slice(0, 200);
+  } catch {
+    return null;
+  }
+}
+
+/** Reads the businesses list the form sends as JSON. Empty rows are dropped. */
+export function parseBusinesses(raw: unknown): { ok: true; value: Business[] } | { ok: false; error: string } {
+  let list: unknown;
+  try {
+    list = JSON.parse(String(raw ?? "[]") || "[]");
+  } catch {
+    return { ok: false, error: "We couldn't read your businesses. Please try again." };
+  }
+  if (!Array.isArray(list)) return { ok: false, error: "We couldn't read your businesses. Please try again." };
+  const out: Business[] = [];
+  for (const item of list) {
+    const o = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    const t = (k: string) => String(o[k] ?? "").replace(/\s+/g, " ").trim();
+    const name = t("name").slice(0, 120);
+    const rawSite = t("website");
+    const rawLinkedIn = t("linkedin");
+    const member_role = t("member_role").slice(0, 80) || null;
+    const type = (BUSINESS_TYPES as readonly string[]).includes(t("type")) ? t("type") : null;
+    if (!name && !rawSite && !rawLinkedIn && !member_role && !type) continue;
+    if (!name) return { ok: false, error: "Each business needs a name." };
+    const website = rawSite ? cleanWebsite(rawSite) : null;
+    if (rawSite && !website) return { ok: false, error: `The website for ${name} doesn't look right. Try something like yourcompany.com.` };
+    const linkedin = rawLinkedIn ? cleanCompanyLinkedIn(rawLinkedIn) : null;
+    if (rawLinkedIn && !linkedin) return { ok: false, error: `The LinkedIn page for ${name} doesn't look right. It should look like linkedin.com/company/name.` };
+    out.push({ name, type, website, member_role, linkedin });
+  }
+  if (out.length > MAX_BUSINESSES) return { ok: false, error: `You can add up to ${MAX_BUSINESSES} businesses.` };
+  return { ok: true, value: out };
+}
 
 /** "acme.com" → "https://acme.com". Returns null when it isn't a web address. */
 export function cleanWebsite(v: string): string | null {
@@ -60,7 +106,10 @@ export function splitPhone(phone: string | null | undefined, fallbackCountry = "
   return { dialCountry: pick?.code ?? fallbackCountry, number: m[2] };
 }
 
-export function parseAbout(get: (k: string) => unknown, getAll: (k: string) => unknown[]): { ok: true; value: About } | { ok: false; error: string } {
+export function parseAbout(
+  get: (k: string) => unknown,
+  getAll: (k: string) => unknown[],
+): { ok: true; value: About; businesses: Business[] } | { ok: false; error: string } {
   const s = (k: string) => String(get(k) ?? "").trim();
   const name = s("name").replace(/\s+/g, " ").slice(0, 120);
   if (name.length < 2) return { ok: false, error: "Add your name." };
@@ -71,17 +120,14 @@ export function parseAbout(get: (k: string) => unknown, getAll: (k: string) => u
   if (rawLinkedIn && !linkedin) return { ok: false, error: "That LinkedIn link doesn't look right. It should look like linkedin.com/in/your-name." };
   const country = COUNTRIES.find((c) => c.name === s("country"))?.name;
   if (!country) return { ok: false, error: "Choose your country." };
-  const role = (ROLES as readonly string[]).includes(s("role")) ? s("role") : "";
-  if (!role) return { ok: false, error: "Choose your role." };
+  const roles = [...new Set(getAll("roles").map(String).filter((x) => (ROLES as readonly string[]).includes(x)))];
+  if (!roles.length) return { ok: false, error: "Choose at least one Ecosystem Role." };
   const goals = [...new Set(getAll("interests").map(String).filter((x) => (INTERESTS as readonly string[]).includes(x)))];
   if (!goals.length) return { ok: false, error: "Pick at least one interest." };
   const contact_prefs = [...new Set(getAll("contact").map(String).filter((x) => (CONTACT as readonly string[]).includes(x)))];
   if (!contact_prefs.length) return { ok: false, error: "Choose how we should get in touch." };
-  const business_name = s("business_name").replace(/\s+/g, " ").slice(0, 120) || null;
-  const rawSite = s("business_website");
-  const business_website = cleanWebsite(rawSite);
-  if (rawSite && !business_website) return { ok: false, error: "That website doesn't look right. Try something like yourcompany.com." };
-  const business_type = (BUSINESS_TYPES as readonly string[]).includes(s("business_type")) ? s("business_type") : null;
+  const biz = parseBusinesses(get("businesses"));
+  if (!biz.ok) return biz;
   return {
     ok: true,
     value: {
@@ -89,15 +135,13 @@ export function parseAbout(get: (k: string) => unknown, getAll: (k: string) => u
       phone,
       linkedin: linkedin || null,
       country,
-      role,
+      roles,
       goals,
       contact_prefs,
       consent_whatsapp: contact_prefs.includes("WhatsApp"),
       consent_newsletter: get("newsletter") === "on",
-      business_name,
-      business_website,
-      business_type,
     },
+    businesses: biz.value,
   };
 }
 

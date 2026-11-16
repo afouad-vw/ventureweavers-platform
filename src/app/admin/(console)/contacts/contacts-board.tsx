@@ -76,7 +76,7 @@ export function ContactsBoard({ contacts, base, canManage = true, initialQuery =
         <span className="sr-only">Filter contacts</span>
         <input value={q} onChange={(ev) => setQ(ev.target.value)} placeholder="Filter by name, role, email or tag" className="h-10 w-full rounded-lg border border-line2 bg-card pr-2.5 pl-8 text-[13.5px] placeholder:text-faint focus:border-primary focus:outline-none desk:h-9" />
       </label>
-      <TableBox minWidth={900} head={["Name", "Role · stage", "Spaces", "Source", "Last activity", ""]} empty={!rows.length && "No contacts match."}>
+      <TableBox minWidth={900} head={["Name", "Ecosystem Role · stage", "Spaces", "Source", "Last activity", ""]} empty={!rows.length && "No contacts match."}>
         {rows.map((c) => {
           const wa = waNumber(c.phone);
           return (
