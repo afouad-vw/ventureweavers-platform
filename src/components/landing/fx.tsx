@@ -110,3 +110,35 @@ export function NavScroll() {
   }, []);
   return null;
 }
+
+/** A statement whose words light up one by one as it scrolls through the screen. */
+export function LitStatement({ text, teal = [], className }: { text: string; teal?: string[]; className?: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const spans = [...el.querySelectorAll<HTMLSpanElement>(":scope > span")];
+    if (reduced()) { spans.forEach((s) => s.setAttribute("data-on", "")); return; }
+    let raf = 0, last = -1;
+    const update = () => {
+      const r = el.getBoundingClientRect(), vh = window.innerHeight;
+      const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (vh * 0.55 + r.height * 0.5)));
+      const n = Math.round(p * spans.length);
+      if (n === last) return;
+      last = n;
+      spans.forEach((s, i) => s.toggleAttribute("data-on", i < n));
+    };
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => { window.removeEventListener("scroll", on); cancelAnimationFrame(raf); };
+  }, []);
+  const tealSet = new Set(teal.map((w) => w.toLowerCase()));
+  return (
+    <p ref={ref} className={`lp-lit ${className ?? ""}`}>
+      {text.split(" ").map((w, i) => (
+        <span key={i} className={tealSet.has(w.replace(/[.,]/g, "").toLowerCase()) ? "lp-lit-teal" : undefined}>{w} </span>
+      ))}
+    </p>
+  );
+}

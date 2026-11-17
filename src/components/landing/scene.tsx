@@ -130,7 +130,7 @@ export function FloatingScene({
   return (
     <div ref={wrap} className={`lp-scene ${className ?? ""}`}>
       <div className="lp-scene-inner relative">
-        <Image src={src} alt={alt} width={width} height={height} priority={priority} sizes={sizes ?? "(min-width: 900px) 60vw, 100vw"} className="lp-fade-edge h-auto w-full select-none" draggable={false} />
+        <Image src={src} alt={alt} width={width} height={height} priority={priority} quality={90} sizes={sizes ?? "(min-width: 900px) 60vw, 100vw"} className="h-auto w-full select-none" draggable={false} />
         {flows.length ? <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" /> : null}
         {hotspots.map((h, i) => {
           const body = (
@@ -160,7 +160,7 @@ export type JourneyStep = { key: string; tab: string; kicker: string; title: str
 export function Journey({ src, width, height, steps, eyebrow, title }: { src: string; width: number; height: number; steps: JourneyStep[]; eyebrow: string; title: string }) {
   const section = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const bar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = section.current;
@@ -170,8 +170,8 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
       const r = el.getBoundingClientRect();
       const total = el.offsetHeight - window.innerHeight;
       const p = Math.min(1, Math.max(0, -r.top / Math.max(1, total)));
-      setProgress(p);
       setActive(Math.min(steps.length - 1, Math.floor(p * steps.length * 0.999)));
+      if (bar.current) bar.current.style.width = `${Math.round(((p * steps.length) % 1) * 100)}%`;
     };
     const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
     update();
@@ -188,7 +188,6 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
   };
 
   const s = steps[active];
-  const within = (progress * steps.length) % 1;
 
   return (
     <section ref={section} className="relative" style={{ height: `${steps.length * 90 + 60}vh` }} aria-label={title}>
@@ -200,7 +199,7 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
               className="lp-cam absolute top-1/2 left-1/2 w-full"
               style={{ aspectRatio: `${width} / ${height}`, transform: `translate(-50%, -50%) scale(${s.cam.s}) translate(${50 - s.cam.x}%, ${50 - s.cam.y}%)` }}
             >
-              <Image src={src} alt="" fill sizes="(min-width: 900px) 1600px, 200vw" className="object-cover" />
+              <Image src={src} alt="" fill quality={90} sizes="(min-width: 900px) 1900px, 260vw" className="object-cover" />
             </div>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgb(5_13_14/0.75))]" />
             <span key={s.key} className="lp-pop-label absolute font-mono text-[12px] font-bold tracking-[.18em] uppercase" style={{ left: `${s.label.x}%`, top: `${s.label.y}%`, color: s.tint, borderColor: `color-mix(in srgb, ${s.colour} 60%, transparent)` }}>
@@ -236,7 +235,7 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
                 </a>
               ) : null}
               <div className="mt-5 h-[3px] overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full transition-[width] duration-150" style={{ width: `${Math.round(within * 100)}%`, background: s.colour }} />
+                <div ref={bar} className="h-full rounded-full transition-[width] duration-150" style={{ background: s.colour }} />
               </div>
             </div>
           </div>
