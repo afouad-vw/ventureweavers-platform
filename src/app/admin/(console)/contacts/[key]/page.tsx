@@ -13,6 +13,7 @@ import { loadPerson } from "@/lib/contacts/person";
 import { formatDate, formatDateTime, formatEGP } from "@/lib/events/format";
 import { initialsOf } from "@/lib/initials";
 import { can } from "@/lib/auth/permissions";
+import { companiesFor } from "@/lib/crm/queries";
 import { KIND_LABEL, statusLabel, statusTone, totals } from "@/lib/payments/format";
 import { splitPhone } from "@/lib/profile/about";
 import { waNumber } from "../wa";
@@ -39,6 +40,8 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   const person = await loadPerson(key);
   if (!person) notFound();
   const { contact: c, account: a, timeline, payments, requests } = person;
+  const seeCrm = can(admin, "businesses.view");
+  const crm = seeCrm ? await companiesFor(c.memberId ?? null, c.contactId ?? null) : [];
   const now = Date.now();
   const upcoming = requests.filter((r) => r.meetingAt && new Date(r.meetingAt).getTime() + 3600_000 > now).sort((x, y) => x.meetingAt!.localeCompare(y.meetingAt!));
   const tab = (TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as (typeof TABS)[number]) : "overview";
@@ -158,6 +161,21 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
               ) : (
                 <Row label="Business">{c.company}</Row>
               )}
+              {seeCrm ? (
+                <Row label="In the CRM">
+                  {crm.length ? (
+                    <span className="flex flex-wrap gap-x-3 gap-y-1">
+                      {crm.map((b) => (
+                        <Link key={b.id} href={`${base}/businesses/${b.id}`} className="font-bold text-link hover:underline">
+                          {b.name}{b.role ? <span className="font-normal text-faint"> · {b.role}</span> : null}
+                        </Link>
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="text-faint">Not linked to a business yet</span>
+                  )}
+                </Row>
+              ) : null}
               <Row label={c.memberId ? "Ecosystem Role" : "Role"}>{c.role}</Row>
               {c.memberId ? (
                 <Row label="LinkedIn">

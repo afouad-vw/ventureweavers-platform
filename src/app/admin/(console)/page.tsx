@@ -13,6 +13,7 @@ import { adminMain, adminShared, adminSpaces } from "@/lib/nav";
 import { relativeWhen } from "@/lib/content/format";
 import { attentionCounts, loadPeople } from "@/lib/contacts/queries";
 import { adminListEvents } from "@/lib/events/admin-queries";
+import { crmCounts } from "@/lib/crm/queries";
 
 export const metadata: Metadata = { title: "Overview" };
 
@@ -49,7 +50,8 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
   const base = await currentAdminBase();
   const { denied } = await searchParams;
   if (!can(admin, "overview.view")) return <AccessHome admin={admin} base={base} denied={denied === "1"} />;
-  const [{ contacts, activity }, counts, shows, classes] = await Promise.all([loadPeople(), attentionCounts(), adminListEvents("outloud"), adminListEvents("masterclasses")]);
+  const seeCrm = can(admin, "businesses.view");
+  const [{ contacts, activity }, counts, shows, classes, crm] = await Promise.all([loadPeople(), attentionCounts(), adminListEvents("outloud"), adminListEvents("masterclasses"), seeCrm ? crmCounts() : null]);
   const now = Date.now();
   const upcoming = [...shows, ...classes]
     .filter((e) => e.status === "published" && e.starts_at && new Date(e.starts_at).getTime() > now && e.capacity > 0)
@@ -74,6 +76,12 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
     ["hand-ins to review", c.toReview, "/tvs?tab=classroom"],
     ["new topic suggestions", c.newTopics, "/outloud?tab=live"],
     ["drafts not published", c.drafts, "/publishing"],
+    ...(crm
+      ? ([
+          ["business tasks due by tomorrow", crm.tasksDue, "/businesses?tab=tasks"],
+          ["open B2B deals", crm.openDeals, "/businesses?tab=deals"],
+        ] as [string, number, string][])
+      : []),
   ];
 
   return (

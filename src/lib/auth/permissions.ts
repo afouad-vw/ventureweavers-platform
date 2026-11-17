@@ -7,6 +7,7 @@
 export const AREAS = [
   { key: "overview", label: "Overview", levels: ["view"], hint: "Numbers and what needs attention" },
   { key: "contacts", label: "Contacts", levels: ["view", "manage"], hint: "Manage: notes, edit details, password reset, suspend" },
+  { key: "businesses", label: "Businesses & deals", levels: ["view", "manage"], hint: "Manage: businesses, their people, deals, activity and tasks" },
   { key: "requests", label: "Requests", levels: ["view", "manage"], hint: "Manage: move, assign, confirm meetings" },
   { key: "messages", label: "Messages", levels: ["view", "manage"], hint: "Manage: reply to members, mark conversations done" },
   { key: "payments", label: "Payments", levels: ["view", "manage"], hint: "Manage: mark paid, cancel, refund, payment requests" },
@@ -74,6 +75,7 @@ export function describePerms(perms: readonly string[]): string {
 export const PAGE_PERMS: Record<string, Perm[]> = {
   "/admin": ["overview.view"],
   "/admin/contacts": ["contacts.view"],
+  "/admin/businesses": ["businesses.view"],
   "/admin/requests": ["requests.view"],
   "/admin/messages": ["messages.view"],
   "/admin/payments": ["payments.view"],
