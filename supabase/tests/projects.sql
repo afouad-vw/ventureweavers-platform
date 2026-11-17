@@ -47,7 +47,7 @@ insert into public.projects (id, slug, name, kind, parent_id) values
   ('90000000-0000-0000-0000-000000000004', 'other-client', 'Other client', 'venture', null);
 select pg_temp.expect_error($$insert into public.projects (slug, name, kind, parent_id) values ('nested', 'Nested', 'venture', '90000000-0000-0000-0000-000000000002')$$, '%parent_not_portfolio%', 'ventures sit only under portfolios');
 select pg_temp.expect_error($$insert into public.projects (slug, name, kind, parent_id) values ('bad-portfolio', 'Bad', 'portfolio', '90000000-0000-0000-0000-000000000001')$$, '%check%', 'portfolios have no parent');
-select pg_temp.expect_error($$update public.projects set drive_url = 'https://evil.example/folder' where slug = 'the-cooking-school'$$, '%drive_url%', 'only Google Drive folder links');
+select pg_temp.expect_error($$update public.projects set drive_url = 'javascript:alert(1)' where slug = 'the-cooking-school'$$, '%drive_url%', 'only https folder links');
 update public.projects set drive_url = 'https://drive.google.com/drive/folders/19-mLRAchb5ryFwkD7OFWSdw28BaG5mpf', proposal_path = 'proposals/2026-11/2b9c6f0e-7a7e-4d3c-9b0f-1c2d3e4f5a6b.pdf', proposal_name = 'TCS - VW Fractional Leadership.pdf' where slug = 'the-cooking-school';
 insert into public.project_members (project_id, member_id, role) values
   ('90000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000f1', 'lead'),

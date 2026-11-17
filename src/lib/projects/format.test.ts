@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanDriveUrl, driveEmbedUrl, formatMoney, isOpenRequest, lines, parseAmount, staffRequestMoves, termLine } from "./format";
+import { categoryOf, cleanDriveUrl, cleanFolderUrl, driveEmbedUrl, isOverdue, progressOf, formatMoney, isOpenRequest, lines, parseAmount, staffRequestMoves, termLine } from "./format";
 
 describe("project money", () => {
   it("formats amounts with their currency, TBA when unknown", () => {
@@ -32,6 +32,42 @@ describe("request steps for staff", () => {
     expect(staffRequestMoves({ status: "done", price: 1 })).toEqual([]);
     expect(isOpenRequest("declined")).toBe(false);
     expect(isOpenRequest("quoted")).toBe(true);
+  });
+});
+
+describe("request categories", () => {
+  it("only extra work and scope changes are quoted", () => {
+    expect(categoryOf("extra_work").priced).toBe(true);
+    expect(categoryOf("scope_change").priced).toBe(true);
+    expect(categoryOf("meeting").priced).toBe(false);
+    for (const status of ["submitted", "in_review", "in_progress"]) {
+      expect(staffRequestMoves({ status, price: null, category: "meeting" })).not.toContain("quoted");
+      expect(staffRequestMoves({ status, price: null, category: "question" })).not.toContain("approved");
+    }
+    expect(staffRequestMoves({ status: "submitted", price: null, category: "question" })).toContain("done");
+  });
+});
+
+describe("tasks", () => {
+  it("measures progress and overdue tasks", () => {
+    expect(progressOf([])).toBeNull();
+    expect(progressOf([{ status: "done" }, { status: "todo" }, { status: "blocked" }])).toBe(33);
+    expect(isOverdue({ status: "todo", due_on: "2026-11-10" }, "2026-11-17")).toBe(true);
+    expect(isOverdue({ status: "done", due_on: "2026-11-10" }, "2026-11-17")).toBe(false);
+    expect(isOverdue({ status: "todo", due_on: null }, "2026-11-17")).toBe(false);
+  });
+});
+
+describe("project folders", () => {
+  it("accepts any https link, cleans Drive links", () => {
+    expect(cleanFolderUrl("https://acme.sharepoint.com/sites/x/Shared%20Documents")).toBe("https://acme.sharepoint.com/sites/x/Shared%20Documents");
+    expect(cleanFolderUrl("https://drive.google.com/drive/u/0/folders/19-mLRAchb5ryFwkD7OFWSdw28BaG5mpf?usp=sharing")).toBe("https://drive.google.com/drive/folders/19-mLRAchb5ryFwkD7OFWSdw28BaG5mpf");
+    expect(cleanFolderUrl("")).toBe("");
+    expect(cleanFolderUrl("javascript:alert(1)")).toBeNull();
+    expect(cleanFolderUrl("http://example.com/x")).toBeNull();
+  });
+  it("embeds Drive folders only", () => {
+    expect(driveEmbedUrl("https://evil.example/folders/1234567890ab")).toBeNull();
   });
 });
 

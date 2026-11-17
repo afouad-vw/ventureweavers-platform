@@ -2,7 +2,7 @@ import "server-only";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { peopleById } from "@/lib/tvs/queries";
-import type { Currency, Health, MeetingKind, ProjectKind, ProjectRole, ProjectStatus, RequestStatus } from "./format";
+import type { Currency, Health, MeetingKind, MilestoneStatus, ProjectKind, ProjectRole, ProjectStatus, RequestCategory, RequestStatus, TaskStatus } from "./format";
 
 export type Project = {
   id: string;
@@ -14,6 +14,7 @@ export type Project = {
   deal_id: string | null;
   service: string;
   status: ProjectStatus;
+  status_auto: boolean;
   health: Health;
   summary: string;
   goals: string[];
@@ -34,7 +35,7 @@ export type Project = {
   created_at: string;
 };
 export const PROJECT_COLS =
-  "id, slug, name, kind, parent_id, company_id, deal_id, service, status, health, summary, goals, dimensions, starts_on, term_months, retainer_amount, currency, billing, cadence, key_terms, proposal_path, proposal_name, proposal_accepted_at, proposal_accepted_by, drive_url, calendly_url, created_at";
+  "id, slug, name, kind, parent_id, company_id, deal_id, service, status, status_auto, health, summary, goals, dimensions, starts_on, term_months, retainer_amount, currency, billing, cadence, key_terms, proposal_path, proposal_name, proposal_accepted_at, proposal_accepted_by, drive_url, calendly_url, created_at";
 
 export type ProjectPerson = { id: string; member_id: string | null; email: string | null; name: string; role: ProjectRole; project_id: string };
 export type ScopeItem = { id: string; dimension: string; title: string; details: string; outputs: string[]; sort: number };
@@ -43,6 +44,9 @@ export type ProjectRequest = {
   project_id: string;
   title: string;
   details: string;
+  category: RequestCategory;
+  preferred_times: string;
+  meeting_id: string | null;
   source: "client" | "team";
   received_note: string;
   raised_by: string | null;
@@ -61,7 +65,28 @@ export type ProjectRequest = {
 };
 export type ProjectComment = { id: string; target_type: string; target_id: string | null; body: string; internal: boolean; author_id: string; author: string; staff: boolean; created_at: string };
 export type ProjectMeeting = { id: string; project_id: string; title: string; kind: MeetingKind; starts_at: string; minutes: number; meet_url: string | null; agenda: string; notes: string; status: "scheduled" | "done" | "cancelled"; source: string };
-export type ProjectNote = { id: string; body: string; pinned: boolean; author: string; created_at: string };
+export type ProjectNote = { id: string; body: string; pinned: boolean; shared: boolean; author: string; staff: boolean; mine: boolean; created_at: string };
+export type Milestone = { id: string; project_id: string; title: string; dimension: string; due_on: string | null; status: MilestoneStatus; sort: number };
+export type ProjectTask = {
+  id: string;
+  project_id: string;
+  milestone_id: string | null;
+  meeting_id: string | null;
+  title: string;
+  details: string;
+  dimension: string;
+  owner_side: "team" | "client";
+  assignee: string;
+  assignee_member: string | null;
+  due_on: string | null;
+  status: TaskStatus;
+  priority: "low" | "normal" | "high";
+  internal: boolean;
+  sort: number;
+  completed_at: string | null;
+};
+export type WeeklyUpdate = { id: string; project_id: string; week_of: string; summary: string; done: string; next: string; open_points: string; published_at: string | null };
+export type StatusChange = { id: string; from_status: string | null; to_status: string; auto: boolean; by: string | null; created_at: string };
 
 export type ProjectView = {
   project: Project;
@@ -73,10 +98,15 @@ export type ProjectView = {
   requests: ProjectRequest[];
   comments: ProjectComment[];
   meetings: ProjectMeeting[];
+  milestones: Milestone[];
+  tasks: ProjectTask[];
+  updates: WeeklyUpdate[];
+  notes: ProjectNote[];
+  history: StatusChange[];
   acceptedBy: string | null;
 };
 
-const REQ_COLS = "id, project_id, title, details, source, received_note, raised_by, status, price, currency, response, requirements, timeline, decline_reason, responded_at, decided_at, decided_by, created_at";
+const REQ_COLS = "id, project_id, title, details, category, preferred_times, meeting_id, source, received_note, raised_by, status, price, currency, response, requirements, timeline, decline_reason, responded_at, decided_at, decided_by, created_at";
 
 /** Everything on one project page. Row level security decides what's returned (no internal items for clients). */
 async function loadView(match: { slug?: string; id?: string }, opts: { staff: boolean }): Promise<ProjectView | null> {
@@ -95,14 +125,22 @@ async function loadView(match: { slug?: string; id?: string }, opts: { staff: bo
   const kids = (children.data ?? []) as ProjectView["children"];
   const scopeIds = [project.id, ...kids.map((k) => k.id)];
   const peopleIds = [project.id, ...(project.parent_id ? [project.parent_id] : [])];
-  const [people, scope, reqs, comments, meetings, company] = await Promise.all([
+  const me = (await supabase.auth.getUser()).data.user?.id ?? null;
+  const [people, scope, reqs, comments, meetings, company, milestones, tasks, updates, notes, history] = await Promise.all([
     supabase.from("project_members").select("id, member_id, email, name, role, project_id").in("project_id", peopleIds).order("created_at"),
     supabase.from("project_scope_items").select("id, dimension, title, details, outputs, sort").eq("project_id", project.id).order("sort").order("created_at"),
     supabase.from("project_requests").select(REQ_COLS).in("project_id", scopeIds).order("created_at", { ascending: false }).limit(300),
     supabase.from("project_comments").select("id, target_type, target_id, body, internal, author_id, created_at").in("project_id", scopeIds).order("created_at").limit(1000),
     supabase.from("project_meetings").select("id, project_id, title, kind, starts_at, minutes, meet_url, agenda, notes, status, source").in("project_id", scopeIds).order("starts_at", { ascending: true }).limit(300),
     opts.staff && project.company_id ? supabase.from("companies").select("id, name").eq("id", project.company_id).maybeSingle() : Promise.resolve({ data: null }),
+    supabase.from("project_milestones").select("id, project_id, title, dimension, due_on, status, sort").in("project_id", scopeIds).order("sort").order("due_on", { nullsFirst: false }).limit(300),
+    supabase.from("project_tasks").select("id, project_id, milestone_id, meeting_id, title, details, dimension, owner_side, assignee, assignee_member, due_on, status, priority, internal, sort, completed_at").in("project_id", scopeIds).order("sort").order("due_on", { nullsFirst: false }).order("created_at").limit(1500),
+    supabase.from("project_updates").select("id, project_id, week_of, summary, done, next, open_points, published_at").eq("project_id", project.id).order("week_of", { ascending: false }).limit(60),
+    supabase.from("project_notes").select("id, body, pinned, shared, author_id, created_at").eq("project_id", project.id).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(300),
+    supabase.from("project_status_log").select("id, from_status, to_status, auto, changed_by, created_at").eq("project_id", project.id).order("created_at", { ascending: false }).limit(50),
   ]);
+  const noteRows = (notes.data ?? []) as { id: string; body: string; pinned: boolean; shared: boolean; author_id: string; created_at: string }[];
+  const historyRows = (history.data ?? []) as { id: string; from_status: string | null; to_status: string; auto: boolean; changed_by: string | null; created_at: string }[];
   const reqRows = (reqs.data ?? []) as (Omit<ProjectRequest, "raised_by_name" | "decided_by_name"> & { decided_by: string | null })[];
   const commentRows = (comments.data ?? []) as Omit<ProjectComment, "author" | "staff">[];
   const personRows = (people.data ?? []) as (Omit<ProjectPerson, "name"> & { name: string | null })[];
@@ -110,6 +148,8 @@ async function loadView(match: { slug?: string; id?: string }, opts: { staff: bo
     ...reqRows.flatMap((r) => [r.raised_by, r.decided_by]),
     ...commentRows.map((c) => c.author_id),
     ...personRows.map((m) => m.member_id),
+    ...noteRows.map((n) => n.author_id),
+    ...historyRows.map((h) => h.changed_by),
     project.proposal_accepted_by,
   ].filter(Boolean) as string[];
   const names = await peopleById(ids);
@@ -134,6 +174,14 @@ async function loadView(match: { slug?: string; id?: string }, opts: { staff: bo
       return { ...c, staff, author: staff && !opts.staff ? "VentureWeavers" : nameOf(c.author_id) };
     }),
     meetings: (meetings.data ?? []) as ProjectMeeting[],
+    milestones: (milestones.data ?? []) as Milestone[],
+    tasks: (tasks.data ?? []) as ProjectTask[],
+    updates: (updates.data ?? []) as WeeklyUpdate[],
+    notes: noteRows.map((n) => {
+      const staff = !clientIds.has(n.author_id);
+      return { id: n.id, body: n.body, pinned: n.pinned, shared: n.shared, created_at: n.created_at, staff, mine: n.author_id === me, author: staff && !opts.staff ? "VentureWeavers" : nameOf(n.author_id) };
+    }),
+    history: historyRows.map((h) => ({ id: h.id, from_status: h.from_status, to_status: h.to_status, auto: h.auto, created_at: h.created_at, by: h.auto || !h.changed_by ? null : clientIds.has(h.changed_by) || opts.staff ? nameOf(h.changed_by) : "VentureWeavers" })),
     acceptedBy: project.proposal_accepted_by ? nameOf(project.proposal_accepted_by) : null,
   };
 }
@@ -148,36 +196,37 @@ export async function memberProject(slug: string) {
   return role ? { ...view, role: role as ProjectRole } : null;
 }
 
-/** The staff view of one project (with partner notes). */
-export async function adminProject(id: string): Promise<(ProjectView & { notes: ProjectNote[] }) | null> {
+/** The staff view of one project (all notes, internal tasks and draft wrap-ups included). */
+export async function adminProject(id: string): Promise<ProjectView | null> {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null;
-  const view = await loadView({ id }, { staff: true });
-  if (!view) return null;
-  const supabase = await createClient();
-  const { data } = await supabase.from("project_notes").select("id, body, pinned, author_id, created_at").eq("project_id", id).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(200);
-  const rows = (data ?? []) as { id: string; body: string; pinned: boolean; author_id: string; created_at: string }[];
-  const names = await peopleById(rows.map((r) => r.author_id));
-  return { ...view, notes: rows.map((r) => ({ id: r.id, body: r.body, pinned: r.pinned, created_at: r.created_at, author: names.get(r.author_id)?.name ?? "Partner" })) };
+  return loadView({ id }, { staff: true });
 }
 
 export type ProjectCard = Pick<Project, "id" | "slug" | "name" | "kind" | "parent_id" | "status" | "health" | "service" | "summary" | "currency" | "retainer_amount" | "term_months" | "starts_on" | "company_id"> & {
   openRequests: number;
   nextMeeting: string | null;
+  progress: number | null;
 };
 
 async function cards(rows: ProjectCard[]): Promise<ProjectCard[]> {
   if (!rows.length) return rows;
   const supabase = await createClient();
   const ids = rows.map((r) => r.id);
-  const [reqs, meets] = await Promise.all([
+  const [reqs, meets, tasks] = await Promise.all([
     supabase.from("project_requests").select("project_id, status").in("project_id", ids).in("status", ["submitted", "in_review", "quoted", "approved", "in_progress"]),
     supabase.from("project_meetings").select("project_id, starts_at").in("project_id", ids).eq("status", "scheduled").gte("starts_at", new Date().toISOString()).order("starts_at"),
+    supabase.from("project_tasks").select("project_id, status").in("project_id", ids).limit(5000),
   ]);
+  const done = new Map<string, [number, number]>();
+  for (const t of (tasks.data ?? []) as { project_id: string; status: string }[]) {
+    const [d, n] = done.get(t.project_id) ?? [0, 0];
+    done.set(t.project_id, [d + (t.status === "done" ? 1 : 0), n + 1]);
+  }
   const open = new Map<string, number>();
   for (const r of (reqs.data ?? []) as { project_id: string }[]) open.set(r.project_id, (open.get(r.project_id) ?? 0) + 1);
   const next = new Map<string, string>();
   for (const m of (meets.data ?? []) as { project_id: string; starts_at: string }[]) if (!next.has(m.project_id)) next.set(m.project_id, m.starts_at);
-  return rows.map((r) => ({ ...r, openRequests: open.get(r.id) ?? 0, nextMeeting: next.get(r.id) ?? null }));
+  return rows.map((r) => ({ ...r, openRequests: open.get(r.id) ?? 0, nextMeeting: next.get(r.id) ?? null, progress: done.has(r.id) ? Math.round((done.get(r.id)![0] / done.get(r.id)![1]) * 100) : null }));
 }
 const CARD_COLS = "id, slug, name, kind, parent_id, status, health, service, summary, currency, retainer_amount, term_months, starts_on, company_id";
 

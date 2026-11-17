@@ -1,6 +1,21 @@
 # Phase 17 plan: BRICKR client projects (fractional leadership)
 
-Status: approved 2026-11-17 (client approves quotes; Drive folder link with embedded view; retainer invoices drafted automatically, partner reviews and issues). 17a live (migration `20261117000011`).
+Status: approved 2026-11-17 (client approves quotes; Drive folder link with embedded view; retainer invoices drafted automatically, partner reviews and issues). 17a live (migration `20261117000011`). 17b project management live (migration `20261117000012`, see "17b: project management" below).
+
+## 17b: project management (approved 2026-11-17)
+
+- **Statuses** (replace Set-up/Assessment): Proposal → Pending approval → Approved → Situation assessment → Active → Renewal due → Completed, plus Paused and Cancelled.
+  - Automatic moves: proposal uploaded → Pending approval; client lead accepts → Approved; start date → Situation assessment; one month after the start → Active; one month before the term ends → Renewal due (daily cron and after each save).
+  - Partners change the status by hand at any time and can switch automatic moves off per project. Every change is logged (history on the overview); client people are told in their bell for Approved, Situation assessment, Active, Renewal due and Completed.
+- **Requests have a category:** Extra work and Scope change (quoted; the client lead approves), Meeting or call (with preferred times; partners schedule it into Meetings and the request closes), Question or advice, Document or data, Other (answered and closed, never quoted; enforced in the database).
+- **Notes:** partner notes (team only) and shared notes. Partners tick "Share with the client team"; client people read shared notes and add their own (30 a day) on the Notes tab.
+- **People:** client leads add team members by email (members join straight away; others are invited and join when they sign up with that email; 10 a day, 40 people per project) and remove team members. Only partners make someone a client lead. The invitee gets an email; the partners get an alert.
+- **Plan & tasks:** milestones (dimension, due date, status) and tasks (our side or the client's, assignee, due date, status To do / In progress / Blocked / Done, priority, team-only option). Client people see shared tasks and update the status of client-side tasks; a named client assignee is told in their bell. Progress by milestone and dimension; overdue and blocked counts.
+  - "Add Month 1 onboarding plan" adds the proposal's onboarding: before kick-off, kick-off, three weeks of deep-dives (one per dimension), the readout, a week for direction and roadmap, and the four Month 1 outputs, dated from the start date.
+  - Meetings have action items (tasks linked to the meeting).
+  - Weekly wrap-ups (summary, done, next, open points): saved as drafts, published to the client team (bell and email).
+- **Project folder:** any https link (Google Drive, SharePoint, Dropbox), set inline on the admin overview; Google Drive folders also show their files on the client's page.
+- Next: assessment (requirements sheet answers and scorecard), then 17c invoices and analysis.
 
 Reference: "TCS - VW Fractional Leadership" (the proposal for The Cooking School, latest version 2026-11-17). That proposal sets out:
 - **Four dimensions:** Portfolio Strategy, Venture Building (new ventures, idea to launch), Venture Scaling (existing ventures: diagnose, rebalance or grow), Positioning. Governance and support run through all four.
@@ -20,7 +35,7 @@ Reference: "TCS - VW Fractional Leadership" (the proposal for The Cooking School
   - Roles: **Client lead** (approves quotes and the proposal, sees invoices) and **Team member** (works on tasks, requests and meetings).
   - Portfolio people see the portfolio and every venture under it.
   - A venture's people see only their venture.
-- **Statuses:** Set-up → Assessment → Proposal → Active → Paused → Completed (or Cancelled).
+- **Statuses:** see 17b above.
 - **Health:** each project shows green, amber or red, set by the partners.
 - **Where it lives:**
   - Members: My space › Projects, and a "My projects" card on BRICKR.

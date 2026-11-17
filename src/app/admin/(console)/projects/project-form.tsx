@@ -26,7 +26,7 @@ export function ProjectFields({ p, portfolios, companies, defaults }: { p: Proje
         )}
         <SelectField label="Client business" name="company_id" defaultValue={p?.company_id ?? ""} options={[{ value: "", label: "Not linked" }, ...companies]} hint="From Admin › Businesses." />
         <SelectField label="Service" name="service" defaultValue={p?.service ?? "fractional_leadership"} options={SERVICES} />
-        <SelectField label="Status" name="status" defaultValue={p?.status ?? "setup"} options={PROJECT_STATUSES} />
+        <SelectField label="Status" name="status" defaultValue={p?.status ?? "proposal"} options={PROJECT_STATUSES} />
         <SelectField label="Health" name="health" defaultValue={p?.health ?? "green"} options={HEALTH.map((h) => ({ value: h.value, label: h.label }))} />
       </div>
       <TextArea label="Summary" name="summary" rows={3} defaultValue={p?.summary ?? ""} maxLength={800} placeholder="A strategic partner to build and grow the portfolio…" />
@@ -45,7 +45,7 @@ export function ProjectFields({ p, portfolios, companies, defaults }: { p: Proje
         <TextArea label="Key terms" name="key_terms" rows={4} defaultValue={p?.key_terms ?? ""} maxLength={6000} placeholder={"Third parties work under their own agreements and fees.\nFinal business decisions are yours."} />
       </fieldset>
       <ProposalField initialPath={p?.proposal_path ?? null} initialName={p?.proposal_name ?? null} accepted={Boolean(p?.proposal_accepted_at)} />
-      <TextField label="Google Drive folder (project assets)" name="drive_url" type="url" defaultValue={p?.drive_url ?? ""} maxLength={300} placeholder="https://drive.google.com/drive/folders/…" hint="Share the folder in Drive with the client people's Google accounts; they see its files on the project page." />
+      <TextField label="Project folder link (project assets)" name="drive_url" type="url" defaultValue={p?.drive_url ?? ""} maxLength={300} placeholder="https://drive.google.com/drive/folders/…" hint="Any https link (Google Drive, SharePoint, Dropbox). Share it with the client people first; Google Drive folders also show their files on the project page." />
       <TextField label="Calendly link for sessions (optional)" name="calendly_url" type="url" defaultValue={p?.calendly_url ?? ""} maxLength={300} placeholder="https://calendly.com/karim/weekly-session" hint="Lets the client book sessions themselves; bookings appear in Meetings." />
     </>
   );

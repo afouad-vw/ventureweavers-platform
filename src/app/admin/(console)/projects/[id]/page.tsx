@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, ExternalLink, FileText, FolderOpen } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, FileText } from "lucide-react";
 import { ProposalButton } from "@/components/projects/shared";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
@@ -10,19 +10,21 @@ import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
 import { can } from "@/lib/auth/permissions";
 import { companyOptions } from "@/lib/crm/queries";
 import { formatDate } from "@/lib/events/format";
-import { billingLabel, formatMoney, healthOf, isOpenRequest, projectStatusLabel, projectStatusTone, serviceLabel, termLine } from "@/lib/projects/format";
+import { billingLabel, cairoToday, formatMoney, healthOf, isOpenRequest, isOverdue, progressOf, projectStatusLabel, projectStatusTone, serviceLabel, termLine } from "@/lib/projects/format";
 import { adminProject, adminProjects } from "@/lib/projects/queries";
 import { adminProposalLink } from "../actions";
+import { FolderPanel, PlanPanel, StatusPanel, WrapUpsPanel } from "./plan-admin";
 import { MeetingsPanel, NotesPanel, PeoplePanel, ProjectComments, ProjectHeaderActions, RequestsPanel, ScopePanel } from "./project-admin";
 
 export const metadata: Metadata = { title: "Project" };
 
 const TABS = [
   { value: "overview", label: "Overview" },
+  { value: "plan", label: "Plan & tasks" },
   { value: "scope", label: "Proposal & scope" },
   { value: "requests", label: "Requests" },
   { value: "meetings", label: "Meetings" },
-  { value: "notes", label: "Partner notes" },
+  { value: "notes", label: "Notes" },
 ] as const;
 type Tab = (typeof TABS)[number]["value"];
 
@@ -43,6 +45,11 @@ export default async function AdminProjectPage({ params, searchParams }: { param
   const quoted = view.requests.filter((r) => r.status === "quoted").length;
   const newReqs = view.requests.filter((r) => r.status === "submitted").length;
   const comments = view.comments.map((c) => ({ ...c }));
+  const today = cairoToday();
+  const ownTasks = view.tasks.filter((t) => t.project_id === p.id);
+  const progress = progressOf(ownTasks);
+  const meetingOptions = view.meetings.filter((m) => m.project_id === p.id).map((m) => ({ value: m.id, label: `${m.title} (${formatDate(m.starts_at)})` }));
+  const due = ownTasks.filter((t) => t.status !== "done" && t.due_on).sort((a, b) => (a.due_on! < b.due_on! ? -1 : 1)).slice(0, 6);
 
   return (
     <>
@@ -69,6 +76,7 @@ export default async function AdminProjectPage({ params, searchParams }: { param
           {([
             ["Retainer", p.retainer_amount !== null ? `${formatMoney(p.retainer_amount, p.currency)}/mo` : "TBA", termLine(p)],
             ["Open requests", String(view.requests.filter((r) => isOpenRequest(r.status)).length), quoted ? `${quoted} waiting for the client` : newReqs ? `${newReqs} new` : ""],
+            ["Plan", progress === null ? "No plan" : `${progress}%`, ownTasks.length ? `${ownTasks.filter((t) => isOverdue(t, today)).length} overdue · ${ownTasks.filter((t) => t.status === "blocked").length} blocked` : ""],
             ["Meetings held", String(view.meetings.filter((m) => m.status === "done").length), ""],
             ["Client people", String(own.length + inherited.length), ""],
           ] as const).map(([l, v, sub]) => (
@@ -76,7 +84,7 @@ export default async function AdminProjectPage({ params, searchParams }: { param
           ))}
         </dl>
       </Card>
-      <LinkTabs label="Project sections" value={tab} hrefFor={(v) => `${base}/projects/${p.id}${v === "overview" ? "" : `?tab=${v}`}`} items={TABS.map((t) => ({ ...t, count: t.value === "requests" ? newReqs || null : null }))} />
+      <LinkTabs label="Project sections" value={tab} hrefFor={(v) => `${base}/projects/${p.id}${v === "overview" ? "" : `?tab=${v}`}`} items={TABS.map((t) => ({ ...t, count: t.value === "requests" ? newReqs || null : t.value === "notes" ? view.notes.filter((n) => !n.staff).length || null : null }))} />
 
       {tab === "overview" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_340px] desk:gap-[18px]">
@@ -102,16 +110,34 @@ export default async function AdminProjectPage({ params, searchParams }: { param
                 ) : <p className="text-[13px] text-faint">No ventures yet. Create a venture project and pick this portfolio.</p>}
               </Card>
             ) : null}
+            <Card className="gap-2">
+              <CardHeader title="Coming up" action={<Link href={`${base}/projects/${p.id}?tab=plan`} className="text-[12.5px] font-bold text-link">Plan</Link>} />
+              {due.length ? (
+                <ul className="flex flex-col">
+                  {due.map((t) => (
+                    <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-line py-2 text-[13px] last:border-b-0">
+                      <span className="min-w-0"><b>{t.title}</b> <span className="text-faint">· {t.owner_side === "client" ? "Client" : "VentureWeavers"}{t.assignee ? `, ${t.assignee}` : ""}</span></span>
+                      <span className={isOverdue(t, today) ? "font-bold text-bad-fg" : "text-faint"}>{formatDate(t.due_on!)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-[13px] text-faint">No dated tasks. Add the plan in Plan &amp; tasks.</p>}
+            </Card>
             <ProjectComments projectId={p.id} comments={comments} />
           </div>
           <aside className="flex min-w-0 flex-col gap-4">
+            <StatusPanel project={p} history={view.history} canManage={manage} />
             <PeoplePanel projectId={p.id} people={own} inherited={inherited} canManage={manage} />
-            <Card>
-              <CardHeader title="Project folder" />
-              {p.drive_url ? <a href={p.drive_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-link hover:underline"><FolderOpen size={15} aria-hidden="true" />Open in Google Drive</a> : <p className="text-[13px] text-faint">Not connected. Add the Drive folder link in Edit project.</p>}
-            </Card>
+            <FolderPanel projectId={p.id} url={p.drive_url} canManage={manage} />
           </aside>
         </div>
+      ) : null}
+
+      {tab === "plan" ? (
+        <>
+          <PlanPanel projectId={p.id} milestones={view.milestones} tasks={view.tasks} people={[...own, ...inherited]} dimensions={p.dimensions} comments={comments} canManage={manage} meetings={meetingOptions} startsOn={p.starts_on} />
+          <WrapUpsPanel projectId={p.id} updates={view.updates} comments={comments} canManage={manage} />
+        </>
       ) : null}
 
       {tab === "scope" ? (
@@ -140,7 +166,7 @@ export default async function AdminProjectPage({ params, searchParams }: { param
       ) : null}
 
       {tab === "requests" ? <RequestsPanel projectId={p.id} requests={view.requests} comments={comments} projectNames={projectNames} canManage={manage} defaultCurrency={p.currency} /> : null}
-      {tab === "meetings" ? <MeetingsPanel projectId={p.id} meetings={view.meetings} comments={comments} projectNames={projectNames} canManage={manage} /> : null}
+      {tab === "meetings" ? <MeetingsPanel projectId={p.id} meetings={view.meetings} comments={comments} projectNames={projectNames} canManage={manage} tasks={view.tasks} milestones={view.milestones} dimensions={p.dimensions} people={[...own, ...inherited]} /> : null}
       {tab === "notes" ? <NotesPanel projectId={p.id} notes={view.notes} canManage={manage} /> : null}
     </>
   );

@@ -39,7 +39,9 @@ export async function GET(req: NextRequest) {
   // Also pull the latest Shorts from @ventureweavers (the Outloud page refreshes them hourly when visited).
   const social = await syncSocial({ force: true }).catch(() => []);
   const waitlist = await sendWaitlistEmails().catch(() => 0);
-  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0, social, waitlist });
+  // Client projects: date-based status moves (start date, a month in, a month before the end).
+  const { data: projects } = await svc.rpc("project_auto_status");
+  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0, social, waitlist, projects: projects ?? 0 });
 }
 
 /**

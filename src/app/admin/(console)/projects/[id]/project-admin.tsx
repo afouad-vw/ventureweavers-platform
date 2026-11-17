@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, MessageSquare, Pencil, Pin, PinOff, Plus, Search, Trash2, UserPlus, Video } from "lucide-react";
+import { CalendarClock, CalendarPlus, ListChecks, MessageSquare, Pencil, Pin, PinOff, Plus, Search, Trash2, UserPlus, Video } from "lucide-react";
 import { loadPersonOptions } from "@/app/admin/(console)/access-actions";
 import { ConfirmDelete, EditorDrawer, IconBtn, useRunner } from "@/components/admin/crud";
 import { CommentThread, type ThreadComment } from "@/components/projects/shared";
@@ -14,8 +14,12 @@ import { MiniTag, StatusPill } from "@/components/ui/tag";
 import type { PersonOption } from "@/lib/access";
 import { formatDate, formatDateTime, isoToCairoLocal } from "@/lib/events/format";
 import {
+  categoryOf,
   formatMoney,
+  isOpenRequest as isOpen,
   MEETING_KINDS,
+  REQUEST_CATEGORIES,
+  taskStatusLabel,
   meetingKindLabel,
   requestStatusLabel,
   requestTone,
@@ -23,7 +27,7 @@ import {
   staffRequestMoves,
   type RequestStatus,
 } from "@/lib/projects/format";
-import type { Project, ProjectMeeting, ProjectNote, ProjectPerson, ProjectRequest, ScopeItem } from "@/lib/projects/queries";
+import type { Milestone, Project, ProjectMeeting, ProjectNote, ProjectPerson, ProjectRequest, ProjectTask, ScopeItem } from "@/lib/projects/queries";
 import {
   addNote,
   addProjectPerson,
@@ -39,10 +43,12 @@ import {
   saveMeeting,
   saveProject,
   saveScopeItem,
+  saveTask,
   setNotePinned,
   setProjectPersonRole,
 } from "../actions";
 import { ProjectFields, type Option } from "../project-form";
+import { TaskFields } from "./plan-admin";
 
 /** Edit settings and delete, from the project header. */
 export function ProjectHeaderActions({ project, portfolios, companies, base }: { project: Project; portfolios: Option[]; companies: Option[]; base: string }) {
@@ -183,28 +189,42 @@ export function RequestsPanel({ projectId, requests, comments, projectNames, can
   const [next, setNext] = useState<RequestStatus>("quoted");
   const [adding, setAdding] = useState(false);
   const [del, setDel] = useState<ProjectRequest | null>(null);
+  const [schedule, setSchedule] = useState<ProjectRequest | null>(null);
+  const [cat, setCat] = useState("all");
+  const [logCat, setLogCat] = useState("extra_work");
   const r = useRunner();
   const multi = Object.keys(projectNames).length > 1;
   const form = useRef<HTMLFormElement>(null);
+  const shown = cat === "all" ? requests : requests.filter((q) => q.category === cat);
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="max-w-[640px] text-[13px] text-muted">Requests beyond the scope are priced separately. Quote them (price, details, requirements, timeline) for the client lead to approve, or decline with a reason.</p>
-        {canManage ? <Button size="sm" variant="secondary" onClick={() => { r.setError(null); setAdding(true); }}><Plus size={14} aria-hidden="true" />Log a verbal request</Button> : null}
+        <p className="max-w-[640px] text-[13px] text-muted">Extra work and scope changes are priced separately: quote them for the client lead to approve, or decline with a reason. Meeting requests are scheduled into Meetings; questions, documents and other requests are answered and closed.</p>
+        <span className="flex flex-wrap items-center gap-2">
+          <select aria-label="Filter by category" value={cat} onChange={(e) => setCat(e.target.value)} className="h-9 rounded-lg border border-line2 bg-card px-2 text-[13px]">
+            <option value="all">All categories</option>
+            {REQUEST_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label} ({requests.filter((q) => q.category === c.value).length})</option>)}
+          </select>
+          {canManage ? <Button size="sm" variant="secondary" onClick={() => { r.setError(null); setAdding(true); }}><Plus size={14} aria-hidden="true" />Log a verbal request</Button> : null}
+        </span>
       </div>
-      {requests.length ? requests.map((q) => {
+      {shown.length ? shown.map((q) => {
         const moves = staffRequestMoves(q);
+        const c = categoryOf(q.category);
         return (
           <Card key={q.id} className="gap-2">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
-                <b className="text-[15px]">{q.title}</b>
+                <span className="text-[11px] font-extrabold tracking-wide text-brk-fg uppercase">{c.label}</span>
+                <b className="block text-[15px]">{q.title}</b>
                 <p className="text-[12.5px] text-faint">{multi ? `${projectNames[q.project_id]} · ` : ""}{q.source === "team" ? `Logged by ${q.raised_by_name}${q.received_note ? ` (${q.received_note})` : ""}` : `Raised by ${q.raised_by_name}`} · {formatDate(q.created_at)}</p>
               </div>
               <StatusPill tone={requestTone(q.status)}>{requestStatusLabel(q.status)}</StatusPill>
             </div>
             {q.details ? <p className="text-[13.5px] whitespace-pre-line text-muted">{q.details}</p> : null}
-            {q.response || q.price !== null ? (
+            {q.preferred_times ? <p className="text-[13px]"><b>Preferred times:</b> {q.preferred_times}</p> : null}
+            {!c.priced && q.response ? <p className="rounded-xl border border-line bg-hover/60 p-3 text-[13px] whitespace-pre-line">{q.response}</p> : null}
+            {c.priced && (q.response || q.price !== null) ? (
               <div className="flex flex-col gap-1 rounded-xl border border-line bg-hover/60 p-3 text-[13px]">
                 {q.response ? <p className="whitespace-pre-line">{q.response}</p> : null}
                 {q.requirements ? <p className="whitespace-pre-line text-muted"><b className="text-fg">Requirements:</b> {q.requirements}</p> : null}
@@ -215,14 +235,16 @@ export function RequestsPanel({ projectId, requests, comments, projectNames, can
             {q.decline_reason && q.status === "declined" ? <p className="rounded-xl bg-warn-bg px-3 py-2 text-[13px] text-warn-fg">{q.decline_reason}</p> : null}
             {canManage ? (
               <span className="flex flex-wrap items-center gap-2">
-                {moves.length ? <Button size="sm" onClick={() => { r.setError(null); setNext(moves[0]); setRespond(q); }}>Respond / move</Button> : null}
+                {q.category === "meeting" && !q.meeting_id && isOpen(q.status) ? <Button size="sm" onClick={() => { r.setError(null); setSchedule(q); }}><CalendarPlus size={14} aria-hidden="true" />Schedule meeting</Button> : null}
+                {q.meeting_id ? <span className="text-[12.5px] font-bold text-soft-fg">Scheduled in Meetings</span> : null}
+                {moves.length ? <Button size="sm" variant={q.category === "meeting" ? "secondary" : "primary"} onClick={() => { r.setError(null); setNext(moves[0]); setRespond(q); }}>{c.priced ? "Respond / move" : "Reply / move"}</Button> : null}
                 <IconBtn label={`Delete ${q.title}`} onClick={() => setDel(q)}><Trash2 size={15} aria-hidden="true" /></IconBtn>
               </span>
             ) : null}
             <CommentThread compact staff comments={commentsOf(comments, "request", q.id)} post={(body, internal) => addStaffComment(q.project_id, { type: "request", id: q.id }, body, internal)} placeholder="Comment on this request" />
           </Card>
         );
-      }) : <p className="rounded-xl border border-dashed border-line2 p-6 text-center text-[13.5px] text-faint">No requests yet.</p>}
+      }) : <p className="rounded-xl border border-dashed border-line2 p-6 text-center text-[13.5px] text-faint">No requests{cat !== "all" ? " in this category" : " yet"}.</p>}
 
       <Modal
         open={respond !== null}
@@ -252,6 +274,7 @@ export function RequestsPanel({ projectId, requests, comments, projectNames, can
                 <p className="text-[12.5px] text-faint">The client lead is told in their bell and approves or declines in the app. With a price above 0, work starts after approval.</p>
               </>
             ) : null}
+            {next !== "quoted" && next !== "declined" && !categoryOf(respond.category).priced ? <TextArea label="Reply (the client sees this)" name="response" rows={4} maxLength={4000} defaultValue={respond.response} placeholder="The answer, or where to find the document." /> : null}
             {next === "declined" ? <TextArea label="Reason (the client sees this)" name="decline_reason" rows={3} required maxLength={1000} /> : null}
             {r.error ? <p role="alert" className="rounded-lg bg-bad-bg px-3 py-2 text-[13px] font-bold text-bad-fg">{r.error}</p> : null}
           </form>
@@ -262,10 +285,23 @@ export function RequestsPanel({ projectId, requests, comments, projectNames, can
         {multi ? (
           <SelectField label="For" name="project_id" defaultValue={projectId} options={Object.entries(projectNames).map(([value, label]) => ({ value, label }))} />
         ) : <input type="hidden" name="project_id" value={projectId} />}
+        <SelectField label="Category" name="category" value={logCat} onChange={(e) => setLogCat(e.target.value)} options={REQUEST_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))} />
         <TextField label="What did they ask for?" name="title" required maxLength={160} />
         <TextArea label="Details" name="details" rows={4} maxLength={4000} />
+        {logCat === "meeting" ? <TextField label="Preferred times" name="preferred_times" maxLength={300} placeholder="Sunday or Monday afternoon" /> : null}
         <TextField label="How and when we received it" name="received_note" maxLength={300} placeholder="Verbal, weekly session on 12 Nov" />
-        <p className="text-[12.5px] text-faint">The client team is told in their bell. Then respond with a quote for the client lead to approve.</p>
+        <p className="text-[12.5px] text-faint">The client team is told in their bell. {categoryOf(logCat).priced ? "Then respond with a quote for the client lead to approve." : "Then reply and close it."}</p>
+      </EditorDrawer>
+      <EditorDrawer open={schedule !== null} onClose={() => setSchedule(null)} eyebrow="Meeting request" title="Schedule the meeting" pending={r.pending} error={r.error} formKey={schedule?.id ?? "none"} onSubmit={(fd) => r.run(() => saveMeeting(fd), () => setSchedule(null))}>
+        {schedule ? (
+          <>
+            <input type="hidden" name="project_id" value={schedule.project_id} />
+            <input type="hidden" name="request_id" value={schedule.id} />
+            {schedule.preferred_times ? <p className="rounded-lg bg-soft px-3 py-2 text-[13px] text-soft-fg"><b>They prefer:</b> {schedule.preferred_times}</p> : null}
+            <MeetingFields m={null} title={schedule.title} agenda={schedule.details} />
+            <p className="text-[12.5px] text-faint">The meeting goes into Meetings, the client team is told in their bell, and the request is closed.</p>
+          </>
+        ) : null}
       </EditorDrawer>
       <ConfirmDelete name={del?.title} open={del !== null} onClose={() => setDel(null)} pending={r.pending} onConfirm={() => del && r.run(() => deleteRequest(del.id), () => setDel(null))} />
     </div>
@@ -273,9 +309,10 @@ export function RequestsPanel({ projectId, requests, comments, projectNames, can
 }
 
 /** Meetings: schedule (Cairo time), agenda, notes after, cancel. */
-export function MeetingsPanel({ projectId, meetings, comments, projectNames, canManage }: { projectId: string; meetings: ProjectMeeting[]; comments: (ThreadComment & { target_type: string; target_id: string | null })[]; projectNames: Record<string, string>; canManage: boolean }) {
+export function MeetingsPanel({ projectId, meetings, comments, projectNames, canManage, tasks, milestones, dimensions, people }: { projectId: string; meetings: ProjectMeeting[]; comments: (ThreadComment & { target_type: string; target_id: string | null })[]; projectNames: Record<string, string>; canManage: boolean; tasks: ProjectTask[]; milestones: Milestone[]; dimensions: string[]; people: ProjectPerson[] }) {
   const [edit, setEdit] = useState<ProjectMeeting | "new" | null>(null);
   const [del, setDel] = useState<ProjectMeeting | null>(null);
+  const [action, setAction] = useState<ProjectMeeting | null>(null);
   const r = useRunner();
   const m = edit && edit !== "new" ? edit : null;
   const multi = Object.keys(projectNames).length > 1;
@@ -304,6 +341,16 @@ export function MeetingsPanel({ projectId, meetings, comments, projectNames, can
               </p>
               {x.agenda ? <p className="text-[13px] whitespace-pre-line"><b>Agenda:</b> {x.agenda}</p> : null}
               {x.notes ? <p className="rounded-lg bg-hover px-3 py-2 text-[13px] whitespace-pre-line"><b>Notes:</b> {x.notes}</p> : null}
+              {(() => {
+                const items = tasks.filter((t) => t.meeting_id === x.id);
+                return items.length || canManage ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="inline-flex items-center gap-1 text-[12px] font-extrabold tracking-wide text-faint uppercase"><ListChecks size={13} aria-hidden="true" />Action items</span>
+                    {items.map((t) => <p key={t.id} className="text-[13px]">{t.status === "done" ? "✓ " : "• "}{t.title} <span className="text-faint">· {t.owner_side === "client" ? "Client" : "VentureWeavers"}{t.assignee ? `, ${t.assignee}` : ""} · {taskStatusLabel(t.status)}</span></p>)}
+                    {canManage ? <button type="button" onClick={() => { r.setError(null); setAction(x); }} className="inline-flex cursor-pointer items-center gap-1 self-start text-[12.5px] font-bold text-link hover:underline"><Plus size={13} aria-hidden="true" />Add an action item</button> : null}
+                  </div>
+                ) : null;
+              })()}
               <CommentThread compact staff comments={commentsOf(comments, "meeting", x.id)} post={(body, internal) => addStaffComment(x.project_id, { type: "meeting", id: x.id }, body, internal)} placeholder="Comment on this meeting" />
             </li>
           ))}
@@ -312,41 +359,67 @@ export function MeetingsPanel({ projectId, meetings, comments, projectNames, can
       <EditorDrawer open={edit !== null} onClose={() => setEdit(null)} eyebrow="Meetings" title={m ? "Edit meeting" : "Schedule a meeting"} pending={r.pending} error={r.error} formKey={m?.id ?? "new"} onSubmit={(fd) => r.run(() => saveMeeting(fd), () => setEdit(null))}>
         <input type="hidden" name="project_id" value={m?.project_id ?? projectId} />
         {m ? <input type="hidden" name="id" value={m.id} /> : null}
-        <TextField label="Title" name="title" required maxLength={160} defaultValue={m?.title ?? ""} placeholder="Weekly session: portfolio strategy" />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SelectField label="Type" name="kind" defaultValue={m?.kind ?? "weekly"} options={MEETING_KINDS} />
-          <SelectField label="Status" name="status" defaultValue={m?.status ?? "scheduled"} options={[{ value: "scheduled", label: "Scheduled" }, { value: "done", label: "Done" }, { value: "cancelled", label: "Cancelled" }]} />
-          <TextField label="Date and time (Cairo)" name="starts_at" type="datetime-local" required defaultValue={m ? isoToCairoLocal(m.starts_at) : ""} />
-          <TextField label="Length (minutes)" name="minutes" type="number" min={15} max={480} defaultValue={m?.minutes ?? 90} />
-        </div>
-        <TextField label="Meeting link (Google Meet)" name="meet_url" type="url" maxLength={300} defaultValue={m?.meet_url ?? ""} placeholder="https://meet.google.com/…" />
-        <TextArea label="Agenda" name="agenda" rows={4} maxLength={3000} defaultValue={m?.agenda ?? ""} />
-        <TextArea label="Notes after the meeting" name="notes" rows={4} maxLength={8000} defaultValue={m?.notes ?? ""} hint="The client team sees these notes." />
+        <MeetingFields m={m} />
+      </EditorDrawer>
+      <EditorDrawer open={action !== null} onClose={() => setAction(null)} eyebrow={action ? `Action item · ${action.title}` : "Action item"} title="Add an action item" pending={r.pending} error={r.error} formKey={action?.id ?? "none"} onSubmit={(fd) => r.run(() => saveTask(fd), () => setAction(null))}>
+        {action ? <TaskFields projectId={action.project_id} task={null} milestones={milestones.filter((ms) => ms.project_id === action.project_id)} dimensions={dimensions} people={people.filter((p) => p.member_id)} meetingId={action.id} /> : null}
       </EditorDrawer>
       <ConfirmDelete name={del?.title} open={del !== null} onClose={() => setDel(null)} pending={r.pending} note="To keep it visible as cancelled, edit it and set the status to Cancelled instead." onConfirm={() => del && r.run(() => deleteMeeting(del.id), () => setDel(null))} />
     </Card>
   );
 }
 
-/** Partner notes: only the team sees them. */
+function MeetingFields({ m, title, agenda }: { m: ProjectMeeting | null; title?: string; agenda?: string }) {
+  return (
+    <>
+      <TextField label="Title" name="title" required maxLength={160} defaultValue={m?.title ?? title ?? ""} placeholder="Weekly session: portfolio strategy" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SelectField label="Type" name="kind" defaultValue={m?.kind ?? (title ? "checkin" : "weekly")} options={MEETING_KINDS} />
+        <SelectField label="Status" name="status" defaultValue={m?.status ?? "scheduled"} options={[{ value: "scheduled", label: "Scheduled" }, { value: "done", label: "Done" }, { value: "cancelled", label: "Cancelled" }]} />
+        <TextField label="Date and time (Cairo)" name="starts_at" type="datetime-local" required defaultValue={m ? isoToCairoLocal(m.starts_at) : ""} />
+        <TextField label="Length (minutes)" name="minutes" type="number" min={15} max={480} defaultValue={m?.minutes ?? (title ? 60 : 90)} />
+      </div>
+      <TextField label="Meeting link (Google Meet)" name="meet_url" type="url" maxLength={300} defaultValue={m?.meet_url ?? ""} placeholder="https://meet.google.com/…" />
+      <TextArea label="Agenda" name="agenda" rows={4} maxLength={3000} defaultValue={m?.agenda ?? agenda ?? ""} />
+      <TextArea label="Notes after the meeting" name="notes" rows={4} maxLength={8000} defaultValue={m?.notes ?? ""} hint="The client team sees these notes. Add action items from the meeting list." />
+    </>
+  );
+}
+
+/** Notes: partner notes (team only) and shared notes the client team sees and adds to. */
 export function NotesPanel({ projectId, notes, canManage }: { projectId: string; notes: ProjectNote[]; canManage: boolean }) {
   const [body, setBody] = useState("");
+  const [shared, setShared] = useState(false);
+  const [view, setView] = useState<"all" | "partner" | "shared">("all");
   const r = useRunner();
+  const shown = notes.filter((n) => (view === "all" ? true : view === "shared" ? n.shared : !n.shared));
   return (
     <Card className="gap-3">
-      <CardHeader title="Partner notes" action={<span className="text-[12px] text-faint">Team only</span>} />
+      <CardHeader
+        title="Notes"
+        action={
+          <select aria-label="Which notes" value={view} onChange={(e) => setView(e.target.value as typeof view)} className="h-9 rounded-lg border border-line2 bg-card px-2 text-[13px]">
+            <option value="all">All notes</option>
+            <option value="partner">Partner notes (team only)</option>
+            <option value="shared">Shared with the client</option>
+          </select>
+        }
+      />
       {canManage ? (
-        <form className="flex flex-col gap-2" onSubmit={(e) => { e.preventDefault(); r.run(() => addNote(projectId, body), () => setBody("")); }}>
-          <TextArea label="New note" value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={4000} placeholder="Context, decisions, follow-ups…" />
-          <Button type="submit" size="sm" className="self-start" disabled={r.pending || !body.trim()}>Save note</Button>
+        <form className="flex flex-col gap-2" onSubmit={(e) => { e.preventDefault(); r.run(() => addNote(projectId, body, shared), () => setBody("")); }}>
+          <TextArea label="New note" value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={4000} placeholder={shared ? "Agreements, reminders or context for the client team…" : "Context, decisions, follow-ups (only the team sees these)…"} />
+          <span className="flex flex-wrap items-center gap-3">
+            <Button type="submit" size="sm" disabled={r.pending || !body.trim()}>Save note</Button>
+            <label className="inline-flex items-center gap-2 text-[13px] font-semibold"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} className="h-4 w-4 accent-primary" />Share with the client team</label>
+          </span>
         </form>
       ) : null}
-      {notes.length ? (
+      {shown.length ? (
         <ul className="flex flex-col gap-2">
-          {notes.map((n) => (
-            <li key={n.id} className={`rounded-xl border px-3 py-2 ${n.pinned ? "border-primary/40 bg-soft" : "border-line"}`}>
+          {shown.map((n) => (
+            <li key={n.id} className={`rounded-xl border px-3 py-2 ${n.pinned ? "border-primary/40 bg-soft" : n.shared ? "border-line bg-card" : "border-dashed border-line2 bg-hover/50"}`}>
               <span className="flex items-center justify-between gap-2 text-[11.5px] text-faint">
-                <span><b className="text-fg">{n.author}</b> · {formatDateTime(n.created_at)}</span>
+                <span><b className="text-fg">{n.author}</b>{!n.staff ? " (client)" : ""} · {formatDateTime(n.created_at)} · {n.shared ? "Shared" : "Team only"}</span>
                 {canManage ? (
                   <span className="flex">
                     <IconBtn label={n.pinned ? "Unpin" : "Pin"} onClick={() => r.run(() => setNotePinned(n.id, !n.pinned))}>{n.pinned ? <PinOff size={14} aria-hidden="true" /> : <Pin size={14} aria-hidden="true" />}</IconBtn>
