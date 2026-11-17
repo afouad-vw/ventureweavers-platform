@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adminSessionVerdict, allowedOtpType, clientIp, isLockedOut, isNonce, looksLikeGoogleIdToken, safeNext } from "./policy";
+import { adminSessionVerdict, allowedOtpType, resetAllowed, clientIp, isLockedOut, isNonce, looksLikeGoogleIdToken, safeNext } from "./policy";
 
 describe("lockout", () => {
   it("allows up to four failures", () => {
@@ -48,10 +48,12 @@ describe("clientIp", () => {
 });
 
 describe("email link types", () => {
-  it("admin host accepts only invites", () => {
+  it("admin host accepts only invites and password resets", () => {
     expect(allowedOtpType("admin", "invite")).toBe(true);
-    expect(allowedOtpType("admin", "recovery")).toBe(false);
+    expect(allowedOtpType("admin", "recovery")).toBe(true);
     expect(allowedOtpType("admin", "email")).toBe(false);
+    expect(allowedOtpType("admin", "signup")).toBe(false);
+    expect(allowedOtpType("admin", "email_change")).toBe(false);
   });
   it("app host never accepts invites", () => {
     expect(allowedOtpType("app", "invite")).toBe(false);
@@ -76,5 +78,13 @@ describe("Google ID token checks", () => {
     expect(isNonce("AB".repeat(32))).toBe(false);
     expect(isNonce("ab".repeat(31))).toBe(false);
     expect(isNonce(undefined)).toBe(false);
+  });
+});
+
+describe("admin password reset limits", () => {
+  it("allows 3 emails per account and 5 requests per IP an hour", () => {
+    expect(resetAllowed({ byAccount: 2, byIp: 4 })).toBe(true);
+    expect(resetAllowed({ byAccount: 3, byIp: 0 })).toBe(false);
+    expect(resetAllowed({ byAccount: 0, byIp: 5 })).toBe(false);
   });
 });

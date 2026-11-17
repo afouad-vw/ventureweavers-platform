@@ -3,6 +3,11 @@
 export const LOCKOUT = { windowMinutes: 15, maxFailures: 5 } as const;
 export const ADMIN_SESSION = { idleHours: 12, maxDays: 7, touchEveryMinutes: 5 } as const;
 export const PASSWORD_MIN = { member: 10, admin: 12 } as const;
+/** Admin "Forgot password": at most 3 emails per account and 5 requests per IP address an hour. */
+export const ADMIN_RESET = { perAccount: 3, perIp: 5, windowMinutes: 60 } as const;
+export function resetAllowed(counts: { byAccount: number; byIp: number }) {
+  return counts.byAccount < ADMIN_RESET.perAccount && counts.byIp < ADMIN_RESET.perIp;
+}
 
 /** Locked when either the username or the IP has too many failures in the window. */
 export function isLockedOut(failures: { byUsername: number; byIp: number }) {
@@ -52,6 +57,7 @@ export function clientIp(h: { get(name: string): string | null }) {
 
 /** Which email link types each surface accepts. Admin invites only on the admin host; member links only on the app. */
 export function allowedOtpType(surface: string | null, type: string | null) {
-  if (surface === "admin") return type === "invite";
+  // Admin host: the invite (first password) and our own reset link (forgot password).
+  if (surface === "admin") return type === "invite" || type === "recovery";
   return type === "email" || type === "signup" || type === "recovery" || type === "email_change";
 }
