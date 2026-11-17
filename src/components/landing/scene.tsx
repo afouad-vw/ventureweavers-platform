@@ -55,10 +55,12 @@ export function FloatingScene({
     const ctx = c.getContext("2d");
     if (!ctx) return;
     let w = 0, h = 0, raf = 0, visible = true;
+    // Size from the scene around the canvas (never from the canvas itself, which would feed back).
+    const host = c.parentElement!;
     const size = () => {
-      const r = c.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = r.width; h = r.height;
+      w = Math.min(host.clientWidth, 2000); h = Math.min(host.clientHeight, 2000);
+      c.style.width = `${w}px`; c.style.height = `${h}px`;
       c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
@@ -118,7 +120,7 @@ export function FloatingScene({
     size();
     if (!reduced()) raf = requestAnimationFrame(draw);
     const ro = new ResizeObserver(size);
-    ro.observe(c);
+    ro.observe(host);
     const io = new IntersectionObserver(([en]) => {
       visible = en.isIntersecting;
       if (visible && !reduced()) { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); }
@@ -128,10 +130,10 @@ export function FloatingScene({
   }, [flows]);
 
   return (
-    <div ref={wrap} className={`lp-scene ${className ?? ""}`}>
+    <div ref={wrap} className={`lp-scene w-full min-w-0 ${className ?? ""}`}>
       <div className="lp-scene-inner relative">
         <Image src={src} alt={alt} width={width} height={height} priority={priority} quality={90} sizes={sizes ?? "(min-width: 900px) 60vw, 100vw"} className="h-auto w-full select-none" draggable={false} />
-        {flows.length ? <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" /> : null}
+        {flows.length ? <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute top-0 left-0" /> : null}
         {hotspots.map((h, i) => {
           const body = (
             <>
@@ -190,7 +192,7 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
   const s = steps[active];
 
   return (
-    <section ref={section} className="relative" style={{ height: `${steps.length * 90 + 60}vh` }} aria-label={title}>
+    <section ref={section} className="lp-journey relative" style={{ "--n": steps.length } as React.CSSProperties} aria-label={title}>
       <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
         <div className="mx-auto grid w-full max-w-[1240px] items-center gap-4 px-5 pt-20 desk:gap-6 desk:pt-16 desk:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] desk:gap-12 desk:px-8">
           <div className="relative aspect-[16/11] overflow-hidden rounded-[22px] desk:rounded-[28px] border border-white/10 bg-[#050d0e] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] desk:aspect-[5/4]">

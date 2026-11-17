@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { headers } from "next/headers";
 import {
-  ArrowRight, ArrowUpRight, BookOpen, Briefcase, Building2, CalendarCheck, Cpu, GraduationCap, Handshake, Landmark, Library,
-  Lightbulb, Linkedin, Mail, Megaphone, MessageSquare, Mic, Instagram, Rocket, Sparkles, UserPlus, Users, Youtube, type LucideIcon,
+  ArrowRight, ArrowUpRight, BookOpen, Briefcase, Building2, CalendarCheck, Compass, Cpu, GraduationCap, Handshake, Landmark, Library,
+  Lightbulb, Linkedin, Mail, Megaphone, MessageCircleQuestion, MessageSquare, Mic, Instagram, QrCode, Rocket, Route, Shuffle, Sparkles,
+  UserPlus, Users, Vote, Youtube, type LucideIcon,
 } from "lucide-react";
-import { LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgress, Tilt } from "@/components/landing/fx";
+import { HScroll, LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgress, StackDeck, Tilt } from "@/components/landing/fx";
 import { LogoWeave, OpenFloorStage } from "@/components/landing/open-floor";
 import { FloatingScene, Journey, type FlowPath, type Hotspot, type JourneyStep } from "@/components/landing/scene";
 import { SmoothScroll } from "@/components/landing/smooth-scroll";
@@ -31,15 +32,15 @@ const SPACES: Space[] = [
     name: "Outloud",
     colour: "#E39B2D",
     tint: "#F2B65A",
-    kicker: "Content · Shows · Events",
-    line: "Real conversations, on stage and on screen.",
-    body: "Open Floor is our first format: founders bring real questions, the room picks one, and we work through it together on stage. Then it lives on as episodes, reels, the VW Newsletter and VW Notes.",
-    points: ["Open Floor live shows", "Episodes on YouTube", "Reels on Instagram and TikTok", "VW Newsletter and VW Notes"],
-    cta: "Book a seat",
+    kicker: "Content · Live and digital",
+    line: "Live in the room. Shared on screen.",
+    body: "The conversations we have in public. Live formats bring founders, investors and operators into one room to share real stories and work through real questions. Digital content carries those conversations across MENA, in episodes, short reels, VW Notes and the VW Newsletter.",
+    points: ["Live shows and events", "Private sessions for partners", "Episodes on YouTube", "Reels on Instagram and TikTok", "VW Notes", "VW Newsletter"],
+    cta: "Explore content",
     href: "/outloud",
     photo: "/landing/stage.webp",
     size: [1417, 1215],
-    labels: [{ label: "Open Floor", x: 37.3, y: 27.9 }, { label: "The room asks", x: 75.4, y: 42.3 }],
+    labels: [{ label: "Live", x: 37.3, y: 27.9 }, { label: "The room", x: 75.4, y: 42.3 }],
     flows: [[[5.6, 60.0], [25.9, 55.5], [43.7, 83.2]]],
     icon: Mic,
   },
@@ -48,15 +49,15 @@ const SPACES: Space[] = [
     name: "The Venture School",
     colour: "#1F4FA3",
     tint: "#8AAEF0",
-    kicker: "Programs · Masterclasses · Classroom",
+    kicker: "Education · Practical and dynamic",
     line: "Learn it in practice. Lead it in motion.",
-    body: "Programs built from real ventures, not textbooks. TVAC, The Venture Asset Class, is the foundation for every 360 program, with masterclasses and a classroom for the work in between.",
-    points: ["TVAC foundation", "360 programs", "Masterclasses", "Custom programs for teams"],
+    body: "Experience-driven education for every seat at the table: founders, angels, mentors, intrapreneurs and career professionals. Each topic is taught from every stakeholder's side, through role play, real case studies from the region, games and guest practitioners, so you leave with frameworks you use the next day.",
+    points: ["Programs and bootcamps", "Masterclasses", "Workshops", "Mentorship", "Open cohorts", "Programs for teams and partners"],
     cta: "Explore programs",
     href: "/tvs",
     photo: "/landing/classroom.webp",
     size: [1390, 1137],
-    labels: [{ label: "TVAC", x: 79.9, y: 21.2 }, { label: "360 programs", x: 50.1, y: 47.2 }],
+    labels: [{ label: "Programs", x: 79.9, y: 21.2 }, { label: "Masterclasses", x: 50.1, y: 47.2 }],
     flows: [[[12.6, 55.5], [42.4, 70.8], [50.1, 67.3]]],
     icon: GraduationCap,
   },
@@ -65,10 +66,10 @@ const SPACES: Space[] = [
     name: "BRICKR",
     colour: "#B5532F",
     tint: "#E8896A",
-    kicker: "Fractional leadership",
+    kicker: "Services · Fractional leadership",
     line: "We don't consult and leave. We build together.",
-    body: "A senior partner embedded in your venture or portfolio: in the decisions, in the work, and still there after the handover. Six months for ventures, twelve for portfolios.",
-    points: ["Fractional leadership", "Portfolio infrastructure", "Venture building and scaling", "Innovation hubs"],
+    body: "Experienced partners embedded in your venture or portfolio: in the decisions, in the work, and measured by what it produces, not by hours of advice. We launch, rebalance and grow ventures, and build the structure behind portfolios and innovation hubs.",
+    points: ["Fractional leadership", "Venture building and scaling", "Portfolio infrastructure", "Innovation hubs"],
     cta: "Request a meeting",
     href: "/brickr",
     photo: "/landing/workshop.webp",
@@ -82,10 +83,10 @@ const SPACES: Space[] = [
     name: "QuidQuo",
     colour: "#8DBF2E",
     tint: "#B4DD5E",
-    kicker: "AI for capital formation · In development",
+    kicker: "Technology · AI for capital formation",
     line: "Less friction between capital and the people who need it.",
-    body: "We are building AI that helps founders prepare to raise and helps investors see fit faster. Follow the build on the platform and join the waitlist to be first in.",
-    points: ["Build tracker", "Waitlist", "Early access for members"],
+    body: "An agentic AI platform in development that helps founders and investors build their ventures and portfolios, with capital formation as the goal. Follow the build on the platform and join the waitlist to be first in.",
+    points: ["Agentic AI", "Build tracker", "Waitlist", "Early access for members"],
     cta: "Join the waitlist",
     href: "/quidquo",
     photo: "/landing/lab.webp",
@@ -103,6 +104,8 @@ const AUDIENCES: { icon: LucideIcon; name: string; body: string; spaces: string[
   { icon: Briefcase, name: "Corporates", body: "Build a venture arm, train leaders on the venture asset class, and work with the startups shaping your market.", spaces: ["TVS", "BRICKR", "Outloud"] },
   { icon: Handshake, name: "Enablers", body: "Hubs, accelerators and incubators: design programs and economics that work, and give cohorts real investment readiness.", spaces: ["BRICKR", "TVS", "Outloud"] },
   { icon: Lightbulb, name: "Experts and mentors", body: "Share what you know on stage and in the classroom, with founders who value practice over theory.", spaces: ["Outloud", "TVS"] },
+  { icon: Route, name: "Career professionals", body: "Bring your experience into venture as a founder, angel, mentor, operator or enabler. Get the map of the ecosystem and find the role that fits you.", spaces: ["TVS", "Outloud", "BRICKR"] },
+  { icon: Compass, name: "Ecosystem newcomers", body: "New to venture? Learn how the ecosystem works and who is in it, hear real stories from every side of the table, and find your place.", spaces: ["Outloud", "TVS"] },
 ];
 
 const STEPS = [
@@ -140,10 +143,10 @@ const HOUSE_FLOWS: FlowPath[] = [
 
 const JOURNEY = (app: string, join: string): JourneyStep[] => [
   { key: "in", tab: "Join", kicker: "The way in", title: "Create your account", body: "One account opens every space. Sign up with Google, LinkedIn or email and tell us where you are in the ecosystem.", cta: { label: "Join the community", href: join }, colour: "#29BE9C", tint: "#5fe0c0", cam: { x: 11, y: 46, s: 2.6 }, label: { x: 50, y: 30 } },
-  { key: "outloud", tab: "Outloud", kicker: "Content · Shows · Events", title: "Watch, then speak up", body: "Book a seat at Open Floor. Founders bring real questions, the room picks one, and we work through it on stage.", cta: { label: "See upcoming shows", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 32, y: 38, s: 2.5 }, label: { x: 50, y: 22 } },
-  { key: "tvs", tab: "TVS", kicker: "Programs · Masterclasses", title: "Learn how venture works", body: "Apply to TVAC, the foundation for every 360 program, or join a masterclass built from real ventures.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 51, y: 45, s: 2.5 }, label: { x: 50, y: 22 } },
-  { key: "brickr", tab: "BRICKR", kicker: "Fractional leadership", title: "Build it together", body: "Request a meeting with the partners. A BRICKR partner works inside your venture or portfolio, from the first diagnostic to handover.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 37, s: 2.5 }, label: { x: 50, y: 22 } },
-  { key: "quidquo", tab: "QuidQuo", kicker: "AI for capital formation", title: "Raise with less friction", body: "Follow the build of our AI for capital formation and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 86, y: 51, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "outloud", tab: "Outloud", kicker: "Content · Live and digital", title: "Conversations worth having in public", body: "Outloud is our content space. Live shows and events bring the ecosystem into one room; episodes, reels, VW Notes and the VW Newsletter carry the conversation further.", cta: { label: "Explore content", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 32, y: 38, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "tvs", tab: "TVS", kicker: "Education", title: "Learn it in practice", body: "The Venture School is practical, dynamic education for every stakeholder of the ecosystem: real ventures, real lessons and the mindset to keep up with a market that never stands still.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 51, y: 45, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "brickr", tab: "BRICKR", kicker: "Services", title: "Build it together", body: "BRICKR is fractional leadership. Experienced partners work inside your venture or portfolio, hands-on, not hands-off, to build, operate and grow it with you.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 37, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "quidquo", tab: "QuidQuo", kicker: "Technology", title: "Raise with less friction", body: "QuidQuo is the AI we are building for capital formation, for founders and investors alike. Follow the build and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 86, y: 51, s: 2.5 }, label: { x: 50, y: 22 } },
 ];
 
 const FOUNDERS = [
@@ -238,7 +241,7 @@ export default async function SitePage() {
                 {words("ecosystem.", 5, "lp-grad")}
               </h1>
               <p className="lp-fade-in mt-6 max-w-[520px] text-[16px] leading-relaxed text-[var(--lp-fg)] desk:text-[17px]" style={{ "--delay": ".9s" } as React.CSSProperties}>
-                Four spaces under one roof: shows on stage, a school for venture, partners who build with you, and AI for raising capital. Run hands-on by Ahmed Fouad and Karim Hemdan.
+                Hands-on partners for the people building MENA&apos;s ventures. We bring operating, investing and advisory experience, knowledge and access to every side of the table, so the ecosystem grows together.
               </p>
               <div className="lp-fade-in mt-9 flex flex-wrap items-center gap-3" style={{ "--delay": "1.1s" } as React.CSSProperties}>
                 <Primary href={join} big>Join the community</Primary>
@@ -272,7 +275,7 @@ export default async function SitePage() {
           <div className="lp-marquee-track">
             {[0, 1].map((k) => (
               <ul key={k} aria-hidden={k === 1} className="flex shrink-0 items-center gap-10 pr-10 font-display text-[22px] font-semibold text-[var(--lp-muted)] desk:text-[28px]">
-                {["Founders", "Angel investors", "Institutional investors", "Venture studios", "Corporates", "Hubs and accelerators", "Experts and mentors"].map((a, i) => (
+                {["Founders", "Angel investors", "Institutional investors", "Venture studios", "Corporates", "Hubs and accelerators", "Experts and mentors", "Career professionals", "Ecosystem newcomers"].map((a, i) => (
                   <li key={a} className="flex items-center gap-10 whitespace-nowrap">
                     {a}
                     <span className="h-2 w-2 rounded-full" style={{ background: SPACES[i % 4].colour }} />
@@ -305,46 +308,48 @@ export default async function SitePage() {
               Every way in to venture, built from real practice.
             </h2>
           </div>
-          <div className="mt-16 flex flex-col gap-24 desk:gap-32">
+          <StackDeck className="mt-12 pb-[6vh] desk:mt-16">
             {SPACES.map((sp, i) => (
-              <article key={sp.key} id={`space-${sp.key}`} className="grid scroll-mt-28 items-center gap-8 desk:grid-cols-2 desk:gap-16">
-                <ScrollProgress className={`relative ${i % 2 ? "desk:order-2" : ""}`}>
-                  <div className="lp-closeup lp-iris relative">
+              <article key={sp.key} id={`space-${sp.key}`} data-stack className="scroll-mt-24" style={{ zIndex: i + 1 }}>
+                <div
+                  className="lp-stack-card relative grid items-center gap-4 overflow-hidden rounded-[26px] border border-white/10 p-5 shadow-[0_-20px_60px_-20px_rgb(0_0_0/0.8)] desk:grid-cols-2 desk:gap-12 desk:rounded-[32px] desk:p-12"
+                  style={{ background: `radial-gradient(ellipse at ${i % 2 ? "85%" : "15%"} 40%, color-mix(in srgb, ${sp.colour} 22%, transparent), transparent 60%), #0a1819` }}
+                >
+                  <div className={`relative mx-auto w-full max-w-[min(100%,30svh)] desk:max-w-none ${i % 2 ? "desk:order-2" : ""}`}>
                     <div className="pointer-events-none absolute inset-[12%] rounded-full opacity-40 blur-[70px]" style={{ background: sp.colour }} />
                     <FloatingScene
                       src={sp.photo}
                       alt={`${sp.name}: ${sp.line}`}
                       width={sp.size[0]}
                       height={sp.size[1]}
-                      sizes="(min-width: 900px) 600px, 100vw"
+                      sizes="(min-width: 900px) 560px, 80vw"
                       hotspots={sp.labels.map((l) => ({ ...l, colour: sp.colour }))}
                       flows={sp.flows.map((points) => ({ colour: "#29BE9C", points }))}
                     />
                   </div>
-                </ScrollProgress>
-                <div className="flex flex-col gap-3">
-                  <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono text-[11px] font-bold tracking-[.14em] uppercase" style={{ color: sp.tint }} data-reveal>
-                    <span className="h-2 w-2 rounded-full" style={{ background: sp.colour, boxShadow: `0 0 12px ${sp.colour}` }} />
-                    0{i + 1} · {sp.kicker}
-                  </span>
-                  <h3 className="flex items-center gap-3 font-display text-[34px] leading-tight font-semibold desk:text-[44px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-                    {sp.name}
-                  </h3>
-                  <p className="text-[18px] font-bold text-white" data-reveal style={{ "--d": 2 } as React.CSSProperties}>{sp.line}</p>
-                  <p className="text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>{sp.body}</p>
-                  <ul className="mt-1 flex flex-wrap gap-2" data-reveal style={{ "--d": 4 } as React.CSSProperties}>
-                    {sp.points.map((pt) => (
-                      <li key={pt} className="rounded-full border border-[var(--lp-line)] bg-white/[0.04] px-3 py-1 text-[12.5px] font-semibold text-[var(--lp-fg)]">{pt}</li>
-                    ))}
-                  </ul>
-                  <a href={`${app}${sp.href}`} className="group mt-3 inline-flex items-center gap-2 self-start text-[15px] font-bold" style={{ color: sp.tint }} data-reveal>
-                    {sp.cta}
-                    <ArrowUpRight size={17} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
+                  <div className="relative flex flex-col gap-2.5 desk:gap-3">
+                    <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono text-[10.5px] font-bold tracking-[.14em] uppercase desk:text-[11px]" style={{ color: sp.tint }}>
+                      <span className="h-2 w-2 rounded-full" style={{ background: sp.colour, boxShadow: `0 0 12px ${sp.colour}` }} />
+                      0{i + 1} · {sp.kicker}
+                    </span>
+                    <h3 className="font-display text-[28px] leading-tight font-semibold desk:text-[44px]">{sp.name}</h3>
+                    <p className="text-[16px] font-bold text-white desk:text-[18px]">{sp.line}</p>
+                    <p className="text-[14px] leading-relaxed text-[var(--lp-fg)] desk:text-[15px]">{sp.body}</p>
+                    <ul className="mt-1 hidden flex-wrap gap-1.5 sm:flex desk:gap-2">
+                      {sp.points.map((pt) => (
+                        <li key={pt} className="rounded-full border border-[var(--lp-line)] bg-white/[0.04] px-2.5 py-1 text-[12px] font-semibold text-[var(--lp-fg)] desk:px-3 desk:text-[12.5px]">{pt}</li>
+                      ))}
+                    </ul>
+                    <a href={`${app}${sp.href}`} className="group mt-2 inline-flex items-center gap-2 self-start text-[15px] font-bold" style={{ color: sp.tint }}>
+                      {sp.cta}
+                      <ArrowUpRight size={17} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </a>
+                  </div>
+                  <div className="lp-stack-shade pointer-events-none absolute inset-0 bg-[#050d0e]" aria-hidden="true" />
                 </div>
               </article>
             ))}
-          </div>
+          </StackDeck>
         </section>
 
         {/* ---------------------------------------------------------------- the platform */}
@@ -441,39 +446,40 @@ export default async function SitePage() {
           </div>
         </ScrollProgress>
 
-        {/* ---------------------------------------------------------------- who it's for */}
-        <section id="who" className="mx-auto max-w-[1240px] scroll-mt-24 px-5 py-24 desk:px-8 desk:py-32">
-          <div className="flex flex-col gap-4 desk:flex-row desk:items-end desk:justify-between">
-            <div className="max-w-[640px]">
-              <p className="lp-eyebrow" data-reveal>Who it&apos;s for</p>
-              <h2 className="mt-4 font-display text-[36px] leading-[1.05] font-semibold desk:text-[52px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-                One ecosystem. A place for every stakeholder.
-              </h2>
-            </div>
-            <p className="max-w-[380px] text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
-              Raising your next round, allocating capital or running an accelerator: there is a clear way in for you.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 desk:grid-cols-3">
-            {AUDIENCES.map((a, i) => (
-              <div key={a.name} data-reveal style={{ "--d": i % 3 } as React.CSSProperties}>
-                <Tilt className="h-full rounded-[22px]" max={7}>
-                  <article className="lp-glass group flex h-full flex-col gap-3 rounded-[22px] p-6 transition-colors hover:bg-white/[0.06]">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--lp-line)] bg-white/[0.04] text-teal transition-transform group-hover:scale-110"><a.icon size={20} aria-hidden="true" /></span>
-                    <h3 className="font-display text-[19px] font-semibold">{a.name}</h3>
-                    <p className="flex-1 text-[14px] leading-relaxed text-[var(--lp-fg)]">{a.body}</p>
-                    <span className="flex flex-wrap gap-1.5">
-                      {a.spaces.map((sp) => {
-                        const c = SPACES.find((s) => s.name === sp || s.key === sp.toLowerCase())?.colour ?? "#29BE9C";
-                        return <span key={sp} className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-0.5 text-[11.5px] font-bold text-[var(--lp-fg)]"><span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{sp}</span>;
-                      })}
-                    </span>
-                  </article>
-                </Tilt>
+        {/* ---------------------------------------------------------------- who it's for: a row that travels sideways */}
+        <div id="who" className="scroll-mt-0">
+          <HScroll
+            label="Who it's for"
+            head={
+              <div className="flex flex-col gap-4 desk:flex-row desk:items-end desk:justify-between">
+                <div className="max-w-[640px]">
+                  <p className="lp-eyebrow">Who it&apos;s for</p>
+                  <h2 className="mt-4 font-display text-[32px] leading-[1.05] font-semibold desk:text-[52px]">One ecosystem. A place for every stakeholder.</h2>
+                </div>
+                <p className="max-w-[380px] text-[14.5px] leading-relaxed text-[var(--lp-fg)] desk:text-[15px]">
+                  Raising a round, allocating capital, running an accelerator or taking your first step into venture: there is a clear way in for you.
+                </p>
               </div>
+            }
+          >
+            {AUDIENCES.map((a, i) => (
+              <article key={a.name} className="lp-glass group flex w-[min(78vw,330px)] shrink-0 flex-col gap-3 rounded-[22px] p-6 transition-colors hover:bg-white/[0.06] desk:w-[340px]">
+                <span className="flex items-center justify-between">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--lp-line)] bg-white/[0.04] text-teal transition-transform group-hover:scale-110"><a.icon size={20} aria-hidden="true" /></span>
+                  <span className="font-display text-[30px] font-semibold text-white/10">{String(i + 1).padStart(2, "0")}</span>
+                </span>
+                <h3 className="font-display text-[19px] font-semibold">{a.name}</h3>
+                <p className="flex-1 text-[14px] leading-relaxed text-[var(--lp-fg)]">{a.body}</p>
+                <span className="flex flex-wrap gap-1.5">
+                  {a.spaces.map((sp) => {
+                    const c = SPACES.find((s) => s.name === sp || s.key === sp.toLowerCase())?.colour ?? "#29BE9C";
+                    return <span key={sp} className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-0.5 text-[11.5px] font-bold text-[var(--lp-fg)]"><span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{sp}</span>;
+                  })}
+                </span>
+              </article>
             ))}
-          </div>
-        </section>
+          </HScroll>
+        </div>
 
         {/* ---------------------------------------------------------------- Outloud: Open Floor (flagship, coming soon) */}
         <section id="open-floor" className="relative scroll-mt-24 overflow-hidden border-y border-[var(--lp-line)] bg-[radial-gradient(ellipse_at_30%_60%,rgb(227_155_45/0.12),transparent_60%)] py-24 desk:py-32">
@@ -483,33 +489,51 @@ export default async function SitePage() {
             </div>
             <div className="order-1 desk:order-2">
               <div className="flex flex-wrap items-center gap-2" data-reveal>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#E39B2D]/40 bg-[#E39B2D]/10 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[.14em] text-[#F2B65A] uppercase">Outloud · Flagship live show</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#E39B2D]/40 bg-[#E39B2D]/10 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[.14em] text-[#F2B65A] uppercase">An Outloud format · Flagship</span>
                 <span className="lp-soon inline-flex items-center gap-1.5 rounded-full bg-[#E39B2D] px-3 py-1.5 text-[11.5px] font-extrabold text-ink"><span className="h-1.5 w-1.5 rounded-full bg-ink" />Coming soon</span>
               </div>
-              <h2 className="mt-5 font-display text-[44px] leading-[1] font-semibold desk:text-[68px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-                Open <span className="text-[#F2B65A]">Floor</span>
+              <h2 className="mt-5 flex items-center gap-3 font-display text-[44px] leading-[1] font-semibold desk:text-[68px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
+                <MessageCircleQuestion className="h-10 w-10 shrink-0 text-[#F2B65A] desk:h-14 desk:w-14" aria-hidden="true" />
+                <span>Open <span className="text-[#F2B65A]">Floor.</span></span>
               </h2>
-              <p className="mt-3 font-display text-[20px] font-semibold text-white desk:text-[24px]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>No scripts. Real founder questions. Live.</p>
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-                Most startup events are rehearsed panels. Open Floor turns the room into a working session, on stage in Cairo, with the people building MENA&apos;s ventures in the seats.
+              <p className="mt-4 font-display text-[22px] leading-tight font-semibold text-white desk:text-[28px]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
+                Real stories. <span className="text-[#F2B65A]">Open discussion.</span>
               </p>
-              <ol className="mt-7 grid gap-3 sm:grid-cols-3 desk:grid-cols-1">
-                {[
-                  ["Bring a real question", "Pricing, co-founder splits, a term sheet, a new market."],
-                  ["The room picks one", "The audience votes live on the question that matters most."],
-                  ["Solve it on stage", "Ahmed, Karim and the founder work it through to a decision."],
-                ].map(([t, b], i) => (
-                  <li key={t} className="lp-glass flex gap-3 rounded-2xl p-4" data-reveal style={{ "--d": i + 3 } as React.CSSProperties}>
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#E39B2D]/15 font-display text-[14px] font-semibold text-[#F2B65A]">0{i + 1}</span>
-                    <span><b className="block text-[14.5px]">{t}</b><span className="text-[13px] text-[var(--lp-fg)]">{b}</span></span>
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
+                An interactive business session where we share and discuss real venture stories from every side of the table, and the room brings its own experiences and questions. One topic, two hours, hosted by Ahmed Fouad and Karim Hemdan, with expert guests for specific topics.
+              </p>
+              <dl className="mt-6 grid grid-cols-3 gap-2" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
+                {[["1", "topic per session"], ["2 h", "live, in two rounds"], ["8–10", "questions answered"]].map(([n, l]) => (
+                  <div key={l} className="lp-glass rounded-2xl px-3 py-3">
+                    <dt className="font-display text-[24px] leading-none font-semibold text-[#F2B65A] desk:text-[28px]">{n}</dt>
+                    <dd className="mt-1 text-[11.5px] leading-snug text-[var(--lp-fg)]">{l}</dd>
+                  </div>
+                ))}
+              </dl>
+              <ol className="mt-3 grid grid-cols-2 gap-2">
+                {([
+                  [QrCode, "Scan to join", "A QR code on screen. No app."],
+                  [MessageSquare, "Ask", "Send a question, named or anonymous."],
+                  [Vote, "Vote", "Upvote questions and pick what's next."],
+                  [Shuffle, "The Pick", "Questions drawn at random, on screen."],
+                ] as [LucideIcon, string, string][]).map(([Icon, t, b], i) => (
+                  <li key={t} className="lp-glass flex gap-2.5 rounded-2xl p-3" data-reveal style={{ "--d": i + 4 } as React.CSSProperties}>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#E39B2D]/15 text-[#F2B65A]"><Icon size={16} aria-hidden="true" /></span>
+                    <span><b className="block text-[13.5px]">{t}</b><span className="text-[12px] leading-snug text-[var(--lp-fg)]">{b}</span></span>
                   </li>
                 ))}
               </ol>
-              <div className="mt-8 flex flex-wrap items-center gap-3" data-reveal>
+              <p className="mt-5 text-[12px] font-bold tracking-[.12em] text-[var(--lp-muted)] uppercase" data-reveal>Example topics</p>
+              <ul className="mt-2 flex flex-wrap gap-1.5" data-reveal>
+                {["Raising your first round", "Should I quit my job to build?", "Angel investing 101", "Innovation from the inside", "AI in your venture", "Family business to venture"].map((t) => (
+                  <li key={t} className="rounded-full border border-[#E39B2D]/30 bg-[#E39B2D]/[0.06] px-3 py-1 text-[12px] font-semibold text-[var(--lp-fg)]">{t}</li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap items-center gap-3" data-reveal>
                 <Magnetic href={join} className="group inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(180deg,#f2b65a,#E39B2D)] px-6 text-[15px] font-bold text-ink shadow-[0_10px_40px_-8px_rgb(227_155_45/0.6)] hover:brightness-110">
                   Get first seats <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-1" />
                 </Magnetic>
-                <span className="text-[13px] text-[var(--lp-muted)]">Members hear first when seats open.</span>
+                <span className="text-[13px] text-[var(--lp-muted)]">Public shows for the community. Private sessions for partners.</span>
               </div>
             </div>
           </div>
@@ -536,7 +560,7 @@ export default async function SitePage() {
                         <Image src={f.photo} alt={f.name} fill quality={90} sizes="(min-width: 900px) 300px, (min-width: 640px) 46vw, 100vw" className="object-cover object-top" />
                       </div>
                       <div className="lp-pop flex flex-1 flex-col gap-2 p-6">
-                        <span className="text-[11px] font-extrabold tracking-[.16em] text-teal uppercase">Co-founder and partner</span>
+                        <span className="text-[11px] font-extrabold tracking-[.16em] text-teal uppercase">Co-founder &amp; Managing Partner</span>
                         <h3 className="font-display text-[24px] font-semibold">{f.name}</h3>
                         <p className="text-[14px] leading-relaxed text-[var(--lp-fg)]">{f.bio}</p>
                         <a href={f.linkedin} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13.5px] font-bold text-teal hover:underline">

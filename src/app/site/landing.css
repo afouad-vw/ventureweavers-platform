@@ -147,6 +147,32 @@ a.lp-hot:focus-visible { outline: none; }
 /* Scenes reveal through an opening circle as they scroll in. */
 .lp-iris { clip-path: circle(calc(18% + var(--p, 1) * 120%) at 50% 50%); transition: clip-path .15s linear; }
 
+/* ---------------------------------------------------------------- spaces deck: pinned cards that stack */
+.lp-deck > [data-stack] { position: sticky; top: 72px; }
+.lp-deck > [data-stack] + [data-stack] { margin-top: 38svh; }
+@media (min-width: 900px) { .lp-deck > [data-stack] + [data-stack] { margin-top: 28vh; } }
+.lp-stack-card { transform: scale(calc(1 - var(--q, 0) * .06)); transform-origin: 50% 0; will-change: transform; }
+.lp-stack-shade { opacity: calc(var(--q, 0) * .55); }
+
+/* ---------------------------------------------------------------- sideways row, pinned */
+.lp-h-pin { position: sticky; top: 0; min-height: 100svh; }
+.lp-h-track { will-change: transform; }
+.lp-h[data-still] { height: auto !important; }
+.lp-h[data-still] .lp-h-pin { position: static; min-height: 0; }
+.lp-h[data-still] .lp-h-view { overflow-x: auto; }
+
+/* ---------------------------------------------------------------- pinned journey: one step per screen, steady on mobile */
+.lp-journey { --jstep: 70svh; height: calc(var(--n) * var(--jstep) + 30svh); }
+@media (min-width: 900px) { .lp-journey { --jstep: 90vh; } }
+
+/* ---------------------------------------------------------------- phones: lighter painting so scrolling stays smooth */
+@media (max-width: 899px) {
+  .lp-glass { backdrop-filter: none; background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03)), rgb(9 21 22 / 0.7); }
+  .lp-scene-inner { animation: none; }
+  .lp-orb { animation: none; }
+  .lp-nav[data-scrolled] { backdrop-filter: blur(10px); }
+}
+
 /* ---------------------------------------------------------------- reduced motion: everything still, nothing hidden */
 @media (prefers-reduced-motion: reduce) {
   .lp *, .lp *::before, .lp *::after { animation: none !important; transition: none !important; }
@@ -156,4 +182,7 @@ a.lp-hot:focus-visible { outline: none; }
   .lp-logo-word, .lp-q { opacity: 1 !important; transform: none !important; }
   .lp-lit > span { color: #fff; }
   .lp-track-fill { transform: none; }
+  .lp-stack-card { transform: none !important; }
+  .lp-stack-shade { opacity: 0 !important; }
+  .lp-deck > [data-stack] { position: static; }
 }

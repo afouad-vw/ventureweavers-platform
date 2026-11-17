@@ -111,6 +111,90 @@ export function NavScroll() {
   return null;
 }
 
+/**
+ * Cards that pin and stack as you scroll: each card sticks, the next slides over it and the one beneath
+ * sinks back (--q, 0 to 1). A card taller than the screen scrolls fully into view before it sticks.
+ */
+export function StackDeck({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const cards = [...root.querySelectorAll<HTMLElement>(":scope > [data-stack]")];
+    let raf = 0;
+    const update = () => {
+      cards.forEach((c, i) => {
+        const next = cards[i + 1];
+        if (!next || reduced()) { c.style.setProperty("--q", "0"); return; }
+        const gap = next.getBoundingClientRect().top - c.getBoundingClientRect().top;
+        c.style.setProperty("--q", Math.min(1, Math.max(0, 1 - gap / Math.max(1, c.offsetHeight))).toFixed(3));
+      });
+    };
+    const layout = () => {
+      const vh = window.innerHeight, desk = window.innerWidth >= 900;
+      cards.forEach((c, i) => {
+        const top = (desk ? 96 : 72) + i * (desk ? 18 : 10);
+        c.style.top = `${Math.min(top, vh - c.offsetHeight - 12)}px`;
+      });
+      update();
+    };
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    layout();
+    const ro = new ResizeObserver(layout);
+    cards.forEach((c) => ro.observe(c));
+    window.addEventListener("scroll", on, { passive: true });
+    window.addEventListener("resize", layout);
+    return () => { ro.disconnect(); window.removeEventListener("scroll", on); window.removeEventListener("resize", layout); cancelAnimationFrame(raf); };
+  }, []);
+  return <div ref={ref} className={`lp-deck ${className ?? ""}`}>{children}</div>;
+}
+
+/**
+ * A pinned section whose row of cards travels sideways as you scroll down. With reduced motion it
+ * becomes a plain row you can swipe.
+ */
+export function HScroll({ head, children, label }: { head: React.ReactNode; children: React.ReactNode; label: string }) {
+  const section = useRef<HTMLElement>(null);
+  const track = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const s = section.current, t = track.current;
+    if (!s || !t) return;
+    if (reduced()) { s.setAttribute("data-still", ""); return; }
+    let raf = 0, over = 0;
+    const update = () => {
+      const p = over > 0 ? Math.min(1, Math.max(0, -s.getBoundingClientRect().top / over)) : 0;
+      t.style.transform = `translate3d(${(-p * over).toFixed(1)}px,0,0)`;
+      if (bar.current) bar.current.style.transform = `scaleX(${p.toFixed(3)})`;
+    };
+    const layout = () => {
+      over = Math.max(0, t.scrollWidth - (t.parentElement?.clientWidth ?? window.innerWidth));
+      s.style.height = `${over + window.innerHeight}px`;
+      update();
+    };
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    layout();
+    const ro = new ResizeObserver(layout);
+    ro.observe(t);
+    window.addEventListener("scroll", on, { passive: true });
+    window.addEventListener("resize", layout);
+    return () => { ro.disconnect(); window.removeEventListener("scroll", on); window.removeEventListener("resize", layout); cancelAnimationFrame(raf); };
+  }, []);
+  return (
+    <section ref={section} className="lp-h relative" aria-label={label}>
+      <div className="lp-h-pin flex flex-col justify-center gap-8 overflow-hidden py-20 desk:gap-12">
+        <div className="mx-auto w-full max-w-[1240px] px-5 desk:px-8">{head}</div>
+        <div className="lp-h-view mx-auto w-full max-w-[1240px] px-5 desk:px-8">
+          <div ref={track} className="lp-h-track flex w-max gap-4">{children}</div>
+        </div>
+        <div className="mx-auto w-full max-w-[1240px] px-5 desk:px-8">
+          <div className="h-[3px] overflow-hidden rounded-full bg-white/10"><div ref={bar} className="h-full origin-left scale-x-0 rounded-full bg-teal" /></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /** A statement whose words light up one by one as it scrolls through the screen. */
 export function LitStatement({ text, teal = [], className }: { text: string; teal?: string[]; className?: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
@@ -122,7 +206,8 @@ export function LitStatement({ text, teal = [], className }: { text: string; tea
     let raf = 0, last = -1;
     const update = () => {
       const r = el.getBoundingClientRect(), vh = window.innerHeight;
-      const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (vh * 0.55 + r.height * 0.5)));
+      // Starts as the statement enters and is fully lit once its last line is two-thirds up the screen.
+      const p = Math.min(1, Math.max(0, (vh * 0.92 - r.top) / (r.height + vh * 0.25)));
       const n = Math.round(p * spans.length);
       if (n === last) return;
       last = n;

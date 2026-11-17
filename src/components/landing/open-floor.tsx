@@ -3,14 +3,16 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+// Illustrative questions from the room and topics it votes on (as in the Open Floor deck).
 const QUESTIONS = [
-  "How do I price my first enterprise deal?",
-  "Should I take this term sheet?",
-  "My co-founder wants out. Now what?",
+  "How do we get a new idea funded inside a big company?",
+  "Should I quit my job to build?",
+  "How small can a pilot be and still count?",
   "When is the right time to raise?",
-  "Expand to KSA or deepen in Egypt?",
-  "How much equity for my first hires?",
+  "How do I write my first angel cheque?",
+  "Who should own innovation: HR, strategy or the CEO?",
 ];
+const TOPICS = ["Selling ideas to leadership", "Building a venture team", "Partnering with startups", "Raising your first round", "Angel investing 101", "AI in your venture"];
 
 /**
  * Open Floor, animated: the 3D stage with sweeping spotlights, audience questions that rise from the room
@@ -71,12 +73,12 @@ export function OpenFloorStage() {
       {/* The room votes. */}
       <div className="lp-vote lp-glass absolute top-[2%] left-0 w-[min(250px,46%)] rounded-2xl p-3" aria-hidden="true">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10.5px] font-bold tracking-[.16em] text-[#F2B65A] uppercase">The room votes</span>
+          <span className="font-mono text-[10.5px] font-bold tracking-[.12em] text-[#F2B65A] uppercase">Discuss next?</span>
           <span className="flex items-center gap-1.5 text-[10.5px] font-bold text-white/70"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E39B2D]" />Live</span>
         </div>
         {votes.map((v, i) => (
           <div key={i} className="mt-2">
-            <div className="flex justify-between text-[11px] text-white/75"><span className="max-w-[80%] truncate">{QUESTIONS[(tick + i) % QUESTIONS.length]}</span><b>{Math.round((v / total) * 100)}%</b></div>
+            <div className="flex justify-between text-[11px] text-white/75"><span className="max-w-[80%] truncate">{TOPICS[(Math.floor(tick / 4) * 3 + i) % TOPICS.length]}</span><b>{Math.round((v / total) * 100)}%</b></div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full transition-[width] duration-1000 ease-out" style={{ width: `${(v / total) * 100}%`, background: i === 0 ? "#E39B2D" : "rgb(227 155 45 / 0.45)" }} />
             </div>
