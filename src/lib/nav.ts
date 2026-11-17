@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Briefcase, Building2, Cpu, CreditCard, GraduationCap, House, Inbox, Megaphone, MessageSquare, Mic, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Briefcase, Building2, Cpu, CreditCard, FolderKanban, GraduationCap, House, Inbox, Megaphone, MessageSquare, Mic, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
 
 export type Thread = "Outloud" | "TVS" | "BRICKR" | "QuidQuo";
 
@@ -30,6 +30,7 @@ export const adminMain: NavItem[] = [
   { href: "/admin", label: "Overview", icon: BarChart3 },
   { href: "/admin/contacts", label: "Contacts", icon: Users },
   { href: "/admin/businesses", label: "Businesses", icon: Building2 },
+  { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/requests", label: "Requests", icon: Inbox },
   { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },

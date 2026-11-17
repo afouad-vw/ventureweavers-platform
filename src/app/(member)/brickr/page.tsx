@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { WeaveHero } from "@/components/ui/weave";
-import { Briefcase, Lock } from "lucide-react";
+import { Briefcase, FolderKanban, Lock } from "lucide-react";
 import { MeetingButton } from "@/components/brickr/meeting-button";
 import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
@@ -11,12 +11,13 @@ import { EmptyState } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { listServices, myRequests } from "@/lib/brickr/queries";
+import { myProjects } from "@/lib/projects/queries";
 
 export const metadata: Metadata = { title: "BRICKR" };
 
 export default async function BrickrPage() {
   const [member, services] = await Promise.all([getMember(), listServices()]);
-  const mine = member ? await myRequests() : [];
+  const [mine, projects] = member ? await Promise.all([myRequests(), myProjects()]) : [[], []];
   const open = mine.filter((r) => r.status !== "declined").length;
   const isClient = mine.some((r) => r.status === "won");
   const diagnostic = services.find((s) => s.slug === "growth-diagnostic") ?? services.find((s) => s.space === "BRICKR");
@@ -29,11 +30,14 @@ export default async function BrickrPage() {
         title="BRICKR"
         description="Fractional leadership from two operators. Pick what you need and book a first conversation."
         actions={
+          <span className="flex flex-wrap gap-2">
+          {projects.length ? <LinkButton href="/projects"><FolderKanban size={15} aria-hidden="true" />My projects</LinkButton> : null}
           <LinkButton href="/my-space?tab=requests" variant="secondary">
             <Briefcase size={15} aria-hidden="true" />
             My requests
             {open ? <span className="ml-0.5 inline-flex h-[18px] items-center rounded-md bg-hover px-1.5 text-[11px] font-bold">{open}</span> : null}
           </LinkButton>
+          </span>
         }
       />
       <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-[18px]">

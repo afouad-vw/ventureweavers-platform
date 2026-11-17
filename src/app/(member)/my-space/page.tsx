@@ -28,7 +28,8 @@ import { businessesOf } from "@/lib/profile/businesses";
 import { ProfileForm, type ProfileValues } from "./profile-form";
 import { NEWS_STATUS } from "@/lib/news/format";
 import { myNews } from "@/lib/news/queries";
-import { Megaphone } from "lucide-react";
+import { FolderKanban, Megaphone } from "lucide-react";
+import { myProjects } from "@/lib/projects/queries";
 
 export const metadata: Metadata = { title: "My space" };
 
@@ -36,12 +37,13 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
   const member = await requireMember("/my-space");
   const { tab: raw } = await searchParams;
   const supabase = await createClient();
-  const [{ data: p }, bookings, { count: savedCount }, payments, businesses] = await Promise.all([
+  const [{ data: p }, bookings, { count: savedCount }, payments, businesses, projects] = await Promise.all([
     supabase.from("profiles").select("full_name, phone, linkedin, country, role, roles, stage, goals, interests, contact_prefs, consent_push, consent_newsletter, avatar_url").eq("id", member.id).maybeSingle(),
     myBookings(),
     supabase.from("saved_items").select("item_id", { count: "exact", head: true }),
     myPayments(),
     businessesOf(member.id),
+    myProjects(),
   ]);
   const owed = payments.filter((x) => x.status === "pending").length;
   const active = bookings.filter((b) => ["reserved", "confirmed"].includes(b.status));
@@ -75,7 +77,10 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
             <ThreadTag thread="Outloud" label="Outloud member" />
           </div>
         </div>
-        <LinkButton href="/my-space?tab=profile" variant="secondary" scroll={false}>Edit profile</LinkButton>
+        <span className="flex flex-wrap gap-2">
+          {projects.length ? <LinkButton href="/projects" variant="secondary"><FolderKanban size={15} aria-hidden="true" />My projects</LinkButton> : null}
+          <LinkButton href="/my-space?tab=profile" variant="secondary" scroll={false}>Edit profile</LinkButton>
+        </span>
       </Card>
       <LinkTabs label="My space sections" items={tabs} value={tab} hrefFor={(v) => (v === "tickets" ? "/my-space" : `/my-space?tab=${v}`)} />
 

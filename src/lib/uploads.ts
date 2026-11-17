@@ -1,6 +1,6 @@
 /** Upload rules shared by the browser (early checks) and the server (the checks that count). */
 
-export type UploadTarget = "event-banners" | "content-images" | "library-files" | "cohort-files" | "brochures" | "event-gallery" | "avatars";
+export type UploadTarget = "event-banners" | "content-images" | "library-files" | "cohort-files" | "brochures" | "event-gallery" | "avatars" | "project-files";
 
 export const IMAGE_TYPES: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
 export const LIBRARY_TYPES: Record<string, string> = {
@@ -26,6 +26,7 @@ export const UPLOAD_RULES: Record<UploadTarget, { maxBytes: number; types: Recor
   avatars: { maxBytes: 2 * 1024 * 1024, types: IMAGE_TYPES, public: true, kind: IMAGES },
   "library-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false, kind: DOCS },
   "cohort-files": { maxBytes: 20 * 1024 * 1024, types: LIBRARY_TYPES, public: false, kind: DOCS },
+  "project-files": { maxBytes: 20 * 1024 * 1024, types: PDF_TYPES, public: false, kind: "a PDF" },
 };
 
 export const extOf = (name: string) => (/\.([A-Za-z0-9]{1,5})$/.exec(name)?.[1] ?? "").toLowerCase();

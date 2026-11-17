@@ -3,15 +3,15 @@ import type { NextConfig } from "next";
 const dev = process.env.NODE_ENV !== "production";
 
 // Content Security Policy. The browser talks to Supabase, Cloudflare Turnstile (bot check) and Google sign-in;
-// add Paymob, Mux and others here as they arrive. Next.js needs inline scripts for hydration.
+// Calendly (booking pop-ups) and Google Drive (project folders); add Paymob, Mux and others here as they arrive. Next.js needs inline scripts for hydration.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://accounts.google.com/gsi/client${dev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://accounts.google.com/gsi/client https://assets.calendly.com${dev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style https://assets.calendly.com",
   "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://*.cdninstagram.com https://*.fbcdn.net https://*.tiktokcdn.com https://*.tiktokcdn-us.com https://*.tiktokcdn-eu.com https://*.googleusercontent.com https://media.licdn.com",
   "font-src 'self' data:",
   `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com/gsi/${dev ? " ws:" : ""}`,
-  "frame-src https://challenges.cloudflare.com https://accounts.google.com/gsi/ https://www.instagram.com https://www.tiktok.com",
+  "frame-src https://challenges.cloudflare.com https://accounts.google.com/gsi/ https://www.instagram.com https://www.tiktok.com https://calendly.com https://drive.google.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

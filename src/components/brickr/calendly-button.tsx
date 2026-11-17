@@ -49,8 +49,11 @@ export function CalendlyButton({
   variant = "primary",
   size = "sm",
   className,
+  record,
 }: {
   url: string;
+  /** Records the booking somewhere other than the Requests inbox (a project's meetings). */
+  record?: (eventUri: string, inviteeUri: string) => Promise<{ ok: true; message: string } | { ok: false; error: string }>;
   serviceId: string;
   serviceSlug: string;
   name: string;
@@ -70,12 +73,13 @@ export function CalendlyButton({
       const data = e.data as { event?: string; payload?: { event?: { uri?: string }; invitee?: { uri?: string } } };
       if (data?.event !== "calendly.event_scheduled") return;
       active.current = false;
-      const r = await recordCalendlyBooking(serviceId, data.payload?.event?.uri ?? "", data.payload?.invitee?.uri ?? "");
+      const ev = data.payload?.event?.uri ?? "", inv = data.payload?.invitee?.uri ?? "";
+      const r = record ? await record(ev, inv) : await recordCalendlyBooking(serviceId, ev, inv);
       toast(r.ok ? r.message : r.error);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [serviceId, toast]);
+  }, [serviceId, toast, record]);
 
   return (
     <Button

@@ -1,0 +1,124 @@
+# Phase 17 plan: BRICKR client projects (fractional leadership)
+
+Status: approved 2026-11-17 (client approves quotes; Drive folder link with embedded view; retainer invoices drafted automatically, partner reviews and issues). 17a live (migration `20261117000011`).
+
+Reference: "TCS - VW Fractional Leadership" (the proposal for The Cooking School). That proposal sets out:
+- **Four dimensions:** Portfolio Strategy, Venture Building, Governance & Support, Positioning.
+- **AAA framework:** Assess, Advise, Access.
+- **Timeline:** Month 1 onboarding, then a weekly rhythm.
+- **Weekly cadence:** 4–5 hours of sessions, with updates shared 2–3 working days ahead and emails answered within 1–2 working days.
+- **Commercials:** a USD 3,000 monthly retainer, billed at the end of each month, on a 12-month term.
+- **Extras:** anything beyond the scope is quoted separately.
+
+## Projects and who sees them
+
+- **A project** belongs to a client business from Admin › Businesses, and usually comes from a Won deal.
+  - Kinds: **Portfolio**, or **Venture**.
+  - Type: Fractional leadership or Mentorship.
+- **Portfolios:** a portfolio project has a child project for each of its ventures, so The Cooking School has one portfolio project plus one per venture. The portfolio view rolls up its ventures' progress, requests, meetings and invoices.
+- **Client people:** partners add members to a project (from Contacts, or by email until they join).
+  - Roles: **Client lead** (approves quotes and the proposal, sees invoices) and **Team member** (works on tasks, requests and meetings).
+  - Portfolio people see the portfolio and every venture under it.
+  - A venture's people see only their venture.
+- **Statuses:** Set-up → Assessment → Proposal → Active → Paused → Completed (or Cancelled).
+- **Health:** each project shows green, amber or red, set by the partners.
+- **Where it lives:**
+  - Members: My space › Projects, and a "My projects" card on BRICKR.
+  - Admin: Admin › BRICKR › Projects.
+  - A new access area, **Projects** (view / manage), so team members can be given it separately. Invoices also need Payments.
+
+## The project workspace (tabs)
+
+1. **Overview**
+   - Goals, dimensions, term, the team on both sides and health.
+   - This week's meetings, open requests and tasks due.
+   - The latest status update.
+2. **Assessment: data collection**
+   - **Requirements sheet:** questions grouped by dimension. The client answers in text, numbers, choices, links or files; files go to a private store with 5-minute download links.
+     - Templates: Portfolio (the four dimensions from the proposal) and Venture (strategy, market, operations, finances, team, capital, positioning, AI and tools).
+     - Partners edit the questions per project and send the sheet. The client lead sees progress and submits.
+   - **Partner scorecard:** a 1–5 score for each dimension, with findings and recommendations. Partners can share it with the client or keep it internal.
+   - **Re-assessments** (for example quarterly) are compared with the starting point.
+3. **Proposal and scope**
+   - The proposal PDF, with a **Download proposal** button (private store, short-lived link).
+   - Scope listed by dimension: what's included, outputs, cadence and key terms. The commercial terms come from the project: retainer amount and currency (EGP or USD), billing day and term.
+   - The client lead presses **Accept proposal**, which is recorded with time and name.
+   - A clear note: **requests beyond this scope are priced separately.**
+4. **Plan and progress**
+   - Workstreams (the dimensions), milestones and tasks: owner on our side or the client's, assignee, due date, status (To do, In progress, Blocked, Done).
+   - Tasks can be marked internal.
+   - Board and list views, and progress by workstream and milestone.
+   - A weekly status update ("Weekly wrap-up": summary, open points, next week's agenda) that partners post and the client sees.
+5. **Requests**
+   - Extra requests, raised by the **client** in the app, or by the **team** on the client's behalf (for example "received verbally on 12 Nov from…").
+   - **Flow:**
+     1. Submitted.
+     2. In review.
+     3. We respond with **price, details, requirements and timeline**, or decline with a reason.
+     4. The client lead approves or declines the quote.
+     5. Approved requests become in progress, then done.
+   - An approved paid request creates an invoice.
+6. **Notes and comments**
+   - Comments on tasks, requests, meetings and the assessment, with a team-only option.
+   - Internal project notes that only partners see.
+7. **Project assets (Google Drive)**
+   - Partners paste the project's Google Drive folder link.
+   - Members get **Open project folder** and, when the folder is shared with their Google account, the folder's file list inside the page (Google's embedded folder view).
+   - Access stays controlled in Google Drive by who the folder is shared with. See question 2 for the deeper option.
+8. **Meetings**
+   - Partners schedule a meeting: type (kick-off, weekly session, review, check-in), date and time in Cairo, length, Meet link, agenda and attendees.
+   - Each project can also have its own Calendly link, so the client books slots themselves; bookings land in the project.
+   - After a meeting, partners add minutes and action items, which become tasks.
+   - Members see upcoming meetings and get bell notifications and email reminders.
+   - Creating Meet links automatically through the Google Calendar API stays for later.
+9. **Payments and invoices**
+   - Invoices extend the existing payment requests (`VWP-` reference, bank transfer, admin marks paid) with a project, an invoice number (`VWI-2026-001`), period, currency (EGP or USD) and line items.
+   - Retainer invoices are created from the project terms at the end of each month (or the start, if set), plus invoices for approved extra requests.
+   - Each invoice has a printable or downloadable page. The client lead sees the list with paid and outstanding totals.
+   - Paymob payment links replace the transfer step later.
+10. **Project analysis**
+    - Progress over time and milestones on track.
+    - Scorecard compared with the starting point (radar chart).
+    - Client KPIs entered monthly (for example revenue, burn, runway, customers) as charts.
+    - Meetings held and hours against the planned 4–5 a week.
+    - Request turnaround and extra revenue.
+    - Invoices paid and outstanding.
+    - Portfolio projects roll up across their ventures.
+
+## Data
+
+New tables:
+- `projects` (with `parent_id` for ventures under a portfolio)
+- `project_members`
+- `project_assessments`, `assessment_items`, `assessment_scores`
+- `project_scope_items`
+- `project_workstreams`, `project_milestones`, `project_tasks`
+- `project_updates`
+- `project_requests`
+- `project_comments`, `project_notes`
+- `project_meetings`
+- `project_kpis`, `project_kpi_values`
+
+Existing tables:
+- `payment_requests` gets: `project_id`, `invoice_no`, `currency`, `period_start`, `period_end`, `lines`.
+
+Storage: a private bucket `project-files` (proposal and assessment files, 20 MB each).
+
+## Security
+
+- Row level security on every table:
+  - Client people see only the projects they belong to (portfolio people also see its ventures). They never see internal tasks, notes or comments.
+  - Staff need the Projects area. Invoices also need Payments.
+- Only the client lead accepts the proposal and approves quotes. Only staff respond to requests or change prices.
+- Money logic is checked in the database and covered by tests:
+  - Invoice totals and currency.
+  - One retainer invoice per period.
+  - No invoice for declined requests.
+- Bell notifications for: new requests and responses, quotes waiting for approval, meetings booked, invoices issued, and the sheet sent.
+
+## Build order (each part shipped and checked before the next)
+
+- **17a:** projects, people and access, overview, proposal and scope (download and accept), requests with quotes, comments and notes, Google Drive folder, meetings.
+- **17b:** assessment (requirements sheet, scorecard, re-assessment), plan and progress (workstreams, milestones, tasks, weekly updates).
+- **17c:** invoices (retainers, extra requests, invoice pages), KPIs, project analysis.
+- The Cooking School is set up as the first real project (portfolio plus its ventures) once 17a is live, with your confirmation of the details.
