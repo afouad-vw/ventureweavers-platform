@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Space = { key: string; name: string; colour: string; tint: string; kicker: string; line: string; body: string; points: string[]; cta: string; href: string; photo: string; labels: { label: string; x: number; y: number }[]; icon: LucideIcon };
+type Space = { key: string; name: string; colour: string; tint: string; kicker: string; line: string; body: string; points: string[]; cta: string; href: string; photo: string; labels: { label: string; x: number; y: number }[]; flows: [number, number][][]; icon: LucideIcon };
 
 const SPACES: Space[] = [
   {
@@ -37,7 +37,8 @@ const SPACES: Space[] = [
     cta: "Book a seat",
     href: "/outloud",
     photo: "/landing/stage.webp",
-    labels: [{ label: "Open Floor", x: 46, y: 36 }, { label: "The room asks", x: 66, y: 64 }],
+    labels: [{ label: "Open Floor", x: 40, y: 27 }, { label: "The room asks", x: 70, y: 40 }],
+    flows: [[[15, 56], [31, 52], [45, 77]]],
     icon: Mic,
   },
   {
@@ -52,7 +53,8 @@ const SPACES: Space[] = [
     cta: "Explore programs",
     href: "/tvs",
     photo: "/landing/classroom.webp",
-    labels: [{ label: "TVAC", x: 66, y: 34 }, { label: "360 programs", x: 40, y: 62 }],
+    labels: [{ label: "TVAC", x: 73, y: 25 }, { label: "360 programs", x: 50, y: 47 }],
+    flows: [[[21, 54], [44, 67], [50, 64]]],
     icon: GraduationCap,
   },
   {
@@ -67,7 +69,8 @@ const SPACES: Space[] = [
     cta: "Request a meeting",
     href: "/brickr",
     photo: "/landing/workshop.webp",
-    labels: [{ label: "Build", x: 52, y: 40 }, { label: "Operate", x: 36, y: 64 }],
+    labels: [{ label: "Build", x: 54, y: 37 }, { label: "Operate", x: 68, y: 52 }],
+    flows: [[[0, 40], [19, 54], [38, 72], [48, 66]]],
     icon: Briefcase,
   },
   {
@@ -82,7 +85,8 @@ const SPACES: Space[] = [
     cta: "Join the waitlist",
     href: "/quidquo",
     photo: "/landing/lab.webp",
-    labels: [{ label: "Waitlist open", x: 60, y: 34 }],
+    labels: [{ label: "Waitlist open", x: 67, y: 31 }],
+    flows: [[[0, 97], [31, 70], [39, 66]]],
     icon: Cpu,
   },
 ];
@@ -121,26 +125,27 @@ const BOTS = [
 ];
 
 const HOUSE_SPOTS: Hotspot[] = [
-  { label: "Outloud", x: 28, y: 22, colour: "#E39B2D", href: "#space-outloud" },
-  { label: "The Venture School", x: 72, y: 22, colour: "#1F4FA3", href: "#space-tvs" },
-  { label: "QuidQuo", x: 25, y: 78, colour: "#8DBF2E", href: "#space-quidquo" },
-  { label: "BRICKR", x: 73, y: 78, colour: "#B5532F", href: "#space-brickr" },
+  { label: "Outloud", x: 29, y: 11, colour: "#E39B2D", href: "#space-outloud" },
+  { label: "The Venture School", x: 72, y: 11, colour: "#1F4FA3", href: "#space-tvs" },
+  { label: "QuidQuo", x: 23, y: 53, colour: "#8DBF2E", href: "#space-quidquo" },
+  { label: "BRICKR", x: 74, y: 53, colour: "#B5532F", href: "#space-brickr" },
 ];
 
 // The teal threads in the house, in % of the image (from each room to the atrium).
 const HOUSE_FLOWS: FlowPath[] = [
-  { colour: "#29BE9C", points: [[36, 44], [44, 48], [50, 52]] },
-  { colour: "#29BE9C", points: [[64, 44], [56, 48], [50, 52]] },
-  { colour: "#29BE9C", points: [[30, 63], [41, 58], [50, 55]] },
-  { colour: "#29BE9C", points: [[70, 63], [59, 58], [50, 55]] },
+  { colour: "#29BE9C", points: [[38.5, 77.4], [43, 73], [50, 70.3]] },
+  { colour: "#29BE9C", points: [[62, 77.6], [56, 73], [50, 70.3]] },
+  { colour: "#29BE9C", points: [[42, 44], [47, 39], [50, 37]] },
+  { colour: "#29BE9C", points: [[58, 44], [53, 39], [50, 37]] },
+  { colour: "#29BE9C", points: [[45, 46], [47, 51], [48, 57.5], [46.5, 64]] },
 ];
 
 const JOURNEY = (app: string, join: string): JourneyStep[] => [
-  { key: "in", tab: "Join", kicker: "The way in", title: "Create your account", body: "One account opens every space. Sign up with Google, LinkedIn or email and tell us where you are in the ecosystem.", cta: { label: "Join the community", href: join }, colour: "#29BE9C", tint: "#5fe0c0", cam: { x: 12, y: 46, s: 2.4 }, label: { x: 50, y: 30 } },
-  { key: "outloud", tab: "Outloud", kicker: "Content · Shows · Events", title: "Watch, then speak up", body: "Book a seat at Open Floor. Founders bring real questions, the room picks one, and we work through it on stage.", cta: { label: "See upcoming shows", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 31, y: 30, s: 2.6 }, label: { x: 50, y: 22 } },
-  { key: "tvs", tab: "TVS", kicker: "Programs · Masterclasses", title: "Learn how venture works", body: "Apply to TVAC, the foundation for every 360 program, or join a masterclass built from real ventures.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 49, y: 54, s: 2.6 }, label: { x: 50, y: 22 } },
-  { key: "brickr", tab: "BRICKR", kicker: "Fractional leadership", title: "Build it together", body: "Request a meeting with the partners. A BRICKR partner works inside your venture or portfolio, from the first diagnostic to handover.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 30, s: 2.6 }, label: { x: 50, y: 22 } },
-  { key: "quidquo", tab: "QuidQuo", kicker: "AI for capital formation", title: "Raise with less friction", body: "Follow the build of our AI for capital formation and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 85, y: 52, s: 2.6 }, label: { x: 50, y: 22 } },
+  { key: "in", tab: "Join", kicker: "The way in", title: "Create your account", body: "One account opens every space. Sign up with Google, LinkedIn or email and tell us where you are in the ecosystem.", cta: { label: "Join the community", href: join }, colour: "#29BE9C", tint: "#5fe0c0", cam: { x: 11, y: 46, s: 2.6 }, label: { x: 50, y: 30 } },
+  { key: "outloud", tab: "Outloud", kicker: "Content · Shows · Events", title: "Watch, then speak up", body: "Book a seat at Open Floor. Founders bring real questions, the room picks one, and we work through it on stage.", cta: { label: "See upcoming shows", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 32, y: 38, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "tvs", tab: "TVS", kicker: "Programs · Masterclasses", title: "Learn how venture works", body: "Apply to TVAC, the foundation for every 360 program, or join a masterclass built from real ventures.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 51, y: 45, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "brickr", tab: "BRICKR", kicker: "Fractional leadership", title: "Build it together", body: "Request a meeting with the partners. A BRICKR partner works inside your venture or portfolio, from the first diagnostic to handover.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 37, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "quidquo", tab: "QuidQuo", kicker: "AI for capital formation", title: "Raise with less friction", body: "Follow the build of our AI for capital formation and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 86, y: 51, s: 2.5 }, label: { x: 50, y: 22 } },
 ];
 
 const FOUNDERS = [
@@ -309,6 +314,7 @@ export default async function SitePage() {
                       height={1344}
                       sizes="(min-width: 900px) 600px, 100vw"
                       hotspots={sp.labels.map((l) => ({ ...l, colour: sp.colour }))}
+                      flows={sp.flows.map((points) => ({ colour: "#29BE9C", points }))}
                     />
                   </div>
                 </ScrollProgress>
@@ -375,12 +381,12 @@ export default async function SitePage() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-3">
                       {[
-                        { c: "#E39B2D", t: "Open Floor · Show 02", s: "Your seat is confirmed", img: "/images/show.jpg" },
-                        { c: "#1F4FA3", t: "TVAC", s: "Application in review", img: "/images/room.jpg" },
-                        { c: "#B5532F", t: "BRICKR meeting", s: "Thursday, 11:00 Cairo", img: "/images/round.jpg" },
+                        { c: "#E39B2D", t: "Open Floor · Show 02", s: "Your seat is confirmed", img: "/landing/stage.webp" },
+                        { c: "#1F4FA3", t: "TVAC", s: "Application in review", img: "/landing/classroom.webp" },
+                        { c: "#B5532F", t: "BRICKR meeting", s: "Thursday, 11:00 Cairo", img: "/landing/workshop.webp" },
                       ].map((x) => (
                         <div key={x.t} className="overflow-hidden rounded-xl border border-[var(--lp-line)] bg-white/[0.03]">
-                          <div className="relative h-16 sm:h-20"><Image src={x.img} alt="" fill sizes="220px" className="object-cover opacity-80" /></div>
+                          <div className="relative h-16 sm:h-20"><Image src={x.img} alt="" fill sizes="220px" className="scale-125 object-cover" /></div>
                           <div className="p-2.5">
                             <span className="mb-1 block h-0.5 w-6 rounded" style={{ background: x.c }} />
                             <b className="block truncate text-[12.5px]">{x.t}</b>
@@ -600,7 +606,8 @@ export default async function SitePage() {
               </p>
             </div>
             <div className="order-1 desk:order-2" data-reveal>
-              <FloatingScene src="/landing/entrance.webp" alt="The glowing entrance of the VentureWeavers house" width={1800} height={1344} sizes="(min-width: 900px) 600px, 100vw" hotspots={[{ label: "You're in", x: 50, y: 30, colour: "#29BE9C" }]} />
+              <FloatingScene src="/landing/entrance.webp" alt="The glowing entrance of the VentureWeavers house" width={1800} height={1344} sizes="(min-width: 900px) 600px, 100vw" hotspots={[{ label: "You're in", x: 67, y: 20, colour: "#29BE9C" }]}
+                flows={[{ colour: "#29BE9C", points: [[35, 81], [60, 63], [66, 58]] }]} />
             </div>
           </div>
         </section>

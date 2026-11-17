@@ -28,8 +28,11 @@ export function FloatingScene({
     let raf = 0, tx = 0, ty = 0, x = 0, y = 0;
     const move = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
-      tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      // Only lean while the pointer is near; -1 to 1 at most.
+      const nx = ((e.clientX - r.left) / r.width - 0.5) * 2, ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      const near = Math.abs(nx) < 1.6 && Math.abs(ny) < 1.6;
+      tx = near ? Math.max(-1, Math.min(1, nx)) : 0;
+      ty = near ? Math.max(-1, Math.min(1, ny)) : 0;
     };
     const leave = () => { tx = 0; ty = 0; };
     const tick = () => {
@@ -80,21 +83,32 @@ export function FloatingScene({
       ctx.clearRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
       paths.forEach((p, pi) => {
-        for (let k = 0; k < 3; k++) {
-          const t = ((time / 1000) * (0.09 + pi * 0.012) + k / 3 + pi * 0.21) % 1;
-          // A short comet: a bright head and a fading tail.
-          for (let s = 0; s < 10; s++) {
-            const [x, y] = at(p, Math.max(0, t - s * 0.006));
-            const r = 7 - s * 0.55;
-            const g = ctx.createRadialGradient(x, y, 0, x, y, r * 2.2);
-            g.addColorStop(0, p.colour);
-            g.addColorStop(1, "transparent");
-            ctx.globalAlpha = (1 - s / 10) * 0.85;
-            ctx.fillStyle = g;
+        for (let k = 0; k < 2; k++) {
+          const t = ((time / 1000) * (0.16 + pi * 0.015) + k / 2 + pi * 0.23) % 1;
+          // A thin streak of light with a bright head.
+          const N = 14;
+          for (let s2 = 0; s2 < N; s2++) {
+            const [x1, y1] = at(p, Math.max(0, t - (s2 + 1) * 0.012));
+            const [x0, y0] = at(p, Math.max(0, t - s2 * 0.012));
+            ctx.globalAlpha = (1 - s2 / N) * 0.9;
+            ctx.strokeStyle = p.colour;
+            ctx.lineWidth = 2.2 * (1 - s2 / N) + 0.4;
+            ctx.lineCap = "round";
             ctx.beginPath();
-            ctx.arc(x, y, r * 2.2, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.stroke();
           }
+          const [hx, hy] = at(p, t);
+          const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 9);
+          g.addColorStop(0, "rgba(220,255,245,0.95)");
+          g.addColorStop(0.35, p.colour);
+          g.addColorStop(1, "transparent");
+          ctx.globalAlpha = 0.9;
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
       ctx.globalAlpha = 1;
@@ -116,7 +130,7 @@ export function FloatingScene({
   return (
     <div ref={wrap} className={`lp-scene ${className ?? ""}`}>
       <div className="lp-scene-inner relative">
-        <Image src={src} alt={alt} width={width} height={height} priority={priority} sizes={sizes ?? "(min-width: 900px) 60vw, 100vw"} className="h-auto w-full select-none" draggable={false} />
+        <Image src={src} alt={alt} width={width} height={height} priority={priority} sizes={sizes ?? "(min-width: 900px) 60vw, 100vw"} className="lp-fade-edge h-auto w-full select-none" draggable={false} />
         {flows.length ? <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" /> : null}
         {hotspots.map((h, i) => {
           const body = (
@@ -179,8 +193,8 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
   return (
     <section ref={section} className="relative" style={{ height: `${steps.length * 90 + 60}vh` }} aria-label={title}>
       <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
-        <div className="mx-auto grid w-full max-w-[1240px] items-center gap-6 px-5 pt-16 desk:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] desk:gap-12 desk:px-8">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] border border-white/10 bg-[#050d0e] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] desk:aspect-[5/4]">
+        <div className="mx-auto grid w-full max-w-[1240px] items-center gap-4 px-5 pt-20 desk:gap-6 desk:pt-16 desk:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] desk:gap-12 desk:px-8">
+          <div className="relative aspect-[16/11] overflow-hidden rounded-[22px] desk:rounded-[28px] border border-white/10 bg-[#050d0e] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] desk:aspect-[5/4]">
             {/* The scene fills the frame's width; the camera moves the chosen point (image %) to the centre and zooms. */}
             <div
               className="lp-cam absolute top-1/2 left-1/2 w-full"
@@ -195,8 +209,8 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="lp-eyebrow">{eyebrow}</p>
-            <h2 className="font-display text-[28px] leading-[1.08] font-semibold desk:text-[40px]">{title}</h2>
+            <p className="lp-eyebrow hidden desk:block">{eyebrow}</p>
+            <h2 className="hidden font-display text-[28px] leading-[1.08] font-semibold desk:block desk:text-[40px]">{title}</h2>
             <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Steps">
               {steps.map((st, i) => (
                 <button
@@ -212,9 +226,9 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
                 </button>
               ))}
             </div>
-            <div key={s.key} className="lp-step lp-glass rounded-[22px] p-6" role="tabpanel">
+            <div key={s.key} className="lp-step lp-glass rounded-[22px] p-5 desk:p-6" role="tabpanel">
               <span className="font-mono text-[11px] font-bold tracking-[.16em] uppercase" style={{ color: s.tint }}>Step 0{active + 1} of 0{steps.length} · {s.kicker}</span>
-              <h3 className="mt-2 font-display text-[30px] font-semibold desk:text-[36px]">{s.title}</h3>
+              <h3 className="mt-2 font-display text-[24px] leading-tight font-semibold desk:text-[36px]">{s.title}</h3>
               <p className="mt-2 text-[14.5px] leading-relaxed text-[var(--lp-fg)]">{s.body}</p>
               {s.cta ? (
                 <a href={s.cta.href} className="group mt-4 inline-flex items-center gap-2 text-[14px] font-bold" style={{ color: s.tint }}>
