@@ -97,15 +97,15 @@ const SPACES: Space[] = [
   },
 ];
 
-const AUDIENCES: { icon: LucideIcon; name: string; body: string; spaces: string[] }[] = [
-  { icon: Rocket, name: "Founders and ventures", body: "Bring your hardest question to Open Floor, learn how capital thinks at TVS, and build with a BRICKR partner or mentor beside you.", spaces: ["Outloud", "TVS", "BRICKR", "QuidQuo"] },
-  { icon: Landmark, name: "Angel and institutional investors", body: "Sharpen your thesis with TVAC, back portfolio companies with hands-on leadership, and meet founders in the room.", spaces: ["TVS", "BRICKR", "QuidQuo"] },
-  { icon: Building2, name: "Venture studios", body: "Set up the playbooks, people and portfolio infrastructure that turn one venture into many.", spaces: ["BRICKR", "TVS"] },
-  { icon: Briefcase, name: "Corporates", body: "Build a venture arm, train leaders on the venture asset class, and work with the startups shaping your market.", spaces: ["TVS", "BRICKR", "Outloud"] },
-  { icon: Handshake, name: "Enablers", body: "Hubs, accelerators and incubators: design programs and economics that work, and give cohorts real investment readiness.", spaces: ["BRICKR", "TVS", "Outloud"] },
-  { icon: Lightbulb, name: "Experts and mentors", body: "Share what you know on stage and in the classroom, with founders who value practice over theory.", spaces: ["Outloud", "TVS"] },
-  { icon: Route, name: "Career professionals", body: "Bring your experience into venture as a founder, angel, mentor, operator or enabler. Get the map of the ecosystem and find the role that fits you.", spaces: ["TVS", "Outloud", "BRICKR"] },
-  { icon: Compass, name: "Ecosystem newcomers", body: "New to venture? Learn how the ecosystem works and who is in it, hear real stories from every side of the table, and find your place.", spaces: ["Outloud", "TVS"] },
+const AUDIENCES: { icon: LucideIcon; name: string; body: string }[] = [
+  { icon: Rocket, name: "Founders and ventures", body: "Bring your hardest question to Open Floor, learn how capital thinks at TVS, and build with a BRICKR partner or mentor beside you." },
+  { icon: Landmark, name: "Angel and institutional investors", body: "Sharpen your thesis with TVAC, back portfolio companies with hands-on leadership, and meet founders in the room." },
+  { icon: Building2, name: "Venture studios", body: "Set up the playbooks, people and portfolio infrastructure that turn one venture into many." },
+  { icon: Briefcase, name: "Corporates", body: "Build a venture arm, train leaders on the venture asset class, and work with the startups shaping your market." },
+  { icon: Handshake, name: "Enablers", body: "Hubs, accelerators and incubators: design programs and economics that work, and give cohorts real investment readiness." },
+  { icon: Lightbulb, name: "Experts and mentors", body: "Share what you know on stage and in the classroom, with founders who value practice over theory." },
+  { icon: Route, name: "Career professionals", body: "Bring your experience into venture as a founder, angel, mentor, operator or enabler. Get the map of the ecosystem and find the role that fits you." },
+  { icon: Compass, name: "Ecosystem newcomers", body: "New to venture? Learn how the ecosystem works and who is in it, hear real stories from every side of the table, and find your place." },
 ];
 
 const STEPS = [
@@ -376,7 +376,7 @@ export default async function SitePage() {
                 <div className="grid grid-cols-[150px_1fr] sm:grid-cols-[190px_1fr]">
                   <div className="flex flex-col gap-1 border-r border-[var(--lp-line)] bg-black/25 p-3 text-[12px]">
                     <span className="mb-2 flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-teal" /><b className="text-[12.5px]">Home</b></span>
-                    {[["Content", "Outloud", "#E39B2D"], ["Education", "TVS", "#1F4FA3"], ["Services", "BRICKR", "#B5532F"], ["Technology", "QuidQuo", "#8DBF2E"], ["Resources", "Library", "#29BE9C"]].map(([type, name, c]) => (
+                    {[["Content", "Outloud", "#E39B2D"], ["Education", "TVS", "#1F4FA3"], ["Services", "BRICKR", "#B5532F"], ["Capital", "QuidQuo", "#8DBF2E"], ["Resources", "Library", "#29BE9C"]].map(([type, name, c]) => (
                       <span key={name} className="flex flex-col rounded-lg px-2 py-1.5 hover:bg-white/5">
                         <span className="text-[9.5px] font-bold tracking-wider text-white/35 uppercase">{type}</span>
                         <span className="flex items-center gap-2 font-semibold text-[var(--lp-fg)]"><span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{name}</span>
@@ -470,12 +470,6 @@ export default async function SitePage() {
                 </span>
                 <h3 className="font-display text-[19px] font-semibold">{a.name}</h3>
                 <p className="flex-1 text-[14px] leading-relaxed text-[var(--lp-fg)]">{a.body}</p>
-                <span className="flex flex-wrap gap-1.5">
-                  {a.spaces.map((sp) => {
-                    const c = SPACES.find((s) => s.name === sp || s.key === sp.toLowerCase())?.colour ?? "#29BE9C";
-                    return <span key={sp} className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-0.5 text-[11.5px] font-bold text-[var(--lp-fg)]"><span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{sp}</span>;
-                  })}
-                </span>
               </article>
             ))}
           </HScroll>
