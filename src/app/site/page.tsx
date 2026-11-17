@@ -6,7 +6,8 @@ import {
   Lightbulb, Linkedin, Mail, Megaphone, MessageSquare, Mic, Instagram, Rocket, Sparkles, UserPlus, Users, Youtube, type LucideIcon,
 } from "lucide-react";
 import { RevealOnScroll, Magnetic, NavScroll, ScrollProgress, Tilt } from "@/components/landing/fx";
-import { WeaveCanvas } from "@/components/landing/weave-canvas";
+import { FloatingScene, Journey, type FlowPath, type Hotspot, type JourneyStep } from "@/components/landing/scene";
+import { SmoothScroll } from "@/components/landing/smooth-scroll";
 import { hostConfig, SURFACE_HEADER } from "@/lib/hosts";
 import "./landing.css";
 
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Space = { key: string; name: string; colour: string; tint: string; kicker: string; line: string; body: string; points: string[]; cta: string; href: string; photo: string; icon: LucideIcon };
+type Space = { key: string; name: string; colour: string; tint: string; kicker: string; line: string; body: string; points: string[]; cta: string; href: string; photo: string; labels: { label: string; x: number; y: number }[]; icon: LucideIcon };
 
 const SPACES: Space[] = [
   {
@@ -35,7 +36,8 @@ const SPACES: Space[] = [
     points: ["Open Floor live shows", "Episodes on YouTube", "Reels on Instagram and TikTok", "VW Newsletter and VW Notes"],
     cta: "Book a seat",
     href: "/outloud",
-    photo: "/images/stage.jpg",
+    photo: "/landing/stage.webp",
+    labels: [{ label: "Open Floor", x: 46, y: 36 }, { label: "The room asks", x: 66, y: 64 }],
     icon: Mic,
   },
   {
@@ -49,7 +51,8 @@ const SPACES: Space[] = [
     points: ["TVAC foundation", "360 programs", "Masterclasses", "Custom programs for teams"],
     cta: "Explore programs",
     href: "/tvs",
-    photo: "/images/room.jpg",
+    photo: "/landing/classroom.webp",
+    labels: [{ label: "TVAC", x: 66, y: 34 }, { label: "360 programs", x: 40, y: 62 }],
     icon: GraduationCap,
   },
   {
@@ -63,7 +66,8 @@ const SPACES: Space[] = [
     points: ["Fractional leadership", "Portfolio infrastructure", "Venture building and scaling", "Innovation hubs"],
     cta: "Request a meeting",
     href: "/brickr",
-    photo: "/images/round.jpg",
+    photo: "/landing/workshop.webp",
+    labels: [{ label: "Build", x: 52, y: 40 }, { label: "Operate", x: 36, y: 64 }],
     icon: Briefcase,
   },
   {
@@ -77,7 +81,8 @@ const SPACES: Space[] = [
     points: ["Build tracker", "Waitlist", "Early access for members"],
     cta: "Join the waitlist",
     href: "/quidquo",
-    photo: "/images/hands.jpg",
+    photo: "/landing/lab.webp",
+    labels: [{ label: "Waitlist open", x: 60, y: 34 }],
     icon: Cpu,
   },
 ];
@@ -113,6 +118,29 @@ const BOTS = [
   { l: "O", title: "Operate", body: "We run it together until it performs." },
   { l: "T", title: "Transfer", body: "Documented, onboarded and handed over to your people." },
   { l: "S", title: "Support", body: "We stay close as your needs change." },
+];
+
+const HOUSE_SPOTS: Hotspot[] = [
+  { label: "Outloud", x: 28, y: 22, colour: "#E39B2D", href: "#space-outloud" },
+  { label: "The Venture School", x: 72, y: 22, colour: "#1F4FA3", href: "#space-tvs" },
+  { label: "QuidQuo", x: 25, y: 78, colour: "#8DBF2E", href: "#space-quidquo" },
+  { label: "BRICKR", x: 73, y: 78, colour: "#B5532F", href: "#space-brickr" },
+];
+
+// The teal threads in the house, in % of the image (from each room to the atrium).
+const HOUSE_FLOWS: FlowPath[] = [
+  { colour: "#29BE9C", points: [[36, 44], [44, 48], [50, 52]] },
+  { colour: "#29BE9C", points: [[64, 44], [56, 48], [50, 52]] },
+  { colour: "#29BE9C", points: [[30, 63], [41, 58], [50, 55]] },
+  { colour: "#29BE9C", points: [[70, 63], [59, 58], [50, 55]] },
+];
+
+const JOURNEY = (app: string, join: string): JourneyStep[] => [
+  { key: "in", tab: "Join", kicker: "The way in", title: "Create your account", body: "One account opens every space. Sign up with Google, LinkedIn or email and tell us where you are in the ecosystem.", cta: { label: "Join the community", href: join }, colour: "#29BE9C", tint: "#5fe0c0", cam: { x: 12, y: 46, s: 2.4 }, label: { x: 50, y: 30 } },
+  { key: "outloud", tab: "Outloud", kicker: "Content · Shows · Events", title: "Watch, then speak up", body: "Book a seat at Open Floor. Founders bring real questions, the room picks one, and we work through it on stage.", cta: { label: "See upcoming shows", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 31, y: 30, s: 2.6 }, label: { x: 50, y: 22 } },
+  { key: "tvs", tab: "TVS", kicker: "Programs · Masterclasses", title: "Learn how venture works", body: "Apply to TVAC, the foundation for every 360 program, or join a masterclass built from real ventures.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 49, y: 54, s: 2.6 }, label: { x: 50, y: 22 } },
+  { key: "brickr", tab: "BRICKR", kicker: "Fractional leadership", title: "Build it together", body: "Request a meeting with the partners. A BRICKR partner works inside your venture or portfolio, from the first diagnostic to handover.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 30, s: 2.6 }, label: { x: 50, y: 22 } },
+  { key: "quidquo", tab: "QuidQuo", kicker: "AI for capital formation", title: "Raise with less friction", body: "Follow the build of our AI for capital formation and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 85, y: 52, s: 2.6 }, label: { x: 50, y: 22 } },
 ];
 
 const FOUNDERS = [
@@ -166,6 +194,7 @@ export default async function SitePage() {
   return (
     <div className="lp min-h-dvh font-sans text-[14px]">
       <RevealOnScroll />
+      <SmoothScroll />
       <NavScroll />
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-ink">Skip to content</a>
 
@@ -176,6 +205,7 @@ export default async function SitePage() {
             <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={170} height={12} priority />
           </a>
           <nav aria-label="Sections" className="ml-6 hidden gap-6 text-[13.5px] font-semibold text-[var(--lp-muted)] desk:flex">
+            <a href="#journey" className="hover:text-white">The house</a>
             <a href="#spaces" className="hover:text-white">Spaces</a>
             <a href="#platform" className="hover:text-white">The platform</a>
             <a href="#who" className="hover:text-white">Who it&apos;s for</a>
@@ -192,40 +222,48 @@ export default async function SitePage() {
       <main id="main">
         {/* ---------------------------------------------------------------- hero */}
         <ScrollProgress as="section" id="top" exit className="relative flex min-h-[100svh] items-center overflow-hidden">
-          <div className="lp-orb top-[-10%] left-[-10%] h-[50vw] w-[50vw] bg-[#02686f]" />
-          <div className="lp-orb right-[-15%] bottom-[-20%] h-[45vw] w-[45vw] bg-[#1f4fa3] [animation-delay:-6s]" />
-          <div className="absolute inset-0 touch-pan-y">
-            <WeaveCanvas className="absolute inset-0 h-full w-full" knot={{ x: 0.72, y: 0.52 }} />
-          </div>
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgb(7_17_18/0.92)_0%,rgb(7_17_18/0.6)_45%,transparent_75%)]" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#071112] to-transparent" />
-
-          <div className="lp-hero-copy pointer-events-none relative mx-auto w-full max-w-[1240px] px-5 pt-28 pb-24 desk:px-8">
-            <span className="lp-fade-in lp-glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-bold text-[var(--lp-fg)]" style={{ "--delay": ".1s" } as React.CSSProperties}>
-              <span className="flex gap-1" aria-hidden="true">
-                {SPACES.map((s) => <span key={s.key} className="h-1.5 w-1.5 rounded-full" style={{ background: s.colour }} />)}
+          <div className="lp-orb top-[-15%] left-[-10%] h-[50vw] w-[50vw] bg-[#02686f]" />
+          <div className="lp-orb right-[-10%] bottom-[-25%] h-[40vw] w-[40vw] bg-[#1f4fa3] opacity-30 [animation-delay:-6s]" />
+          <div className="relative mx-auto grid w-full max-w-[1320px] items-center gap-6 px-5 pt-28 pb-16 desk:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] desk:gap-4 desk:px-8">
+            <div className="lp-hero-copy relative z-10">
+              <span className="lp-fade-in lp-glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-bold text-[var(--lp-fg)]" style={{ "--delay": ".1s" } as React.CSSProperties}>
+                <span className="flex gap-1" aria-hidden="true">
+                  {SPACES.map((sp) => <span key={sp.key} className="h-1.5 w-1.5 rounded-full" style={{ background: sp.colour }} />)}
+                </span>
+                Cairo · working across MENA
               </span>
-              Cairo · working across MENA
-            </span>
-            <h1 className="lp-words mt-6 max-w-[860px] font-display text-[44px] leading-[1.02] font-semibold tracking-[-0.01em] sm:text-[64px] desk:text-[84px]">
-              {words("Where MENA's venture")}
-              {words("ecosystem weaves together.", 3, "lp-grad")}
-            </h1>
-            <p className="lp-fade-in mt-6 max-w-[560px] text-[16px] leading-relaxed text-[var(--lp-fg)] desk:text-[18px]" style={{ "--delay": ".9s" } as React.CSSProperties}>
-              Shows, a venture school, fractional leadership and AI for raising capital. Four spaces, one house, run hands-on by Ahmed Fouad and Karim Hemdan.
-            </p>
-            <div className="lp-fade-in pointer-events-auto mt-9 flex flex-wrap items-center gap-3" style={{ "--delay": "1.1s" } as React.CSSProperties}>
-              <Primary href={join} big>Join the community</Primary>
-              <Secondary href="#spaces">Explore the four spaces</Secondary>
+              <h1 className="lp-words mt-6 font-display text-[44px] leading-[1.02] font-semibold tracking-[-0.01em] sm:text-[60px] desk:text-[76px]">
+                {words("One house for")}
+                {words("MENA's venture", 3)}
+                {words("ecosystem.", 5, "lp-grad")}
+              </h1>
+              <p className="lp-fade-in mt-6 max-w-[520px] text-[16px] leading-relaxed text-[var(--lp-fg)] desk:text-[17px]" style={{ "--delay": ".9s" } as React.CSSProperties}>
+                Four spaces under one roof: shows on stage, a school for venture, partners who build with you, and AI for raising capital. Run hands-on by Ahmed Fouad and Karim Hemdan.
+              </p>
+              <div className="lp-fade-in mt-9 flex flex-wrap items-center gap-3" style={{ "--delay": "1.1s" } as React.CSSProperties}>
+                <Primary href={join} big>Join the community</Primary>
+                <Secondary href="#journey">Walk through the house</Secondary>
+              </div>
+              <p className="lp-fade-in mt-5 text-[12.5px] text-[var(--lp-muted)]" style={{ "--delay": "1.3s" } as React.CSSProperties}>
+                One account for everything. Sign up with Google, LinkedIn or email.
+              </p>
             </div>
-            <p className="lp-fade-in mt-5 text-[12.5px] text-[var(--lp-muted)]" style={{ "--delay": "1.3s" } as React.CSSProperties}>
-              One account for everything. Sign up with Google, LinkedIn or email.
-            </p>
+            <div className="lp-fade-in relative desk:-mr-16" style={{ "--delay": ".3s" } as React.CSSProperties}>
+              <FloatingScene
+                src="/landing/house.webp"
+                alt="A 3D cutaway of the VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, joined by glowing teal threads"
+                width={2400}
+                height={1792}
+                priority
+                sizes="(min-width: 900px) 760px, 100vw"
+                hotspots={HOUSE_SPOTS}
+                flows={HOUSE_FLOWS}
+              />
+            </div>
           </div>
-
           <div className="lp-scroll-cue absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] font-bold tracking-[.2em] text-[var(--lp-muted)] uppercase desk:flex" aria-hidden="true">
             <span className="block h-8 w-px bg-gradient-to-b from-teal to-transparent" />
-            Scroll · move to pull the threads
+            Scroll to walk through
           </div>
         </ScrollProgress>
 
@@ -245,69 +283,57 @@ export default async function SitePage() {
           </div>
         </section>
 
-        {/* ---------------------------------------------------------------- four spaces */}
-        <section id="spaces" className="relative mx-auto max-w-[1240px] scroll-mt-24 px-5 py-24 desk:px-8 desk:py-32">
-          <div className="grid gap-10 desk:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] desk:gap-16">
-            <div className="desk:sticky desk:top-32 desk:self-start">
-              <p className="lp-eyebrow" data-reveal>Four spaces, one house</p>
-              <h2 className="mt-4 font-display text-[36px] leading-[1.05] font-semibold desk:text-[52px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-                Every way in to venture, built from real practice.
-              </h2>
-              <p className="mt-5 max-w-[460px] text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
-                Each space is its own thread: something to watch, something to learn, someone to build with, and a tool for raising capital. Together they make one house you can step into from any side.
-              </p>
-              <ul className="mt-8 hidden flex-col gap-3 desk:flex" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-                {SPACES.map((s, i) => (
-                  <li key={s.key}>
-                    <a href={`#space-${s.key}`} className="group flex items-center gap-3 text-[14px] font-bold text-[var(--lp-muted)] hover:text-white">
-                      <span className="font-display text-[12px] text-[var(--lp-muted)]">0{i + 1}</span>
-                      <span className="h-px w-8 transition-all group-hover:w-14" style={{ background: s.colour }} />
-                      {s.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* ---------------------------------------------------------------- the journey (pinned) */}
+        <div id="journey" className="scroll-mt-0">
+          <Journey src="/landing/journey.webp" width={4000} height={2233} steps={JOURNEY(app, join)} eyebrow="Walk through the house" title="Four spaces, one path through them." />
+        </div>
 
-            <div className="flex flex-col gap-6 pb-[6vh]">
-              {SPACES.map((s, i) => (
-                <ScrollProgress key={s.key} id={`space-${s.key}`} className="lp-stack-card scroll-mt-28" style={{ "--i": i } as React.CSSProperties}>
-                  <div style={{ "--i": i, "--c": s.colour } as React.CSSProperties} className="lp-space">
-                    <Tilt max={5} className="rounded-[28px]">
-                      <article className="lp-glass overflow-hidden rounded-[28px] bg-[#0b1819]/90">
-                        <div className="lp-space-photo relative h-[200px] overflow-hidden desk:h-[240px]">
-                          <Image src={s.photo} alt="" fill sizes="(min-width: 900px) 640px, 100vw" className="object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0b1819] via-[#0b1819]/30 to-transparent" />
-                          <span className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 text-[11.5px] font-bold tracking-wide text-white backdrop-blur-md">
-                            <span className="lp-space-dot h-2 w-2 rounded-full" />
-                            {s.kicker}
-                          </span>
-                          <span className="absolute top-4 right-5 hidden font-display text-[13px] text-white/70 sm:block">0{i + 1} / 04</span>
-                        </div>
-                        <div className="lp-pop flex flex-col gap-3 p-6 desk:p-8">
-                          <h3 className="flex items-center gap-3 font-display text-[28px] leading-tight font-semibold desk:text-[34px]">
-                            <s.icon size={26} aria-hidden="true" style={{ color: s.tint }} />
-                            {s.name}
-                          </h3>
-                          <span className="lp-space-line h-px w-24" />
-                          <p className="text-[17px] font-bold text-white">{s.line}</p>
-                          <p className="text-[14.5px] leading-relaxed text-[var(--lp-fg)]">{s.body}</p>
-                          <ul className="mt-1 flex flex-wrap gap-2">
-                            {s.points.map((pt) => (
-                              <li key={pt} className="rounded-full border border-[var(--lp-line)] bg-white/[0.04] px-3 py-1 text-[12.5px] font-semibold text-[var(--lp-fg)]">{pt}</li>
-                            ))}
-                          </ul>
-                          <a href={`${app}${s.href}`} className="group mt-3 inline-flex items-center gap-2 self-start text-[14.5px] font-bold" style={{ color: s.tint }}>
-                            {s.cta}
-                            <ArrowUpRight size={17} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                          </a>
-                        </div>
-                      </article>
-                    </Tilt>
+        {/* ---------------------------------------------------------------- each space, in depth */}
+        <section id="spaces" className="relative mx-auto max-w-[1240px] scroll-mt-24 px-5 py-24 desk:px-8 desk:py-32">
+          <div className="max-w-[720px]">
+            <p className="lp-eyebrow" data-reveal>Four spaces, worked in depth</p>
+            <h2 className="mt-4 font-display text-[36px] leading-[1.05] font-semibold desk:text-[52px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
+              Every way in to venture, built from real practice.
+            </h2>
+          </div>
+          <div className="mt-16 flex flex-col gap-24 desk:gap-32">
+            {SPACES.map((sp, i) => (
+              <article key={sp.key} id={`space-${sp.key}`} className="grid scroll-mt-28 items-center gap-8 desk:grid-cols-2 desk:gap-16">
+                <ScrollProgress className={`relative ${i % 2 ? "desk:order-2" : ""}`}>
+                  <div className="lp-closeup relative">
+                    <div className="pointer-events-none absolute inset-[12%] rounded-full opacity-40 blur-[70px]" style={{ background: sp.colour }} />
+                    <FloatingScene
+                      src={sp.photo}
+                      alt={`${sp.name}: ${sp.line}`}
+                      width={1800}
+                      height={1344}
+                      sizes="(min-width: 900px) 600px, 100vw"
+                      hotspots={sp.labels.map((l) => ({ ...l, colour: sp.colour }))}
+                    />
                   </div>
                 </ScrollProgress>
-              ))}
-            </div>
+                <div className="flex flex-col gap-3">
+                  <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono text-[11px] font-bold tracking-[.14em] uppercase" style={{ color: sp.tint }} data-reveal>
+                    <span className="h-2 w-2 rounded-full" style={{ background: sp.colour, boxShadow: `0 0 12px ${sp.colour}` }} />
+                    0{i + 1} · {sp.kicker}
+                  </span>
+                  <h3 className="flex items-center gap-3 font-display text-[34px] leading-tight font-semibold desk:text-[44px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
+                    {sp.name}
+                  </h3>
+                  <p className="text-[18px] font-bold text-white" data-reveal style={{ "--d": 2 } as React.CSSProperties}>{sp.line}</p>
+                  <p className="text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>{sp.body}</p>
+                  <ul className="mt-1 flex flex-wrap gap-2" data-reveal style={{ "--d": 4 } as React.CSSProperties}>
+                    {sp.points.map((pt) => (
+                      <li key={pt} className="rounded-full border border-[var(--lp-line)] bg-white/[0.04] px-3 py-1 text-[12.5px] font-semibold text-[var(--lp-fg)]">{pt}</li>
+                    ))}
+                  </ul>
+                  <a href={`${app}${sp.href}`} className="group mt-3 inline-flex items-center gap-2 self-start text-[15px] font-bold" style={{ color: sp.tint }} data-reveal>
+                    {sp.cta}
+                    <ArrowUpRight size={17} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -555,25 +581,27 @@ export default async function SitePage() {
         </section>
 
         {/* ---------------------------------------------------------------- closing call to action */}
-        <section className="relative overflow-hidden py-28 desk:py-40">
-          <div className="absolute inset-0 opacity-70">
-            <WeaveCanvas className="absolute inset-0 h-full w-full" knot={{ x: 0.5, y: 0.5 }} intensity={0.6} />
-          </div>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgb(7_17_18/0.55),#071112_75%)]" />
-          <div className="pointer-events-none relative mx-auto flex max-w-[860px] flex-col items-center px-5 text-center">
-            <h2 className="font-display text-[40px] leading-[1.02] font-semibold desk:text-[72px]" data-reveal>
-              Step inside <span className="lp-grad">the house.</span>
-            </h2>
-            <p className="mt-6 max-w-[560px] text-[16px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-              Join founders, investors and builders across MENA. One account opens Outloud shows, TVS programs, meetings with the partners, the QuidQuo waitlist, VW Notes and the library.
-            </p>
-            <div className="pointer-events-auto mt-10 flex flex-wrap justify-center gap-3" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
-              <Primary href={join} big>Join the community</Primary>
-              <Secondary href={`${app}/brickr`}>Request a meeting</Secondary>
+        <section className="relative overflow-hidden py-24 desk:py-32">
+          <div className="lp-orb top-[10%] left-[35%] h-[40vw] w-[40vw] bg-[#02686f] opacity-40" />
+          <div className="relative mx-auto grid max-w-[1240px] items-center gap-10 px-5 desk:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] desk:px-8">
+            <div className="order-2 desk:order-1">
+              <h2 className="font-display text-[40px] leading-[1.02] font-semibold desk:text-[64px]" data-reveal>
+                Step inside <span className="lp-grad">the house.</span>
+              </h2>
+              <p className="mt-6 max-w-[520px] text-[16px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
+                Join founders, investors and builders across MENA. One account opens Outloud shows, TVS programs, meetings with the partners, the QuidQuo waitlist, VW Notes and the library.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
+                <Primary href={join} big>Join the community</Primary>
+                <Secondary href={`${app}/brickr`}>Request a meeting</Secondary>
+              </div>
+              <p className="mt-6 text-[13px] text-[var(--lp-muted)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
+                Already a member? <a href={`${app}/sign-in`} className="font-bold text-teal hover:underline">Sign in</a>
+              </p>
             </div>
-            <p className="pointer-events-auto mt-6 text-[13px] text-[var(--lp-muted)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-              Already a member? <a href={`${app}/sign-in`} className="font-bold text-teal hover:underline">Sign in</a>
-            </p>
+            <div className="order-1 desk:order-2" data-reveal>
+              <FloatingScene src="/landing/entrance.webp" alt="The glowing entrance of the VentureWeavers house" width={1800} height={1344} sizes="(min-width: 900px) 600px, 100vw" hotspots={[{ label: "You're in", x: 50, y: 30, colour: "#29BE9C" }]} />
+            </div>
           </div>
         </section>
       </main>
