@@ -1,6 +1,6 @@
 # Phase 15 plan: Business CRM, private items, BRICKR service providers
 
-Status: waiting for approval (2026-11-17).
+Status: approved and live (2026-11-17). Parts 1, 2 and 3 shipped.
 
 ## 1. Business CRM (Admin › Businesses)
 
