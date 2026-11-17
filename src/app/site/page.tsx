@@ -51,8 +51,8 @@ const SPACES: Space[] = [
     tint: "#8AAEF0",
     kicker: "Education · Practical and dynamic",
     line: "Learn it in practice. Lead it in motion.",
-    body: "Experience-driven education for every seat at the table: founders, angels, mentors, intrapreneurs and career professionals. Each topic is taught from every stakeholder's side, through role play, real case studies from the region, games and guest practitioners, so you leave with frameworks you use the next day.",
-    points: ["Programs and bootcamps", "Masterclasses", "Workshops", "Webinars", "Open cohorts", "Programs for teams and partners"],
+    body: "Practical, dynamic education for every seat at the table: founders, angels, mentors, intrapreneurs and career professionals. Each topic is taught from every stakeholder's side, through role play, real case studies and guest practitioners, so you leave with frameworks you use the next day. Our flagship program, The Venture Asset Class – Beyond Technicalities, is coming soon.",
+    points: ["Flagship: The Venture Asset Class · coming soon", "Programs and bootcamps", "Masterclasses", "Workshops", "Open cohorts", "Programs for teams and partners"],
     cta: "Explore programs",
     href: "/tvs",
     photo: "/landing/classroom.webp",
@@ -144,7 +144,7 @@ const HOUSE_FLOWS: FlowPath[] = [
 const JOURNEY = (app: string, join: string): JourneyStep[] => [
   { key: "in", tab: "Join", kicker: "The way in", title: "Create your account", body: "One account opens every space. Sign up with Google, LinkedIn or email and tell us where you are in the ecosystem.", cta: { label: "Join the community", href: join }, colour: "#29BE9C", tint: "#5fe0c0", cam: { x: 11, y: 46, s: 2.6 }, label: { x: 50, y: 30 } },
   { key: "outloud", tab: "Outloud", kicker: "Content · Live and digital", title: "Conversations worth having in public", body: "Outloud is our content space. Live shows and events bring the ecosystem into one room; episodes, reels, VW Notes and the VW Newsletter carry the conversation further.", cta: { label: "Explore content", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 32, y: 38, s: 2.5 }, label: { x: 50, y: 22 } },
-  { key: "tvs", tab: "TVS", kicker: "Education", title: "Learn it in practice", body: "The Venture School is practical, dynamic education for every stakeholder of the ecosystem: real ventures, real lessons and the mindset to keep up with a market that never stands still.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 51, y: 45, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "tvs", tab: "TVS", kicker: "Education", title: "Learn it in practice", body: "The Venture School is practical, dynamic education for every stakeholder of the ecosystem. Our flagship program, The Venture Asset Class – Beyond Technicalities, is coming soon.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 51, y: 45, s: 2.5 }, label: { x: 50, y: 22 } },
   { key: "brickr", tab: "BRICKR", kicker: "Services", title: "Build it together", body: "BRICKR is fractional leadership and mentorship. Experienced partners work inside your venture or portfolio, or mentor you through the decisions that matter, hands-on, not hands-off.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 37, s: 2.5 }, label: { x: 50, y: 22 } },
   { key: "quidquo", tab: "QuidQuo", kicker: "Technology", title: "Raise with less friction", body: "QuidQuo is the AI we are building for capital formation, for founders and investors alike. Follow the build and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 86, y: 51, s: 2.5 }, label: { x: 50, y: 22 } },
 ];
@@ -153,13 +153,13 @@ const FOUNDERS = [
   {
     name: "Ahmed Fouad",
     photo: "/landing/ahmed.webp",
-    bio: "Operator, investor and advisor. Ahmed built and ran ventures including Easy Taxi, Yumamia, Akelni, Tabibi and Toggar, invests through SeaSand CVC and DINARe Ventures, and advises founders through Sweetspot and the GLG council.",
+    bio: "A venture builder and ecosystem enabler with 15 years of cross-functional experience across venture building, investment management, and consulting.\nWith deep experience in the tech ecosystem, building, operating, scaling, and funding ventures across different markets and sectors including e-commerce, health-tech, fintech, F&B, transportation, trading, edtech, and investment.",
     linkedin: "https://www.linkedin.com/in/ahmed-fouad-azm",
   },
   {
     name: "Karim Hemdan",
     photo: "/landing/karim.webp",
-    bio: "Operator, investor and advisor. Karim learned the venture playbook at Rocket Internet in Berlin and ran operations at Easy Taxi, Yumamia, Jumia Group and Delivery Hero (Talabat). He invests through SeaSand CVC and DINARe Ventures and is a 500 Global VC Unlocked fellow.",
+    bio: "A decade of operating experience across Rocket Internet, Delivery Hero, and Jumia Group in key strategic roles: the companies that defined the first generation of high-growth digital infrastructure in the region.\nManaging Partner of DINARe Ventures under an Arabian family office, focused on technology ventures in specific MENA markets. Direct fund management experience, with the capital allocator perspective that most platform founders lack entirely.",
     linkedin: "https://www.linkedin.com/in/karim-hemdan",
   },
 ];
@@ -503,7 +503,7 @@ export default async function SitePage() {
                 An interactive business session where we share and discuss real venture stories from every side of the table, and the room brings its own experiences and questions. One topic, two hours, hosted by Ahmed Fouad and Karim Hemdan, with expert guests for specific topics.
               </p>
               <dl className="mt-6 grid grid-cols-3 gap-2" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-                {[["1", "topic per session"], ["2 h", "live, in two rounds"], ["8–10", "stories & questions"]].map(([n, l]) => (
+                {[["1", "topic per session"], ["2 h", "in two rounds"], ["Live", "stories & questions from the room"]].map(([n, l]) => (
                   <div key={l} className="lp-glass rounded-2xl px-3 py-3">
                     <dt className="font-display text-[24px] leading-none font-semibold text-[#F2B65A] desk:text-[28px]">{n}</dt>
                     <dd className="mt-1 text-[11.5px] leading-snug text-[var(--lp-fg)]">{l}</dd>
@@ -561,7 +561,7 @@ export default async function SitePage() {
                       <div className="lp-pop flex flex-1 flex-col gap-2 p-6">
                         <span className="text-[11px] font-extrabold tracking-[.16em] text-teal uppercase">Co-founder &amp; Managing Partner</span>
                         <h3 className="font-display text-[24px] font-semibold">{f.name}</h3>
-                        <p className="text-[14px] leading-relaxed text-[var(--lp-fg)]">{f.bio}</p>
+                        <p className="text-[14px] leading-relaxed whitespace-pre-line text-[var(--lp-fg)]">{f.bio}</p>
                         <a href={f.linkedin} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13.5px] font-bold text-teal hover:underline">
                           <Linkedin size={15} aria-hidden="true" /> LinkedIn
                         </a>
