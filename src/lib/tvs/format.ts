@@ -1,10 +1,10 @@
 /** TVS labels and rules shared by member and admin screens. */
 
-export type ProgramStatus = "draft" | "open" | "in_development" | "closed";
+export type ProgramStatus = "draft" | "open" | "coming_soon" | "closed";
 export const PROGRAM_STATUSES: { value: ProgramStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
   { value: "open", label: "Open" },
-  { value: "in_development", label: "In development" },
+  { value: "coming_soon", label: "Coming soon" },
   { value: "closed", label: "Closed" },
 ];
 export const PROGRAM_KINDS = ["Foundation", "360 program"] as const;
@@ -47,13 +47,13 @@ export type ProgramCardState =
 /**
  * Which button a program card shows for this member:
  * the foundation program takes applications; other open programs show their dates;
- * programs in development offer Notify me.
+ * Coming soon programs offer Notify me.
  */
 export function programCardState(
   p: { id: string; kind: string; status: string },
   mine: { applications: { program_id: string; status: ApplicationStatus }[]; enrolledPrograms: Map<string, EnrolmentStatus>; interests: Set<string> },
 ): ProgramCardState {
-  if (p.status === "in_development") return { kind: "notify", on: mine.interests.has(p.id) };
+  if (p.status === "coming_soon") return { kind: "notify", on: mine.interests.has(p.id) };
   const en = mine.enrolledPrograms.get(p.id);
   if (en === "confirmed") return { kind: "enrolled" };
   if (en === "offered") return { kind: "offered" };

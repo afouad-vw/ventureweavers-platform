@@ -1,22 +1,10 @@
 /** Calendly: booking addresses, the scheduling link, and webhook signature checks. Pure helpers (no secrets here). */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+export { cleanCalendlyUrl } from "./calendly-url";
+
 export const EVENT_URI = /^https:\/\/api\.calendly\.com\/scheduled_events\/[A-Za-z0-9-]{8,64}$/;
 export const INVITEE_URI = /^https:\/\/api\.calendly\.com\/scheduled_events\/[A-Za-z0-9-]{8,64}\/invitees\/[A-Za-z0-9-]{8,64}$/;
-
-/** A Calendly scheduling page (calendly.com/name or calendly.com/name/event), cleaned; "" if it isn't one. */
-export function cleanCalendlyUrl(v: string): string {
-  const raw = v.trim();
-  if (!raw) return "";
-  try {
-    const u = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-    if (u.hostname !== "calendly.com" && u.hostname !== "www.calendly.com") return "";
-    if (!/^\/[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)?\/?$/.test(u.pathname)) return "";
-    return `https://calendly.com${u.pathname.replace(/\/$/, "")}`;
-  } catch {
-    return "";
-  }
-}
 
 /**
  * Checks the Calendly-Webhook-Signature header ("t=<unix>,v1=<hex>") against the raw body.

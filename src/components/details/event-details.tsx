@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, MapPin, MessageSquare, Radio, Ticket, Users, Video } from "lucide-react";
-import { BookButton } from "@/components/events/book-button";
+import { EventCta } from "@/components/events/event-cta";
 import { Banner, type BannerChoice } from "@/components/ui/banner";
 import { buttonClass, LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,7 +44,7 @@ export async function EventDetails({ e }: { e: EventWithSeats }) {
         {mc ? "Masterclasses" : "Shows & events"}
       </Link>
       <Card as="article" className="vw-surface !gap-0 !p-0">
-        <Banner src={e.banner_url} choice={e.banner as BannerChoice} thread={mc ? "TVS" : "Outloud"} height={240} label={e.title} />
+        <Banner src={e.banner_url} choice={e.banner as BannerChoice} thread={mc ? "TVS" : "Outloud"} height={240} label={e.title} chipRight={e.status === "coming_soon" ? "Coming soon" : undefined} />
         <div className="flex flex-col gap-3 p-5">
           <div className="flex flex-wrap gap-2">
             <ThreadTag thread={mc ? "TVS" : "Outloud"} />
@@ -59,8 +59,8 @@ export async function EventDetails({ e }: { e: EventWithSeats }) {
               { icon: e.format === "Online" ? <Video size={16} aria-hidden="true" /> : <MapPin size={16} aria-hidden="true" />, text: place },
               ...(e.type !== "private_session"
                 ? [
-                    { icon: <Ticket size={16} aria-hidden="true" />, text: formatPerSeat(e.price_piasters) },
-                    { icon: <Users size={16} aria-hidden="true" />, text: `${e.seats_left} of ${e.capacity} seats left` },
+                    { icon: <Ticket size={16} aria-hidden="true" />, text: e.status === "coming_soon" ? "Price TBA" : formatPerSeat(e.price_piasters) },
+                    { icon: <Users size={16} aria-hidden="true" />, text: e.status === "coming_soon" ? "Coming soon: press Notify me to hear first" : `${e.seats_left} of ${e.capacity} seats left` },
                   ]
                 : []),
             ]}
@@ -72,7 +72,7 @@ export async function EventDetails({ e }: { e: EventWithSeats }) {
             ) : past ? (
               <span className="text-[13px] font-bold text-faint">This {mc ? "masterclass" : "event"} has passed.</span>
             ) : (
-              <BookButton event={e} signedIn={!!member} booked={booked.has(e.id)} bankDetails={pay.bank_details} />
+              <EventCta event={e} signedIn={!!member} booked={booked.has(e.id)} bankDetails={pay.bank_details} />
             )}
             {e.brochure_url ? <BrochureLink url={e.brochure_url} /> : null}
             {e.type !== "private_session" ? <span className="text-[12.5px] text-faint">Cancellations and refunds: {pay.refund_policy || "[REFUND POLICY]"}</span> : null}

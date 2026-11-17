@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { accessLists } from "@/lib/access-server";
+import { adminWaitlists } from "@/lib/waitlist-server";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { PageHeader } from "@/components/ui/misc";
 import { ThreadTag } from "@/components/ui/tag";
@@ -74,8 +75,8 @@ export default async function AdminTvsPage({ searchParams }: { searchParams: Pro
           { value: "apps", label: "Applications", count: newApps || null },
         ].filter((t) => tabs.includes(t.value))}
       />
-      {tab === "programs" ? <ProgramsManager programs={programs} access={await accessLists("program", programs.map((x) => x.id))} /> : null}
-      {tab === "classes" ? <EventsManager events={classes} base={base} mode="masterclasses" access={await accessLists("event", classes.map((x) => x.id))} /> : null}
+      {tab === "programs" ? <ProgramsManager programs={programs} access={await accessLists("program", programs.map((x) => x.id))} waitlists={await adminWaitlists("program", programs.map((x) => x.id))} /> : null}
+      {tab === "classes" ? <EventsManager events={classes} base={base} mode="masterclasses" access={await accessLists("event", classes.map((x) => x.id))} waitlists={await adminWaitlists("event", classes.map((x) => x.id))} /> : null}
       {tab === "cohorts" ? (
         <>
           <CohortsManager cohorts={cohorts} programs={programs.map((p) => ({ id: p.id, name: p.name }))} />

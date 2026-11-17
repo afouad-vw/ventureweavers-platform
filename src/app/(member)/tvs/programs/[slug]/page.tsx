@@ -36,7 +36,7 @@ export default async function ProgramPage({ params }: Props) {
         Programs
       </Link>
       <Card as="article" className="vw-surface !gap-0 !p-0">
-        <Banner src={p.banner_url} choice={p.banner as BannerChoice} thread="TVS" height={240} label={p.name} chip={p.kind} chipRight={foundation ? "Start here" : p.status === "in_development" ? "In development" : undefined} />
+        <Banner src={p.banner_url} choice={p.banner as BannerChoice} thread="TVS" height={240} label={p.name} chip={p.kind} chipRight={p.status === "coming_soon" ? "Coming soon" : foundation ? "Start here" : undefined} />
         <div className="flex flex-col gap-3 p-5">
           <div className="flex flex-wrap gap-2">
             <ThreadTag thread="TVS" />
@@ -48,7 +48,7 @@ export default async function ProgramPage({ params }: Props) {
           <Facts
             items={[
               { icon: <Clock size={16} aria-hidden="true" />, text: `${p.weeks} weeks${p.outline.length ? ` · ${outlineSummary(p.outline)}` : ""}` },
-              ...(next ? cohortFacts(next) : p.status === "in_development" ? [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "In development: ask to be notified" }] : [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "Next cohort: TBA" }]),
+              ...(next ? cohortFacts(next) : p.status === "coming_soon" ? [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "Coming soon: press Notify me to hear first" }] : [{ icon: <CalendarDays size={16} aria-hidden="true" />, text: "Next cohort: TBA" }]),
             ]}
           />
           <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">

@@ -3,11 +3,11 @@ import { applicationLabel, enrolmentLabel, nextStatus, previousStatus, programCa
 
 const tvac = { id: "p1", kind: "Foundation", status: "open" };
 const v360 = { id: "p2", kind: "360 program", status: "open" };
-const angel = { id: "p3", kind: "360 program", status: "in_development" };
+const angel = { id: "p3", kind: "360 program", status: "coming_soon" };
 const none = { applications: [] as { program_id: string; status: ApplicationStatus }[], enrolledPrograms: new Map<string, EnrolmentStatus>(), interests: new Set<string>() };
 
 describe("program card buttons", () => {
-  it("foundation takes applications, 360s show dates, in-development offers Notify me", () => {
+  it("foundation takes applications, 360s show dates, coming soon offers Notify me", () => {
     expect(programCardState(tvac, none)).toEqual({ kind: "apply" });
     expect(programCardState(v360, none)).toEqual({ kind: "dates" });
     expect(programCardState(angel, none)).toEqual({ kind: "notify", on: false });

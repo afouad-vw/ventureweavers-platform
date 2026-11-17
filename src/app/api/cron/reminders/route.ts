@@ -4,10 +4,12 @@ import { sendClassroomReminder } from "@/lib/email/tvs";
 import { formatDateTime } from "@/lib/events/format";
 import { syncSocial } from "@/lib/content/social-sync";
 import { createServiceClient } from "@/lib/supabase/service";
+import { sendWaitlistEmails } from "@/lib/waitlist-server";
 
 /**
  * Daily at 09:00 Cairo (vercel.json): email a reminder to everyone with a confirmed booking for an
- * event in the next 24-48 hours, expire lapsed reservations and pull new Shorts. Vercel sends the CRON_SECRET header.
+ * event in the next 24-48 hours, expire lapsed reservations, send any "now live" waitlist emails that failed and
+ * pull new Shorts. Vercel sends the CRON_SECRET header.
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -36,7 +38,8 @@ export async function GET(req: NextRequest) {
   const { count: purged } = await svc.from("notifications").delete({ count: "exact" }).lt("created_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
   // Also pull the latest Shorts from @ventureweavers (the Outloud page refreshes them hourly when visited).
   const social = await syncSocial({ force: true }).catch(() => []);
-  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0, social });
+  const waitlist = await sendWaitlistEmails().catch(() => 0);
+  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0, social, waitlist });
 }
 
 /**

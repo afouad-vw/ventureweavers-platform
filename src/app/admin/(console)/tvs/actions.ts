@@ -10,6 +10,7 @@ import { sendEnrolmentConfirmed, sendSeatOffered } from "@/lib/email/tvs";
 import { parseList, parseOutline, parsePeople, peopleLinkError } from "@/lib/details";
 import { slugify, toPiasters } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
+import { sendWaitlistEmails } from "@/lib/waitlist-server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { APPLICATION_STATUSES, COHORT_STATUSES, PROGRAM_KINDS, PROGRAM_STATUSES, type ApplicationStatus } from "@/lib/tvs/format";
 
@@ -103,6 +104,7 @@ export async function saveProgram(form: FormData): Promise<ActionResult> {
     savedId = data.id;
   }
   const accessError = await applyAccess(form, "program", savedId, name, itemHref("program", savedSlug));
+  await sendWaitlistEmails().catch(() => 0);
   refresh();
   if (accessError) return { ok: false, error: accessError };
   return { ok: true, message: id ? "Program saved" : "Program created. Add a cohort with dates and price in Cohorts." };
@@ -144,6 +146,7 @@ export async function setProgramStatus(id: string, status: string): Promise<Acti
   const { error } = await supabase.from("programs").update({ status }).eq("id", id);
   if (error) return { ok: false, error: "Couldn't change the status." };
   await audit(admin.userId, "program.status", "programs", { entityId: id, after: { status } });
+  await sendWaitlistEmails().catch(() => 0);
   refresh();
   return { ok: true, message: `Status: ${PROGRAM_STATUSES.find((x) => x.value === status)?.label}` };
 }

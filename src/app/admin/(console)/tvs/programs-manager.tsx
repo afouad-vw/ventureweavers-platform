@@ -1,28 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Bell } from "lucide-react";
-import { ConfirmDelete, EditorDrawer, IconBtn, ListBar, RowActions, TableBox, td, useRunner } from "@/components/admin/crud";
+import { ConfirmDelete, EditorDrawer, ListBar, RowActions, TableBox, td, useRunner } from "@/components/admin/crud";
 import { BrochureField, MarkdownField, OutlineEditor, PeopleEditor } from "@/components/admin/detail-fields";
 import { ImageField } from "@/components/admin/image-field";
 import { BANNER_OPTIONS } from "@/components/ui/banner";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
-import { Modal } from "@/components/ui/overlay";
 import { StatusPill } from "@/components/ui/tag";
 import { VisibilityField } from "@/components/admin/visibility-field";
+import { WaitlistBadge } from "@/components/admin/waitlist-badge";
+import { statusLabel, statusTone, type WaitPerson } from "@/lib/waitlist";
 import type { AccessPerson } from "@/lib/access";
 import { formatHours, totalHours } from "@/lib/details";
 import { PROGRAM_KINDS, PROGRAM_STATUSES } from "@/lib/tvs/format";
 import type { AdminProgram } from "@/lib/tvs/queries";
 import { deleteProgram, duplicateProgram, saveProgram, setProgramStatus } from "./actions";
 
-const tone = (s: string) => (s === "open" ? "ok" : s === "in_development" ? "blue" : s === "closed" ? "warn" : "draft") as "ok" | "blue" | "warn" | "draft";
-const label = (s: string) => PROGRAM_STATUSES.find((x) => x.value === s)?.label ?? s;
 
-export function ProgramsManager({ programs, access = {} }: { programs: AdminProgram[]; access?: Record<string, AccessPerson[]> }) {
+export function ProgramsManager({ programs, access = {}, waitlists = {} }: { programs: AdminProgram[]; access?: Record<string, AccessPerson[]>; waitlists?: Record<string, WaitPerson[]> }) {
   const [editing, setEditing] = useState<AdminProgram | "new" | null>(null);
   const [del, setDel] = useState<AdminProgram | null>(null);
-  const [interest, setInterest] = useState<AdminProgram | null>(null);
   const { pending, error, setError, run } = useRunner();
   const p = editing && editing !== "new" ? editing : null;
 
@@ -39,25 +36,19 @@ export function ProgramsManager({ programs, access = {} }: { programs: AdminProg
             <td className={td}>{x.requires_tvac ? "Yes" : "No"}</td>
             <td className={td}>
               <span className="flex flex-wrap gap-1">
-                <StatusPill tone={tone(x.status)}>{label(x.status)}</StatusPill>
+                <StatusPill tone={statusTone(x.status)}>{statusLabel(x.status)}</StatusPill>
                 {x.visibility === "private" ? <StatusPill tone="blue">Private · {(access[x.id] ?? []).length}</StatusPill> : null}
               </span>
             </td>
             <td className={td}>
               <RowActions
                 name={x.name}
-                published={x.status === "open" || x.status === "in_development"}
+                published={x.status === "open" || x.status === "coming_soon"}
                 onEdit={() => { setError(null); setEditing(x); }}
                 onDuplicate={() => run(() => duplicateProgram(x.id))}
-                onToggle={() => run(() => setProgramStatus(x.id, x.status === "open" || x.status === "in_development" ? "draft" : "open"))}
+                onToggle={() => run(() => setProgramStatus(x.id, x.status === "open" || x.status === "coming_soon" ? "draft" : "open"))}
                 onDelete={() => setDel(x)}
-                extra={
-                  x.interested.length ? (
-                    <IconBtn label={`${x.interested.length} asked to be notified`} onClick={() => setInterest(x)}>
-                      <span className="inline-flex items-center gap-0.5 text-[11.5px] font-bold"><Bell size={13} aria-hidden="true" />{x.interested.length}</span>
-                    </IconBtn>
-                  ) : null
-                }
+                extra={<WaitlistBadge type="program" id={x.id} title={x.name} people={waitlists[x.id] ?? []} comingSoon={x.status === "coming_soon"} />}
               />
             </td>
           </tr>
@@ -79,7 +70,7 @@ export function ProgramsManager({ programs, access = {} }: { programs: AdminProg
         <TextField label="Name" name="name" defaultValue={p?.name ?? ""} required maxLength={80} />
         <div className="grid grid-cols-2 gap-3">
           <SelectField label="Type" name="kind" defaultValue={p?.kind ?? "360 program"} options={PROGRAM_KINDS} />
-          <SelectField label="Status" name="status" defaultValue={p?.status ?? "draft"} options={PROGRAM_STATUSES} hint="Open takes applications (foundation) or shows dates; In development offers Notify me." />
+          <SelectField label="Status" name="status" defaultValue={p?.status ?? "draft"} options={PROGRAM_STATUSES} hint="Open takes applications (foundation) or shows dates. Coming soon shows Notify me; setting it to Open tells everyone waiting." />
         </div>
         <TextArea label="Short description" name="short_description" rows={2} defaultValue={p?.short_description || p?.description || ""} maxLength={300} required hint="Shown on the card. Up to 300 characters." />
         <MarkdownField name="details" label="Program details" initial={p?.details ?? ""} hint="Shown on the program's details page." />
@@ -109,17 +100,6 @@ export function ProgramsManager({ programs, access = {} }: { programs: AdminProg
 
       <ConfirmDelete name={del?.name} open={del !== null} onClose={() => setDel(null)} pending={pending} note="Programs with applications or cohorts can't be deleted; set them to Closed or Draft instead." onConfirm={() => del && run(() => deleteProgram(del.id), () => setDel(null))} />
 
-      <Modal open={interest !== null} onClose={() => setInterest(null)} title={`Notify me · ${interest?.name ?? ""}`}>
-        <ul className="flex flex-col">
-          {interest?.interested.map((i) => (
-            <li key={`${i.email}-${i.at}`} className="flex items-center justify-between gap-2 border-b border-line py-2 text-[13.5px] last:border-b-0">
-              <b>{i.name}</b>
-              <span className="text-faint">{i.email ?? ""}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="text-[12.5px] text-faint">Tell them when it opens from Publishing, or email them directly.</p>
-      </Modal>
     </>
   );
 }

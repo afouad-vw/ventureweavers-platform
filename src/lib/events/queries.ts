@@ -18,7 +18,7 @@ export type EventRow = {
   description: string | null;
   banner: string;
   banner_url: string | null;
-  status: "draft" | "published";
+  status: "draft" | "coming_soon" | "published";
   visibility?: "public" | "private";
   created_at: string;
   space: string;
@@ -72,7 +72,7 @@ async function withSeats(rows: EventRow[]): Promise<EventWithSeats[]> {
 }
 
 /**
- * Published events from now on, soonest first; private sessions (no date) last.
+ * Published and Coming soon events from now on, soonest first; undated ones (private sessions, dates TBA) last.
  * "outloud" leaves out masterclasses, "masterclasses" keeps only those, "all" keeps everything.
  */
 export async function listUpcomingEvents(which: "outloud" | "masterclasses" | "all" = "outloud"): Promise<EventWithSeats[]> {
@@ -81,8 +81,8 @@ export async function listUpcomingEvents(which: "outloud" | "masterclasses" | "a
   let q = supabase
     .from("events")
     .select(EVENT_COLS)
-    .eq("status", "published")
-    .or(`starts_at.gte.${new Date().toISOString()},type.eq.private_session`);
+    .in("status", ["published", "coming_soon"])
+    .or(`starts_at.gte.${new Date().toISOString()},starts_at.is.null,type.eq.private_session`);
   if (which === "outloud") q = q.neq("type", "masterclass");
   if (which === "masterclasses") q = q.eq("type", "masterclass");
   const { data } = await q.order("starts_at", { ascending: true, nullsFirst: false }).limit(50);

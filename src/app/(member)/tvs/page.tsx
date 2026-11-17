@@ -3,10 +3,8 @@ import { WeaveHero } from "@/components/ui/weave";
 import Link from "next/link";
 import { BookOpen, CalendarDays, GraduationCap } from "lucide-react";
 import { BookButton } from "@/components/events/book-button";
-import { MeetingButton } from "@/components/brickr/meeting-button";
-import { CustomProgramButton } from "@/components/tvs/custom-program";
-import { customProgramService } from "@/lib/brickr/queries";
-import { calendlyUrl } from "@/lib/calendly-server";
+import { PrivateRequestCard } from "@/components/tvs/private-request";
+import { WaitlistCta } from "@/components/waitlist/waitlist-cta";
 import { ProgramCta } from "@/components/tvs/program-cta";
 import { type BannerChoice } from "@/components/ui/banner";
 import { LinkButton } from "@/components/ui/button";
@@ -78,12 +76,9 @@ async function Programs({
   signedIn: boolean;
   memberId: string | null;
 }) {
-  const [profile, cohorts, me, calUrl, customService] = await Promise.all([
+  const [profile, cohorts] = await Promise.all([
     memberId ? myHomeProfile(memberId) : null,
     publicCohorts(programs.map((p) => p.id)),
-    getMember(),
-    calendlyUrl(),
-    customProgramService(),
   ]);
 
   return (
@@ -93,8 +88,8 @@ async function Programs({
           {programs.map((p) => {
             const foundation = p.kind === "Foundation";
             const next = cohorts.get(p.id)?.[0];
-            const meta = p.status === "in_development"
-              ? "In development"
+            const meta = p.status === "coming_soon"
+              ? "Coming soon · dates TBA"
               : next
                 ? `${next.starts_on ? formatDate(`${next.starts_on}T12:00:00Z`) : "Date TBA"} · ${next.format ?? "Format TBA"} · ${formatPrice(next.price_piasters)}`
                 : `${p.weeks} weeks · next cohort TBA`;
@@ -106,7 +101,7 @@ async function Programs({
                 bannerSrc={p.banner_url}
                 bannerLabel={p.name}
                 bannerChip={p.kind}
-                bannerChipRight={foundation ? "Start here" : p.status === "in_development" ? "In development" : undefined}
+                bannerChipRight={p.status === "coming_soon" ? "Coming soon" : foundation ? "Start here" : undefined}
                 title={p.name}
                 subtitle={p.kind}
                 description={p.short_description || p.description}
@@ -143,15 +138,7 @@ async function Programs({
             ))}
           </ol>
         </Card>
-        <Card tone="ink" className="gap-2.5">
-          <h2 className="text-[15px] font-bold text-white">Custom programs</h2>
-          <span className="text-[13.5px]">For teams, portfolios, cohorts and organisations. Tell us what you need and we&apos;ll shape a program around it.</span>
-          {calUrl && customService ? (
-            <MeetingButton service={customService} variant="teal" size="md" className="self-start" />
-          ) : (
-            <CustomProgramButton defaults={{ name: me?.name ?? "", email: me?.email ?? "" }} />
-          )}
-        </Card>
+        <PrivateRequestCard kind="program" />
       </aside>
     </div>
   );
@@ -176,18 +163,20 @@ async function Masterclasses({ classes, format, signedIn }: { classes: Awaited<R
               banner={e.banner as BannerChoice}
               bannerSrc={e.banner_url}
               bannerChip={e.starts_at ? <span className="inline-flex items-center gap-1"><CalendarDays size={12} aria-hidden="true" />{formatDate(e.starts_at)}</span> : undefined}
-              bannerChipRight={e.format ?? undefined}
+              bannerChipRight={e.status === "coming_soon" ? "Coming soon" : e.format ?? undefined}
               title={e.title}
               description={e.short_description || e.description || undefined}
               meta={
                 <>
-                  {e.starts_at ? formatTime(e.starts_at) : ""} · {e.seats_left} seats left · {formatPrice(e.price_piasters)}
+                  {e.status === "coming_soon" ? `Coming soon · ${e.format ?? "Format TBA"} · Price TBA` : `${e.starts_at ? formatTime(e.starts_at) : "Time TBA"} · ${e.seats_left} seats left · ${formatPrice(e.price_piasters)}`}
                 </>
               }
               cta={
                 <span className="flex flex-wrap justify-end gap-1.5">
                   <LinkButton href={`/tvs/masterclasses/${e.slug}`} size="sm" variant="secondary">View details</LinkButton>
-                  {booked.has(e.id) ? (
+                  {e.status === "coming_soon" ? (
+                    <WaitlistCta type="event" id={e.id} size="sm" variant="primary" />
+                  ) : booked.has(e.id) ? (
                     <StatusPill tone="ok">Booked</StatusPill>
                   ) : (
                     <BookButton event={e} signedIn={signedIn} booked={false} bankDetails={pay.bank_details} size="sm" label="Book" />
@@ -200,6 +189,7 @@ async function Masterclasses({ classes, format, signedIn }: { classes: Awaited<R
       ) : (
         <EmptyState>No masterclasses in this format yet.</EmptyState>
       )}
+      <PrivateRequestCard kind="class" className="desk:max-w-[560px]" />
       <p className="text-[12.5px] text-faint">
         Online masterclasses run on Google Meet; the link appears on your ticket in My space once your seat is confirmed. <Link href="/my-space?tab=tickets" className="font-bold text-link">My tickets</Link>
       </p>

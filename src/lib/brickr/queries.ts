@@ -16,7 +16,7 @@ export type Service = {
   tags: string[];
   banner: string;
   banner_url: string | null;
-  status: "draft" | "published";
+  status: "draft" | "coming_soon" | "published";
   sort: number;
   short_description: string;
   offerings: string[];
@@ -24,22 +24,24 @@ export type Service = {
   brochure_url: string | null;
   providers: Person[];
   visibility: "public" | "private";
+  booking: "request" | "calendar" | "both";
+  calendly_url: string | null;
 };
-export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers, visibility";
+export const SERVICE_COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers, visibility, booking, calendly_url";
+const LIVE = ["published", "coming_soon"];
 
-/** One published service, by its address. */
-/** The hidden service behind TVS custom program requests. */
-export async function customProgramService(): Promise<Service | null> {
+/** The hidden TVS services behind Private programs (`custom-program`) and Private classes (`private-class`) requests. */
+export async function tvsRequestService(slug: "custom-program" | "private-class"): Promise<Service | null> {
   if (!supabaseConfigured) return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("slug", "custom-program").eq("status", "published").maybeSingle();
+  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("slug", slug).in("status", LIVE).maybeSingle();
   return (data as Service | null) ?? null;
 }
 
 export async function getService(slug: string): Promise<Service | null> {
   if (!supabaseConfigured || !/^[a-z0-9-]{1,80}$/.test(slug)) return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("slug", slug).eq("status", "published").maybeSingle();
+  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("slug", slug).in("status", LIVE).maybeSingle();
   return (data as Service | null) ?? null;
 }
 
@@ -65,8 +67,8 @@ const bySort = (a: Service, b: Service) => a.sort - b.sort || a.name.localeCompa
 export async function listServices(): Promise<Service[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  // TVS custom programs have a service row for Calendly requests; it isn't listed with BRICKR and Outloud services.
-  const { data } = await supabase.from("services").select(SERVICE_COLS).eq("status", "published").neq("space", "TVS").limit(50);
+  // TVS private programs and classes have service rows for requests; they aren't listed with BRICKR and Outloud services.
+  const { data } = await supabase.from("services").select(SERVICE_COLS).in("status", LIVE).neq("space", "TVS").limit(50);
   return ((data ?? []) as Service[]).sort(bySort);
 }
 

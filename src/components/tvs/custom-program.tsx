@@ -8,8 +8,9 @@ import { Modal } from "@/components/ui/overlay";
 import { FORMAT_PREFS, ORG_TYPES } from "@/lib/tvs/custom";
 import { sendCustomProgram } from "@/app/(member)/tvs/custom-actions";
 
-/** "Custom programs" on TVS: a short form that goes to the custom-programs inbox. */
-export function CustomProgramButton({ defaults }: { defaults: { name: string; email: string } }) {
+/** "Private programs" and "Private classes" on TVS: a short form that goes to the private-programs inbox. */
+export function CustomProgramButton({ defaults, kind = "program" }: { defaults: { name: string; email: string }; kind?: "program" | "class" }) {
+  const noun = kind === "class" ? "class" : "program";
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export function CustomProgramButton({ defaults }: { defaults: { name: string; em
       <Modal
         open={open}
         onClose={close}
-        title={sent ? "Request sent" : "Request a custom program"}
+        title={sent ? "Request sent" : `Request a private ${noun}`}
         footer={
           sent ? (
             <Button onClick={close}>Done</Button>
@@ -60,7 +61,8 @@ export function CustomProgramButton({ defaults }: { defaults: { name: string; em
               });
             }}
           >
-            <p className="text-[13px] text-muted">For teams, portfolios, cohorts and organisations. Tell us what you need and we&apos;ll shape a program around it.</p>
+            <p className="text-[13px] text-muted">For teams, portfolios, cohorts and organisations. Tell us what you need and we&apos;ll shape a {noun} around it.</p>
+            <input type="hidden" name="kind" value={kind} />
             <div className="grid gap-3 sm:grid-cols-2">
               <TextField label="Your name" name="name" defaultValue={defaults.name} required maxLength={100} autoComplete="name" />
               <TextField label="Email" name="email" type="email" defaultValue={defaults.email} required maxLength={200} autoComplete="email" />
@@ -71,7 +73,7 @@ export function CustomProgramButton({ defaults }: { defaults: { name: string; em
               <SelectField label="Format" name="format" defaultValue="Either" options={FORMAT_PREFS} />
               <TextField label="Timing" name="timing" maxLength={120} placeholder="Q1 2027, or a month" />
             </div>
-            <TextArea label="What should the program achieve?" name="goals" rows={4} required maxLength={2000} placeholder="Topics, outcomes, the challenges your people face…" />
+            <TextArea label={`What should the ${noun} achieve?`} name="goals" rows={4} required maxLength={2000} placeholder="Topics, outcomes, the challenges your people face…" />
             <TextField label="Phone (optional)" name="phone" type="tel" maxLength={40} autoComplete="tel" />
             <TextArea label="Anything else (optional)" name="notes" rows={2} maxLength={1000} />
             <label className="sr-only" aria-hidden="true">

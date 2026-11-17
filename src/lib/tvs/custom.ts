@@ -1,4 +1,4 @@
-/** TVS custom programs request form: fields and checks (shared by the form and the server). */
+/** TVS Private programs and Private classes request form: fields and checks (shared by the form and the server). */
 
 export const ORG_TYPES = ["A team", "A portfolio", "A cohort", "An organisation", "Something else"] as const;
 export const FORMAT_PREFS = ["Online", "In person", "Either"] as const;

@@ -10,6 +10,8 @@ import { Drawer, Modal } from "@/components/ui/overlay";
 import { StatusPill } from "@/components/ui/tag";
 import { VisibilityField } from "@/components/admin/visibility-field";
 import type { AccessPerson } from "@/lib/access";
+import { WaitlistBadge } from "@/components/admin/waitlist-badge";
+import { PUB_STATUS_OPTIONS, statusLabel, statusTone, type WaitPerson } from "@/lib/waitlist";
 import { useToast } from "@/components/ui/toast";
 import { EVENT_TYPES, formatDateTime, formatEGP, isoToCairoLocal, MASTERCLASS_FORMATS, typeLabel } from "@/lib/events/format";
 import type { AdminEvent } from "@/lib/events/admin-queries";
@@ -20,7 +22,7 @@ import { ImageField } from "@/components/admin/image-field";
 const priceInput = (p: number | null) => (p == null ? "" : (p / 100).toString());
 
 /** Admin › Outloud › Events: table with create, edit, duplicate, delete and Published/Draft. */
-export function EventsManager({ events, base, mode = "outloud", access = {} }: { events: AdminEvent[]; base: string; mode?: "outloud" | "masterclasses"; access?: Record<string, AccessPerson[]> }) {
+export function EventsManager({ events, base, mode = "outloud", access = {}, waitlists = {} }: { events: AdminEvent[]; base: string; mode?: "outloud" | "masterclasses"; access?: Record<string, AccessPerson[]>; waitlists?: Record<string, WaitPerson[]> }) {
   const mc = mode === "masterclasses";
   const [editing, setEditing] = useState<AdminEvent | "new" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminEvent | null>(null);
@@ -86,7 +88,7 @@ export function EventsManager({ events, base, mode = "outloud", access = {} }: {
                 <td className="px-3 py-2.5 whitespace-nowrap">{ev.type === "private_session" ? "On request" : formatEGP(ev.price_piasters)}</td>
                 <td className="px-3 py-2.5">
                   <span className="flex flex-wrap gap-1">
-                    <StatusPill tone={ev.status === "published" ? "ok" : "draft"}>{ev.status === "published" ? "Published" : "Draft"}</StatusPill>
+                    <StatusPill tone={statusTone(ev.status)}>{statusLabel(ev.status)}</StatusPill>
                     {ev.visibility === "private" ? <StatusPill tone="blue">Private · {(access[ev.id] ?? []).length}</StatusPill> : null}
                   </span>
                 </td>
@@ -100,8 +102,9 @@ export function EventsManager({ events, base, mode = "outloud", access = {} }: {
                     ) : null}
                     <IconBtn label={`Edit ${ev.title}`} onClick={() => { setError(null); setEditing(ev); }}><Pencil size={15} aria-hidden="true" /></IconBtn>
                     <IconBtn label={`Duplicate ${ev.title}`} onClick={() => run(() => duplicateEvent(ev.id))}><Copy size={15} aria-hidden="true" /></IconBtn>
-                    <IconBtn label={ev.status === "published" ? `Unpublish ${ev.title}` : `Publish ${ev.title}`} onClick={() => run(() => setEventStatus(ev.id, ev.status === "published" ? "draft" : "published"))}>
-                      {ev.status === "published" ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}
+                    <WaitlistBadge type="event" id={ev.id} title={ev.title} people={waitlists[ev.id] ?? []} comingSoon={ev.status === "coming_soon"} />
+                    <IconBtn label={ev.status !== "draft" ? `Unpublish ${ev.title}` : `Publish ${ev.title}`} onClick={() => run(() => setEventStatus(ev.id, ev.status !== "draft" ? "draft" : "published"))}>
+                      {ev.status !== "draft" ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}
                     </IconBtn>
                     <IconBtn label={`Delete ${ev.title}`} onClick={() => setConfirmDelete(ev)}><Trash2 size={15} aria-hidden="true" /></IconBtn>
                   </div>
@@ -147,7 +150,7 @@ export function EventsManager({ events, base, mode = "outloud", access = {} }: {
               ) : (
                 <SelectField label="Type" name="type" defaultValue={e?.type ?? "public_show"} options={EVENT_TYPES} />
               )}
-              <SelectField label="Status" name="status" defaultValue={e?.status ?? "draft"} options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
+              <SelectField label="Status" name="status" defaultValue={e?.status ?? "draft"} options={PUB_STATUS_OPTIONS} hint="Coming soon shows Notify me. Publishing tells everyone waiting." />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <TextField label="Starts (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint={mc ? undefined : "Leave empty for private sessions."} />

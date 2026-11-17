@@ -50,8 +50,8 @@ insert into public.bookings (event_id, member_id, seats, amount_piasters, status
   ('a0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000d8', 1, 45000, 'confirmed', 'VWB-NOT003');
 
 -- ---------------------------------------------------------------- programs
-insert into public.programs (id, slug, name, status) values ('a2000000-0000-0000-0000-000000000001', 'notif-prog', 'NotifProg', 'in_development');
-insert into public.program_interest (member_id, program_id) values ('00000000-0000-0000-0000-0000000000d7', 'a2000000-0000-0000-0000-000000000001');
+insert into public.programs (id, slug, name, status) values ('a2000000-0000-0000-0000-000000000001', 'notif-prog', 'NotifProg', 'coming_soon');
+insert into public.waitlist_entries (item_type, item_id, member_id, added_by) values ('program', 'a2000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000d7', '00000000-0000-0000-0000-0000000000d7');
 update public.programs set status = 'open' where id = 'a2000000-0000-0000-0000-000000000001';
 select pg_temp.check(pg_temp.latest('00000000-0000-0000-0000-0000000000d7') = 'NotifProg is now open for applications.', 'program opening notifies interested members');
 select pg_temp.check(pg_temp.latest('00000000-0000-0000-0000-0000000000d8') not like 'NotifProg%', 'only interested members');

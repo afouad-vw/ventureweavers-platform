@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { accessLists } from "@/lib/access-server";
+import { calendlyUrl } from "@/lib/calendly-server";
+import { adminWaitlists } from "@/lib/waitlist-server";
 import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { PageHeader } from "@/components/ui/misc";
@@ -19,7 +21,8 @@ export default async function AdminBrickrPage({ searchParams }: { searchParams: 
   const tab = raw === "requests" ? "requests" : "services";
   const [items, services] = await Promise.all([adminInbox(), tab === "services" ? adminServices() : []]);
   const reqs = items.filter((i) => i.kind === "request");
-  const access = tab === "services" ? await accessLists("service", services.map((x) => x.id)) : {};
+  const ids = services.map((x) => x.id);
+  const [access, waitlists, defaultCalendly] = tab === "services" ? await Promise.all([accessLists("service", ids), adminWaitlists("service", ids), calendlyUrl()]) : [{}, {}, ""];
   return (
     <>
       <PageHeader
@@ -37,7 +40,7 @@ export default async function AdminBrickrPage({ searchParams }: { searchParams: 
           { value: "requests", label: "Requests", count: reqs.filter((r) => r.status === "new").length || null },
         ]}
       />
-      {tab === "requests" ? <RequestsInbox items={reqs} spaces={["BRICKR", "Outloud"]} base={base} csv={false} /> : <ServicesManager services={services} access={access} />}
+      {tab === "requests" ? <RequestsInbox items={reqs} spaces={["BRICKR", "Outloud"]} base={base} csv={false} /> : <ServicesManager services={services} access={access} waitlists={waitlists} defaultCalendly={defaultCalendly} />}
     </>
   );
 }

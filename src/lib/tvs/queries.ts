@@ -70,7 +70,7 @@ export async function publicCohorts(programIds: string[]): Promise<Map<string, P
 export async function getProgram(slug: string): Promise<Program | null> {
   if (!supabaseConfigured || !/^[a-z0-9-]{1,80}$/.test(slug)) return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("programs").select(PROGRAM_COLS).eq("slug", slug).in("status", ["open", "in_development"]).maybeSingle();
+  const { data } = await supabase.from("programs").select(PROGRAM_COLS).eq("slug", slug).in("status", ["open", "coming_soon"]).maybeSingle();
   return (data as Program | null) ?? null;
 }
 
@@ -91,7 +91,7 @@ const byFoundationFirst = (a: Program, b: Program) => (a.kind === "Foundation" ?
 export async function listPrograms(): Promise<Program[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  const { data } = await supabase.from("programs").select(PROGRAM_COLS).in("status", ["open", "in_development"]).limit(50);
+  const { data } = await supabase.from("programs").select(PROGRAM_COLS).in("status", ["open", "coming_soon"]).limit(50);
   return ((data ?? []) as Program[]).sort(byFoundationFirst);
 }
 
@@ -104,18 +104,18 @@ export async function myTvs(): Promise<{ applications: MyApplication[]; enrolmen
   const [a, e, i] = await Promise.all([
     supabase.from("applications").select("id, program_id, status, created_at, programs(name)").order("created_at", { ascending: false }),
     supabase.from("enrolments").select("id, status, amount_piasters, pay_reference, offered_at, confirmed_at, cohorts(label, starts_on, program_id, programs(name))").order("offered_at", { ascending: false }),
-    supabase.from("program_interest").select("program_id"),
+    supabase.from("waitlist_entries").select("item_id").eq("item_type", "program").eq("member_id", c.claims.sub as string),
   ]);
   return {
     applications: (a.data ?? []) as unknown as MyApplication[],
     enrolments: (e.data ?? []) as unknown as MyEnrolment[],
-    interests: new Set(((i.data ?? []) as { program_id: string }[]).map((x) => x.program_id)),
+    interests: new Set(((i.data ?? []) as { item_id: string }[]).map((x) => x.item_id)),
   };
 }
 
 // ---------------------------------------------------------------- admin
 
-export type AdminProgram = Program & { interested: { name: string; email: string | null; at: string }[] };
+export type AdminProgram = Program;
 export type AdminApplication = {
   id: string;
   member_id: string;
@@ -183,16 +183,8 @@ export async function peopleById(ids: string[]): Promise<Map<string, { name: str
 export async function adminPrograms(): Promise<AdminProgram[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  const [{ data: rows }, { data: interest }] = await Promise.all([
-    supabase.from("programs").select(PROGRAM_COLS).limit(100),
-    supabase.from("program_interest").select("program_id, member_id, created_at").order("created_at", { ascending: false }),
-  ]);
-  const ints = (interest ?? []) as { program_id: string; member_id: string; created_at: string }[];
-  const people = await peopleById(ints.map((i) => i.member_id));
-  return ((rows ?? []) as Program[]).sort(byFoundationFirst).map((p) => ({
-    ...p,
-    interested: ints.filter((i) => i.program_id === p.id).map((i) => ({ name: people.get(i.member_id)?.name ?? "Member", email: people.get(i.member_id)?.email ?? null, at: i.created_at })),
-  }));
+  const { data: rows } = await supabase.from("programs").select(PROGRAM_COLS).limit(100);
+  return ((rows ?? []) as Program[]).sort(byFoundationFirst);
 }
 
 export async function adminApplications(): Promise<AdminApplication[]> {

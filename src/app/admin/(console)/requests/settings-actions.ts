@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 type Result = { ok: true; message: string } | { ok: false; error: string };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** Calendly link (meeting requests) and the custom programs inbox. */
+/** Default Calendly link (suggested for new services) and the private programs inbox. */
 export async function saveSchedulingSettings(form: FormData): Promise<Result> {
   const admin = await requireAdmin("super");
   const rawCal = String(form.get("calendly_url") ?? "").trim();

@@ -14,7 +14,7 @@ import { BLOG_CATEGORIES, CONTENT_FORMATS, blogCategoryLabel } from "@/lib/conte
 import { blogPosts, episodesBySeries, latestShorts, myHomeProfile } from "@/lib/content/queries";
 import { syncSocial } from "@/lib/content/social-sync";
 import { formatDate } from "@/lib/events/format";
-import { BookButton } from "@/components/events/book-button";
+import { EventCta } from "@/components/events/event-cta";
 import { Banner, type BannerChoice } from "@/components/ui/banner";
 import { buttonClass } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -67,19 +67,19 @@ async function Shows() {
               <Banner src={next.banner_url} choice={next.banner as BannerChoice} thread="Outloud" height={200} className="h-full sm:!h-full" chip={<span className="inline-flex items-center gap-1 rounded-md bg-black/40 px-2 py-0.5 text-[11.5px] font-bold"><MessageSquare size={12} aria-hidden="true" />Open Floor.</span>} />
             </div>
             <div className="flex flex-1 flex-col gap-2.5 p-4">
-              <Eyebrow>Next show · {typeLabel(next.type)}</Eyebrow>
+              <Eyebrow>{next.status === "coming_soon" ? "Coming soon" : "Next show"} · {typeLabel(next.type)}</Eyebrow>
               <h2 className="font-display text-[19px] font-semibold">
                 <Link href={`/outloud/events/${next.slug}`} className="hover:underline">{next.title}</Link>
               </h2>
               {next.description ? <p className="line-clamp-3 text-[13.5px] text-muted">{next.description}</p> : null}
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
-                <Kv k="When" v={next.starts_at ? formatDateTime(next.starts_at) : "To schedule"} />
+                <Kv k="When" v={next.starts_at ? formatDateTime(next.starts_at) : "TBA"} />
                 <Kv k="Where" v={next.venue ?? "Venue TBA"} />
-                <Kv k="Seat" v={formatPrice(next.price_piasters)} />
-                <Kv k="Seats left" v={`${next.seats_left} of ${next.capacity}`} />
+                <Kv k="Seat" v={next.status === "coming_soon" ? "TBA" : formatPrice(next.price_piasters)} />
+                <Kv k="Seats left" v={next.status === "coming_soon" ? "TBA" : `${next.seats_left} of ${next.capacity}`} />
               </dl>
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
-                <BookButton event={next} signedIn={!!member} booked={booked.has(next.id)} bankDetails={pay.bank_details} />
+                <EventCta event={next} signedIn={!!member} booked={booked.has(next.id)} bankDetails={pay.bank_details} />
                 <span className="text-[12.5px] text-faint">
                   Hosted by {next.hosts || "Fouad & Karim"}
                   {next.guest ? ` · Guest: ${next.guest}` : ""}
@@ -99,13 +99,13 @@ async function Shows() {
                   <div className="min-w-0 flex-1">
                     <Link href={`/outloud/events/${e.slug}`} className="block truncate text-[14px] font-bold hover:underline">{e.title}</Link>
                     <span className="text-[12.5px] text-faint">
-                      {typeLabel(e.type)} · {e.starts_at ? formatTime(e.starts_at) : ""} · {e.venue ?? "Venue TBA"} · {e.seats_left} seats left
+                      {typeLabel(e.type)} · {e.starts_at ? formatTime(e.starts_at) : "Date TBA"} · {e.venue ?? "Venue TBA"} · {e.status === "coming_soon" ? "Coming soon" : `${e.seats_left} seats left`}
                     </span>
                   </div>
                   {booked.has(e.id) ? (
                     <span className="inline-flex items-center gap-1 text-[12.5px] font-bold text-soft-fg"><CheckCircle2 size={14} aria-hidden="true" />Booked</span>
                   ) : (
-                    <BookButton event={e} signedIn={!!member} booked={false} bankDetails={pay.bank_details} size="sm" label="Book" />
+                    <EventCta event={e} signedIn={!!member} booked={false} bankDetails={pay.bank_details} size="sm" label="Book" />
                   )}
                 </li>
               ))}

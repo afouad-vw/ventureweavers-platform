@@ -53,15 +53,3 @@ export async function applyToProgram(form: FormData): Promise<Result> {
   return { ok: true, message: "Application sent. We'll be in touch for a short intro call." };
 }
 
-/** "Notify me" for programs in development. */
-export async function setProgramInterest(programId: string, on: boolean): Promise<Result> {
-  if (!ID.test(programId)) return { ok: false, error: "Unknown program." };
-  const s = await signedIn();
-  if (!s) return { ok: false, error: "Sign in to get notified." };
-  const { error } = on
-    ? await s.supabase.from("program_interest").upsert({ program_id: programId }, { onConflict: "member_id,program_id", ignoreDuplicates: true })
-    : await s.supabase.from("program_interest").delete().eq("program_id", programId);
-  if (error) return { ok: false, error: "Couldn't update that. Please try again." };
-  revalidatePath("/tvs");
-  return { ok: true, message: on ? "We'll tell you when it opens" : "Notifications turned off" };
-}

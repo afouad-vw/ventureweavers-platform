@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ApplyButton, DatesButton, NotifyButton } from "@/components/tvs/program-buttons";
+import { ApplyButton, DatesButton } from "@/components/tvs/program-buttons";
+import { NotifyButton } from "@/components/waitlist/notify-button";
 import { LinkButton } from "@/components/ui/button";
 import { StatusPill } from "@/components/ui/tag";
 import { applicationLabel, programCardState, type EnrolmentStatus } from "@/lib/tvs/format";
@@ -31,6 +32,6 @@ export function ProgramCta({
   if (st.kind === "applied") return <Link href="/my-space?tab=learning"><StatusPill tone="blue">Applied · {applicationLabel(st.status)}</StatusPill></Link>;
   if (st.kind === "offered") return <LinkButton href="/my-space?tab=learning" size={size}>Confirm your seat</LinkButton>;
   if (st.kind === "enrolled") return <LinkButton href="/tvs/classroom" size={size}>Open classroom</LinkButton>;
-  if (st.kind === "notify") return <NotifyButton programId={p.id} on={st.on} signedIn={signedIn} />;
+  if (st.kind === "notify") return <NotifyButton type="program" id={p.id} on={st.on} signedIn={signedIn} />;
   return <DatesButton name={p.name} />;
 }

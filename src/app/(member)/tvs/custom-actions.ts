@@ -9,13 +9,14 @@ import { parseCustomRequest } from "@/lib/tvs/custom";
 type Result = { ok: true } | { ok: false; error: string };
 const PER_DAY = 3;
 
-/** TVS custom programs form: emails the custom-programs inbox (set in admin settings). Visitors can send it too. */
+/** TVS Private programs and Private classes form: emails the private-programs inbox (set in admin settings). Visitors can send it too. */
 export async function sendCustomProgram(form: FormData): Promise<Result> {
   // A hidden field people never see; bots tend to fill it.
   if (String(form.get("website") ?? "")) return { ok: true };
   const parsed = parseCustomRequest((k) => form.get(k));
   if (!parsed.ok) return parsed;
   const r = parsed.value;
+  const kind = form.get("kind") === "class" ? "class" : "program";
 
   const member = await getMember();
   const h = await headers();
@@ -34,10 +35,10 @@ export async function sendCustomProgram(form: FormData): Promise<Result> {
   if (!to || !process.env.RESEND_API_KEY) return { ok: false, error: "This form isn't switched on yet. Please email us instead." };
 
   try {
-    await sendCustomProgramRequest(to, r, Boolean(member));
+    await sendCustomProgramRequest(to, r, Boolean(member), kind);
   } catch {
     return { ok: false, error: "That didn't send. Please try again in a minute." };
   }
-  await svc.from("audit_log").insert({ actor: member?.id ?? null, action: "custom_program.request", entity: "custom_program", entity_id: r.email, ip, after: { organisation: r.organisation, for: r.forWho } });
+  await svc.from("audit_log").insert({ actor: member?.id ?? null, action: "custom_program.request", entity: "custom_program", entity_id: r.email, ip, after: { organisation: r.organisation, for: r.forWho, kind } });
   return { ok: true };
 }

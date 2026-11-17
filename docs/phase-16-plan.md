@@ -1,6 +1,6 @@
 # Phase 16 plan: booking options, Coming soon with waitlists, private programs and classes
 
-Status: waiting for approval (touches the database and access rules).
+Status: approved and live 2026-11-17 (migrations `20261117000009` and `20261117000010` applied).
 
 ## Part 1. BRICKR services: request a meeting or book from the calendar
 

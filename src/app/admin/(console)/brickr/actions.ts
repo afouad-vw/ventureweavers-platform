@@ -9,10 +9,12 @@ import { audit, requireAdmin } from "@/lib/auth/guards";
 import { parseTags } from "@/lib/content/format";
 import { slugify } from "@/lib/events/format";
 import { createClient } from "@/lib/supabase/server";
+import { parseBooking, parsePubStatus, type PubStatus } from "@/lib/waitlist";
+import { sendWaitlistEmails } from "@/lib/waitlist-server";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers, visibility";
+const COLS = "id, slug, name, space, audience, format, description, tags, banner, banner_url, status, sort, short_description, offerings, prerequisites, brochure_url, providers, visibility, booking, calendly_url";
 const STORAGE = () => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
 
 function refresh() {
@@ -47,7 +49,11 @@ export async function saveService(form: FormData): Promise<ActionResult> {
   const linkError = peopleLinkError(s("providers"), "provider");
   if (linkError) return { ok: false, error: linkError };
   const sort = Number(s("sort") || 100);
+  const booking = parseBooking(form.get("booking"), form.get("calendly_url"));
+  if (!booking.ok) return { ok: false, error: booking.error };
   const row = {
+    booking: booking.booking,
+    calendly_url: booking.calendly_url,
     visibility: parseVisibility(form.get("visibility")),
     providers: parsePeople(s("providers")),
     name: s("name").slice(0, 100),
@@ -62,7 +68,7 @@ export async function saveService(form: FormData): Promise<ActionResult> {
     tags: parseTags(s("tags")),
     banner: (BANNER_OPTIONS as readonly string[]).includes(s("banner")) ? s("banner") : "Round",
     banner_url,
-    status: s("status") === "published" ? "published" : "draft",
+    status: parsePubStatus(s("status")),
     sort: Number.isInteger(sort) ? Math.max(0, Math.min(1000, sort)) : 100,
   };
   const supabase = await createClient();
@@ -84,6 +90,7 @@ export async function saveService(form: FormData): Promise<ActionResult> {
     savedId = data.id;
   }
   const accessError = await applyAccess(form, "service", savedId, row.name, itemHref("service", slug));
+  await sendWaitlistEmails().catch(() => 0);
   refresh();
   if (accessError) return { ok: false, error: accessError };
   return { ok: true, message: id ? "Service saved" : "Service created" };
@@ -117,13 +124,15 @@ export async function deleteService(id: string): Promise<ActionResult> {
   return { ok: true, message: "Service deleted" };
 }
 
-export async function setServiceStatus(id: string, status: "draft" | "published"): Promise<ActionResult> {
+export async function setServiceStatus(id: string, next: PubStatus): Promise<ActionResult> {
   const admin = await requireAdmin("brickr.manage");
+  const status = parsePubStatus(next);
   if (!ID.test(id)) return { ok: false, error: "Unknown service." };
   const supabase = await createClient();
   const { error } = await supabase.from("services").update({ status }).eq("id", id);
   if (error) return { ok: false, error: "Couldn't change the status." };
   await audit(admin.userId, "service.status", "services", { entityId: id, after: { status } });
+  await sendWaitlistEmails().catch(() => 0);
   refresh();
-  return { ok: true, message: status === "published" ? "Published" : "Moved to drafts" };
+  return { ok: true, message: status === "published" ? "Published" : status === "coming_soon" ? "Coming soon" : "Moved to drafts" };
 }

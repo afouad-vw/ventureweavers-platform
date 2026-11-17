@@ -4,8 +4,8 @@
 insert into public.programs (slug, name, kind, description, weeks, price_piasters, requires_tvac, tags, banner, status, sort) values
 ('tvac', 'TVAC', 'Foundation', 'The shared ground: how ventures are built, run and backed, taught through cases from the region.', '[N]', null, false, '{Founders,Professionals,Cohort}', 'Room', 'open', 1),
 ('venture360', 'Venture360', '360 program', 'The full venture wheel for founders and intrapreneurs building something new.', '[N]', null, true, '{Founders,Intrapreneurs}', 'Round', 'open', 2),
-('angel360', 'Angel360', '360 program', 'From understanding the ecosystem to finding your place as an angel investor.', '[N]', null, true, '{Angels,Investing}', 'Audience', 'in_development', 3),
-('mentor360', 'Mentor360', '360 program', 'For experts and operators turning experience into mentorship that moves founders.', '[N]', null, true, '{Mentors,Experts}', 'Stage', 'in_development', 4)
+('angel360', 'Angel360', '360 program', 'From understanding the ecosystem to finding your place as an angel investor.', '[N]', null, true, '{Angels,Investing}', 'Audience', 'coming_soon', 3),
+('mentor360', 'Mentor360', '360 program', 'For experts and operators turning experience into mentorship that moves founders.', '[N]', null, true, '{Mentors,Experts}', 'Stage', 'coming_soon', 4)
 on conflict (slug) do nothing;
 
 insert into public.cohorts (program_id, label, status)

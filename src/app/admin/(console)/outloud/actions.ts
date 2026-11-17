@@ -10,6 +10,8 @@ import { cairoLocalToISO, EVENT_TYPES, slugify, toPiasters, type EventType, MAST
 import { sendBookingConfirmed } from "@/lib/email/booking";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { parsePubStatus, type PubStatus } from "@/lib/waitlist";
+import { sendWaitlistEmails } from "@/lib/waitlist-server";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -59,7 +61,7 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
   const capacity = Number(s("capacity") || 0);
   if (!Number.isInteger(capacity) || capacity < 0 || capacity > 10000) return { ok: false, error: "Capacity must be a whole number." };
   const banner = (BANNER_OPTIONS as readonly string[]).includes(s("banner")) ? s("banner") : "Stage";
-  const status = s("status") === "published" ? "published" : "draft";
+  const status = parsePubStatus(s("status"));
   const banner_url = s("banner_url") || null;
   if (banner_url && !banner_url.startsWith(BANNER_PREFIX())) return { ok: false, error: "That banner image isn't from the upload folder." };
   const storage = `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
@@ -140,6 +142,7 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     savedSlug = slug;
   }
   const accessError = await applyAccess(form, "event", savedId, title, itemHref("event", savedSlug, { masterclass: type === "masterclass" }));
+  await sendWaitlistEmails().catch(() => 0);
   refresh();
   if (accessError) return { ok: false, error: accessError };
   const noun = type === "masterclass" ? "Masterclass" : "Event";
@@ -204,14 +207,16 @@ export async function deleteEvent(id: string): Promise<ActionResult> {
   return { ok: true, message: "Event deleted" };
 }
 
-export async function setEventStatus(id: string, status: "draft" | "published"): Promise<ActionResult> {
+export async function setEventStatus(id: string, next: PubStatus): Promise<ActionResult> {
   const admin = await requireAdmin(["events.manage", "tvs.manage"]);
+  const status = parsePubStatus(next);
   const supabase = await createClient();
   const { error } = await supabase.from("events").update({ status }).eq("id", id);
   if (error) return { ok: false, error: "Couldn't change the status." };
-  await audit(admin.userId, `event.${status === "published" ? "publish" : "unpublish"}`, "events", { entityId: id });
+  await audit(admin.userId, `event.${status === "published" ? "publish" : status === "coming_soon" ? "coming_soon" : "unpublish"}`, "events", { entityId: id });
+  await sendWaitlistEmails().catch(() => 0);
   refresh();
-  return { ok: true, message: status === "published" ? "Published" : "Moved to drafts" };
+  return { ok: true, message: status === "published" ? "Published" : status === "coming_soon" ? "Coming soon" : "Moved to drafts" };
 }
 
 const bookingErrors: Record<string, string> = {

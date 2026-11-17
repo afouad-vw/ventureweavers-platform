@@ -27,7 +27,7 @@ export default async function ServicePage({ params }: Props) {
         {thread === "Outloud" ? "Outloud" : "BRICKR services"}
       </Link>
       <Card as="article" className="vw-surface !gap-0 !p-0">
-        <Banner src={s.banner_url} choice={s.banner as BannerChoice} thread={thread} height={220} label={s.name} />
+        <Banner src={s.banner_url} choice={s.banner as BannerChoice} thread={thread} height={220} label={s.name} chipRight={s.status === "coming_soon" ? "Coming soon" : undefined} />
         <div className="flex flex-col gap-3 p-5">
           <div className="flex flex-wrap gap-2">
             <ThreadTag thread={thread} />

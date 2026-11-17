@@ -12,7 +12,7 @@ update public.admin_users set is_super = true; -- test admins are super admins (
 
 insert into public.programs (id, slug, name, kind, status, price_piasters) values
   ('40000000-0000-0000-0000-000000000001', 'tvac', 'TVAC', 'Foundation', 'open', 500000),
-  ('40000000-0000-0000-0000-000000000002', 'angel360', 'Angel360', '360 program', 'in_development', null),
+  ('40000000-0000-0000-0000-000000000002', 'angel360', 'Angel360', '360 program', 'coming_soon', null),
   ('40000000-0000-0000-0000-000000000003', 'secret', 'Secret', '360 program', 'draft', null);
 insert into public.cohorts (id, program_id, capacity) values
   ('41000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000001', 2),
@@ -68,9 +68,9 @@ select pg_temp.expect_error($$update public.applications set building = 'Changed
 select pg_temp.expect_error($$select public.admin_offer_seat((select id from public.applications), '41000000-0000-0000-0000-000000000001', 0)$$, '%forbidden%', 'member cannot offer themselves a seat');
 
 -- Notify me
-insert into public.program_interest (program_id) values ('40000000-0000-0000-0000-000000000002');
-select pg_temp.check((select count(*) from public.program_interest) = 1, 'member turns on Notify me');
-select pg_temp.expect_error($$insert into public.program_interest (program_id, member_id) values ('40000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000d2')$$, '%permission denied%', 'Notify me only for yourself');
+insert into public.waitlist_entries (item_type, item_id) values ('program', '40000000-0000-0000-0000-000000000002');
+select pg_temp.check((select count(*) from public.waitlist_entries) = 1, 'member turns on Notify me');
+select pg_temp.expect_error($$insert into public.waitlist_entries (item_type, item_id, member_id) values ('program', '40000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000d2')$$, '%permission denied%', 'Notify me only for yourself');
 select pg_temp.check((select count(*) from public.cohorts) = 0, 'members do not see cohorts before an offer');
 select pg_temp.check(not ('tvs_learners' = any (public.my_access_levels())), 'applicants are not TVS learners yet');
 
@@ -82,7 +82,7 @@ select pg_temp.check((select meet_url from public.event_links) = 'https://meet.g
 -- ---------------------------------------------------------------- other members
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000d2');
 select pg_temp.check((select count(*) from public.applications) = 0, 'members do not see others'' applications');
-select pg_temp.check((select count(*) from public.program_interest) = 0, 'members do not see others'' Notify me');
+select pg_temp.check((select count(*) from public.waitlist_entries) = 0, 'members do not see others'' Notify me');
 select pg_temp.check((select count(*) from public.event_links) = 0, 'members without a ticket see no Meet link');
 insert into public.applications (program_id, role, building) values ('40000000-0000-0000-0000-000000000001', 'Operator', 'Building a logistics venture inside a corporate');
 
@@ -97,7 +97,7 @@ select pg_temp.expect_error($$select public.admin_offer_seat((select id from pub
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000a6', 'aal2');
 select pg_temp.check((select count(*) from public.programs) = 3, 'admins see draft programs');
 select pg_temp.check((select count(*) from public.applications) = 3, 'admins see every application');
-select pg_temp.check((select count(*) from public.program_interest) = 1, 'admins see who asked to be notified');
+select pg_temp.check((select count(*) from public.waitlist_entries) = 1, 'admins see who asked to be notified');
 update public.applications set status = 'intro_call', owner = 'Karim' where member_id = '00000000-0000-0000-0000-0000000000d1';
 select pg_temp.check((select status from public.applications where member_id = '00000000-0000-0000-0000-0000000000d1') = 'intro_call', 'admins move applications');
 

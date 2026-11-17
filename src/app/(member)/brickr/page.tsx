@@ -48,6 +48,7 @@ export default async function BrickrPage() {
                   bannerSrc={s.banner_url}
                   bannerLabel={s.name}
                   bannerChip={s.audience.length <= 24 ? s.audience : s.tags[0]}
+                  bannerChipRight={s.status === "coming_soon" ? "Coming soon" : undefined}
                   title={s.name}
                   description={s.short_description || s.description}
                   tags={s.tags}

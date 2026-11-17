@@ -1,9 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Bell, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { applyToProgram, setProgramInterest } from "@/app/(member)/tvs/actions";
+import { applyToProgram } from "@/app/(member)/tvs/actions";
 import { Button } from "@/components/ui/button";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { Modal } from "@/components/ui/overlay";
@@ -80,34 +79,6 @@ export function ApplyButton({
         </form>
       </Modal>
     </>
-  );
-}
-
-export function NotifyButton({ programId, on: initial, signedIn }: { programId: string; on: boolean; signedIn: boolean }) {
-  const [on, setOn] = useState(initial);
-  const [pending, start] = useTransition();
-  const toast = useToast();
-  const router = useRouter();
-  return (
-    <Button
-      variant="secondary"
-      size="sm"
-      aria-pressed={on}
-      disabled={pending}
-      onClick={() => {
-        if (!signedIn) return router.push("/sign-in?next=%2Ftvs");
-        const next = !on;
-        setOn(next);
-        start(async () => {
-          const r = await setProgramInterest(programId, next);
-          if (!r.ok) setOn(!next);
-          toast(r.ok ? r.message ?? "Saved" : r.error);
-        });
-      }}
-    >
-      {on ? <Check size={13} strokeWidth={2.4} aria-hidden="true" /> : <Bell size={13} aria-hidden="true" />}
-      {on ? "Notifying you" : "Notify me"}
-    </Button>
   );
 }
 
