@@ -16,7 +16,7 @@ import "./landing.css";
 export const metadata: Metadata = {
   title: { absolute: "VentureWeavers · Four spaces, one house for MENA's venture ecosystem" },
   description:
-    "VentureWeavers is Ahmed Fouad and Karim Hemdan. Shows, a venture school, fractional leadership and AI for capital formation, connected by one member platform. Based in Cairo, working across MENA.",
+    "VentureWeavers is Ahmed Fouad and Karim Hemdan. Shows, a venture school, fractional leadership and mentorship, and AI for capital formation, connected by one member platform. Based in Cairo, working across MENA.",
   openGraph: {
     title: "VentureWeavers · Four spaces, one house",
     description: "Outloud, The Venture School, BRICKR and QuidQuo, connected by one member platform. Join the community.",
@@ -52,7 +52,7 @@ const SPACES: Space[] = [
     kicker: "Education · Practical and dynamic",
     line: "Learn it in practice. Lead it in motion.",
     body: "Experience-driven education for every seat at the table: founders, angels, mentors, intrapreneurs and career professionals. Each topic is taught from every stakeholder's side, through role play, real case studies from the region, games and guest practitioners, so you leave with frameworks you use the next day.",
-    points: ["Programs and bootcamps", "Masterclasses", "Workshops", "Mentorship", "Open cohorts", "Programs for teams and partners"],
+    points: ["Programs and bootcamps", "Masterclasses", "Workshops", "Webinars", "Open cohorts", "Programs for teams and partners"],
     cta: "Explore programs",
     href: "/tvs",
     photo: "/landing/classroom.webp",
@@ -66,15 +66,15 @@ const SPACES: Space[] = [
     name: "BRICKR",
     colour: "#B5532F",
     tint: "#E8896A",
-    kicker: "Services · Fractional leadership",
+    kicker: "Services · Fractional leadership & mentorship",
     line: "We don't consult and leave. We build together.",
-    body: "Experienced partners embedded in your venture or portfolio: in the decisions, in the work, and measured by what it produces, not by hours of advice. We launch, rebalance and grow ventures, and build the structure behind portfolios and innovation hubs.",
-    points: ["Fractional leadership", "Venture building and scaling", "Portfolio infrastructure", "Innovation hubs"],
+    body: "Two ways to work with us. Fractional leadership puts experienced partners inside your venture or portfolio: in the decisions, in the work, and measured by what it produces, not by hours of advice. Mentorship gives founders and portfolios personal, output-oriented sessions that end in decisions and actions, tracked to completion.",
+    points: ["Fractional leadership", "Mentorship for ventures", "Mentorship for portfolios", "Venture building and scaling", "Portfolio infrastructure", "Innovation hubs"],
     cta: "Request a meeting",
     href: "/brickr",
     photo: "/landing/workshop.webp",
     size: [1504, 1204],
-    labels: [{ label: "Build", x: 64.6, y: 38.8 }, { label: "Operate", x: 81.4, y: 55.6 }],
+    labels: [{ label: "Lead", x: 64.6, y: 38.8 }, { label: "Mentor", x: 81.4, y: 55.6 }],
     flows: [[[0.0, 42.2], [22.7, 57.8], [45.5, 77.9], [57.4, 71.2]]],
     icon: Briefcase,
   },
@@ -98,7 +98,7 @@ const SPACES: Space[] = [
 ];
 
 const AUDIENCES: { icon: LucideIcon; name: string; body: string; spaces: string[] }[] = [
-  { icon: Rocket, name: "Founders and ventures", body: "Bring your hardest question to Open Floor, learn how capital thinks at TVS, and build with a BRICKR partner beside you.", spaces: ["Outloud", "TVS", "BRICKR", "QuidQuo"] },
+  { icon: Rocket, name: "Founders and ventures", body: "Bring your hardest question to Open Floor, learn how capital thinks at TVS, and build with a BRICKR partner or mentor beside you.", spaces: ["Outloud", "TVS", "BRICKR", "QuidQuo"] },
   { icon: Landmark, name: "Angel and institutional investors", body: "Sharpen your thesis with TVAC, back portfolio companies with hands-on leadership, and meet founders in the room.", spaces: ["TVS", "BRICKR", "QuidQuo"] },
   { icon: Building2, name: "Venture studios", body: "Set up the playbooks, people and portfolio infrastructure that turn one venture into many.", spaces: ["BRICKR", "TVS"] },
   { icon: Briefcase, name: "Corporates", body: "Build a venture arm, train leaders on the venture asset class, and work with the startups shaping your market.", spaces: ["TVS", "BRICKR", "Outloud"] },
@@ -145,7 +145,7 @@ const JOURNEY = (app: string, join: string): JourneyStep[] => [
   { key: "in", tab: "Join", kicker: "The way in", title: "Create your account", body: "One account opens every space. Sign up with Google, LinkedIn or email and tell us where you are in the ecosystem.", cta: { label: "Join the community", href: join }, colour: "#29BE9C", tint: "#5fe0c0", cam: { x: 11, y: 46, s: 2.6 }, label: { x: 50, y: 30 } },
   { key: "outloud", tab: "Outloud", kicker: "Content · Live and digital", title: "Conversations worth having in public", body: "Outloud is our content space. Live shows and events bring the ecosystem into one room; episodes, reels, VW Notes and the VW Newsletter carry the conversation further.", cta: { label: "Explore content", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 32, y: 38, s: 2.5 }, label: { x: 50, y: 22 } },
   { key: "tvs", tab: "TVS", kicker: "Education", title: "Learn it in practice", body: "The Venture School is practical, dynamic education for every stakeholder of the ecosystem: real ventures, real lessons and the mindset to keep up with a market that never stands still.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 51, y: 45, s: 2.5 }, label: { x: 50, y: 22 } },
-  { key: "brickr", tab: "BRICKR", kicker: "Services", title: "Build it together", body: "BRICKR is fractional leadership. Experienced partners work inside your venture or portfolio, hands-on, not hands-off, to build, operate and grow it with you.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 37, s: 2.5 }, label: { x: 50, y: 22 } },
+  { key: "brickr", tab: "BRICKR", kicker: "Services", title: "Build it together", body: "BRICKR is fractional leadership and mentorship. Experienced partners work inside your venture or portfolio, or mentor you through the decisions that matter, hands-on, not hands-off.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 68, y: 37, s: 2.5 }, label: { x: 50, y: 22 } },
   { key: "quidquo", tab: "QuidQuo", kicker: "Technology", title: "Raise with less friction", body: "QuidQuo is the AI we are building for capital formation, for founders and investors alike. Follow the build and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 86, y: 51, s: 2.5 }, label: { x: 50, y: 22 } },
 ];
 
