@@ -3,14 +3,14 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-// Illustrative questions from the room and topics it votes on (as in the Open Floor deck).
+// Illustrative stories and questions from the room, and topics it suggests for next time.
 const QUESTIONS = [
   "How do we get a new idea funded inside a big company?",
+  "Our story: we pivoted three months before the cash ran out",
   "Should I quit my job to build?",
+  "My first angel cheque taught me this",
   "How small can a pilot be and still count?",
-  "When is the right time to raise?",
-  "How do I write my first angel cheque?",
-  "Who should own innovation: HR, strategy or the CEO?",
+  "We lost our biggest client in month two. Here's what we did",
 ];
 const TOPICS = ["Selling ideas to leadership", "Building a venture team", "Partnering with startups", "Raising your first round", "Angel investing 101", "AI in your venture"];
 
@@ -66,14 +66,14 @@ export function OpenFloorStage() {
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {visible.map(({ q, k }) => (
           <span key={`${tick}-${k}`} className="lp-q" style={{ left: `${[46.7, 66.7, 56.7][k]}%`, "--k": k } as React.CSSProperties}>
-            <span className="lp-q-hand">✋</span> {q}
+            <span className="lp-q-hand">💬</span> {q}
           </span>
         ))}
       </div>
       {/* The room votes. */}
       <div className="lp-vote lp-glass absolute top-[2%] left-0 w-[min(250px,46%)] rounded-2xl p-3" aria-hidden="true">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10.5px] font-bold tracking-[.12em] text-[#F2B65A] uppercase">Discuss next?</span>
+          <span className="font-mono text-[10.5px] font-bold tracking-[.12em] text-[#F2B65A] uppercase">Next topic?</span>
           <span className="flex items-center gap-1.5 text-[10.5px] font-bold text-white/70"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E39B2D]" />Live</span>
         </div>
         {votes.map((v, i) => (

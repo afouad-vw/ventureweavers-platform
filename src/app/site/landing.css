@@ -168,8 +168,13 @@ a.lp-hot:focus-visible { outline: none; }
 /* ---------------------------------------------------------------- phones: lighter painting so scrolling stays smooth */
 @media (max-width: 899px) {
   .lp-glass { backdrop-filter: none; background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03)), rgb(9 21 22 / 0.7); }
-  .lp-scene-inner { animation: none; }
-  .lp-orb { animation: none; }
+  /* No shadow filter or blur behind moving things: the float stays on the compositor. */
+  .lp-scene-inner { filter: none; transform: none; animation-duration: 6s; will-change: translate; }
+  .lp-hot-label, .lp-pop-label, .lp-q { backdrop-filter: none; background: rgb(7 17 18 / 0.85); }
+  .lp-orb { animation: none; filter: blur(50px); }
+  .lp-grad { animation: none; }
+  .lp-deck .lp-scene-inner { animation: none; }
+  .lp-deck canvas { display: none; }
   .lp-nav[data-scrolled] { backdrop-filter: blur(10px); }
 }
 

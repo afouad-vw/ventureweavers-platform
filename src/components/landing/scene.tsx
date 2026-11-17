@@ -24,7 +24,8 @@ export function FloatingScene({
   // Tilt towards the pointer.
   useEffect(() => {
     const el = wrap.current;
-    if (!el || reduced()) return;
+    // Phones and tablets have no pointer to follow: no tilt loop at all.
+    if (!el || reduced() || !window.matchMedia("(pointer: fine)").matches) return;
     let raf = 0, tx = 0, ty = 0, x = 0, y = 0;
     const move = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
@@ -33,16 +34,18 @@ export function FloatingScene({
       const near = Math.abs(nx) < 1.6 && Math.abs(ny) < 1.6;
       tx = near ? Math.max(-1, Math.min(1, nx)) : 0;
       ty = near ? Math.max(-1, Math.min(1, ny)) : 0;
+      wake();
     };
-    const leave = () => { tx = 0; ty = 0; };
+    const leave = () => { tx = 0; ty = 0; wake(); };
+    // Eases towards the pointer and stops once it has settled.
     const tick = () => {
-      x += (tx - x) * 0.06;
-      y += (ty - y) * 0.06;
+      x += (tx - x) * 0.08;
+      y += (ty - y) * 0.08;
       el.style.setProperty("--tx", x.toFixed(3));
       el.style.setProperty("--ty", y.toFixed(3));
-      raf = requestAnimationFrame(tick);
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.002 ? requestAnimationFrame(tick) : 0;
     };
-    raf = requestAnimationFrame(tick);
+    const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
     window.addEventListener("pointermove", move);
     document.addEventListener("pointerleave", leave);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("pointermove", move); document.removeEventListener("pointerleave", leave); };

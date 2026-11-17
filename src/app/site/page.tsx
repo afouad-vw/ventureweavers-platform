@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import {
   ArrowRight, ArrowUpRight, BookOpen, Briefcase, Building2, CalendarCheck, Compass, Cpu, GraduationCap, Handshake, Landmark, Library,
   Lightbulb, Linkedin, Mail, Megaphone, MessageCircleQuestion, MessageSquare, Mic, Instagram, QrCode, Rocket, Route, Shuffle, Sparkles,
-  UserPlus, Users, Vote, Youtube, type LucideIcon,
+  UserPlus, Users, MessagesSquare, Youtube, type LucideIcon,
 } from "lucide-react";
 import { HScroll, LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgress, StackDeck, Tilt } from "@/components/landing/fx";
 import { LogoWeave, OpenFloorStage } from "@/components/landing/open-floor";
@@ -251,7 +251,7 @@ export default async function SitePage() {
                 One account for everything. Sign up with Google, LinkedIn or email.
               </p>
             </div>
-            <div className="lp-fade-in relative px-10 sm:px-6 desk:-mr-16 desk:px-0" style={{ "--delay": ".3s" } as React.CSSProperties}>
+            <div className="lp-fade-in relative -mx-5 sm:mx-0 sm:px-6 desk:-mr-16 desk:px-0" style={{ "--delay": ".3s" } as React.CSSProperties}>
               <FloatingScene
                 src="/landing/house.webp"
                 alt="A 3D cutaway of the VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, joined by glowing teal threads"
@@ -503,7 +503,7 @@ export default async function SitePage() {
                 An interactive business session where we share and discuss real venture stories from every side of the table, and the room brings its own experiences and questions. One topic, two hours, hosted by Ahmed Fouad and Karim Hemdan, with expert guests for specific topics.
               </p>
               <dl className="mt-6 grid grid-cols-3 gap-2" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-                {[["1", "topic per session"], ["2 h", "live, in two rounds"], ["8–10", "questions answered"]].map(([n, l]) => (
+                {[["1", "topic per session"], ["2 h", "live, in two rounds"], ["8–10", "stories & questions"]].map(([n, l]) => (
                   <div key={l} className="lp-glass rounded-2xl px-3 py-3">
                     <dt className="font-display text-[24px] leading-none font-semibold text-[#F2B65A] desk:text-[28px]">{n}</dt>
                     <dd className="mt-1 text-[11.5px] leading-snug text-[var(--lp-fg)]">{l}</dd>
@@ -513,9 +513,9 @@ export default async function SitePage() {
               <ol className="mt-3 grid grid-cols-2 gap-2">
                 {([
                   [QrCode, "Scan to join", "A QR code on screen. No app."],
-                  [MessageSquare, "Ask", "Send a question, named or anonymous."],
-                  [Vote, "Vote", "Upvote questions and pick what's next."],
-                  [Shuffle, "The Pick", "Questions drawn at random, on screen."],
+                  [MessageSquare, "Share", "Share stories & questions, named or anonymous."],
+                  [Shuffle, "The Pick", "Stories & questions drawn at random, on screen."],
+                  [MessagesSquare, "Discussion", "Stories & questions discussed together, to a clear take or next step."],
                 ] as [LucideIcon, string, string][]).map(([Icon, t, b], i) => (
                   <li key={t} className="lp-glass flex gap-2.5 rounded-2xl p-3" data-reveal style={{ "--d": i + 4 } as React.CSSProperties}>
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#E39B2D]/15 text-[#F2B65A]"><Icon size={16} aria-hidden="true" /></span>
@@ -523,12 +523,6 @@ export default async function SitePage() {
                   </li>
                 ))}
               </ol>
-              <p className="mt-5 text-[12px] font-bold tracking-[.12em] text-[var(--lp-muted)] uppercase" data-reveal>Example topics</p>
-              <ul className="mt-2 flex flex-wrap gap-1.5" data-reveal>
-                {["Raising your first round", "Should I quit my job to build?", "Angel investing 101", "Innovation from the inside", "AI in your venture", "Family business to venture"].map((t) => (
-                  <li key={t} className="rounded-full border border-[#E39B2D]/30 bg-[#E39B2D]/[0.06] px-3 py-1 text-[12px] font-semibold text-[var(--lp-fg)]">{t}</li>
-                ))}
-              </ul>
               <div className="mt-7 flex flex-wrap items-center gap-3" data-reveal>
                 <Magnetic href={join} className="group inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(180deg,#f2b65a,#E39B2D)] px-6 text-[15px] font-bold text-ink shadow-[0_10px_40px_-8px_rgb(227_155_45/0.6)] hover:brightness-110">
                   Get first seats <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-1" />
@@ -545,11 +539,16 @@ export default async function SitePage() {
             <div className="max-w-[680px]">
               <p className="lp-eyebrow" data-reveal>Who we are</p>
               <h2 className="mt-4 font-display text-[36px] leading-[1.05] font-semibold desk:text-[52px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-                Two operators. Built in Cairo, working across MENA.
+                Two ecosystem builders. Built in Cairo, working across MENA.
               </h2>
               <p className="mt-5 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
-                We bring our experience, knowledge and access to the people building MENA&apos;s venture ecosystem. Every space is run hands-on by the two of us.
+                Combined, we bring 30+ years of experience across different industries, stages and markets, and every space is run hands-on by the two of us.
               </p>
+              <ul className="mt-5 flex flex-wrap gap-2" data-reveal style={{ "--d": 3 } as React.CSSProperties} aria-label="Fields of experience">
+                {["Venture building", "Venture operations", "Investment & fund management", "Consulting", "Ecosystem building"].map((f) => (
+                  <li key={f} className="rounded-full border border-teal/30 bg-teal/[0.08] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--lp-fg)]">{f}</li>
+                ))}
+              </ul>
             </div>
             <div className="mt-12 grid gap-5 desk:grid-cols-2">
               {FOUNDERS.map((f, i) => (
