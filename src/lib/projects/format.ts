@@ -34,8 +34,8 @@ export const SERVICES = [
 ] as const;
 export const serviceLabel = (s: string) => SERVICES.find((x) => x.value === s)?.label ?? s;
 
-/** The four dimensions from the fractional leadership proposals. */
-export const DEFAULT_DIMENSIONS = ["Portfolio Strategy", "Venture Building", "Governance & Support", "Positioning"];
+/** The four dimensions from the fractional leadership proposal (governance and support run through all of them). */
+export const DEFAULT_DIMENSIONS = ["Portfolio Strategy", "Venture Building", "Venture Scaling", "Positioning"];
 
 export const ROLE_LABEL: Record<ProjectRole, string> = { lead: "Client lead", team: "Team member" };
 

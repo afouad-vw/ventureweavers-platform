@@ -2,10 +2,10 @@
 
 Status: approved 2026-11-17 (client approves quotes; Drive folder link with embedded view; retainer invoices drafted automatically, partner reviews and issues). 17a live (migration `20261117000011`).
 
-Reference: "TCS - VW Fractional Leadership" (the proposal for The Cooking School). That proposal sets out:
-- **Four dimensions:** Portfolio Strategy, Venture Building, Governance & Support, Positioning.
+Reference: "TCS - VW Fractional Leadership" (the proposal for The Cooking School, latest version 2026-11-17). That proposal sets out:
+- **Four dimensions:** Portfolio Strategy, Venture Building (new ventures, idea to launch), Venture Scaling (existing ventures: diagnose, rebalance or grow), Positioning. Governance and support run through all four.
 - **AAA framework:** Assess, Advise, Access.
-- **Timeline:** Month 1 onboarding, then a weekly rhythm.
+- **Timeline:** Month 1 onboarding (three weeks of situation assessment, then a week to set direction), then a weekly rhythm.
 - **Weekly cadence:** 4–5 hours of sessions, with updates shared 2–3 working days ahead and emails answered within 1–2 working days.
 - **Commercials:** a USD 3,000 monthly retainer, billed at the end of each month, on a 12-month term.
 - **Extras:** anything beyond the scope is quoted separately.
@@ -35,7 +35,8 @@ Reference: "TCS - VW Fractional Leadership" (the proposal for The Cooking School
    - The latest status update.
 2. **Assessment: data collection**
    - **Requirements sheet:** questions grouped by dimension. The client answers in text, numbers, choices, links or files; files go to a private store with 5-minute download links.
-     - Templates: Portfolio (the four dimensions from the proposal) and Venture (strategy, market, operations, finances, team, capital, positioning, AI and tools).
+     - Templates: Portfolio, following the proposal's situation assessment (the portfolio, existing ventures, new ideas and pipeline, positioning, assets, capabilities, resources), and Venture (strategy, market, operations, finances, team, capital, positioning, AI and tools).
+     - Suggested for 17b: a **track** on each venture project (New venture: Building, from validation to launch; Existing venture: Rebalance or Grow), so the venture's plan, assessment and stage follow the right path.
      - Partners edit the questions per project and send the sheet. The client lead sees progress and submits.
    - **Partner scorecard:** a 1–5 score for each dimension, with findings and recommendations. Partners can share it with the client or keep it internal.
    - **Re-assessments** (for example quarterly) are compared with the starting point.
