@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { parseTags } from "@/lib/content/format";
-import { ACTIVITY_KINDS, CURRENCIES, DEAL_STAGES, DEAL_TYPES, money, parseValue } from "@/lib/crm/format";
+import { ACTIVITY_KINDS, CURRENCIES, DEAL_STAGES, DEAL_TYPES, money, parseRelationships, parseValue } from "@/lib/crm/format";
 import { listCompanies } from "@/lib/crm/queries";
 import { toCsv } from "@/lib/csv";
 import { cleanCompanyLinkedIn, cleanWebsite, BUSINESS_TYPES, BUSINESS_STAGES } from "@/lib/profile/about";
@@ -42,6 +42,7 @@ function companyRow(form: FormData): { ok: true; row: Record<string, unknown> } 
       linkedin,
       country: s("country").slice(0, 80) || null,
       tags: parseTags(s("tags")),
+      relationships: parseRelationships(form.getAll("relationships")),
       notes: s("notes").slice(0, 4000),
       owner,
       status: s("status") === "archived" ? "archived" : "active",
@@ -76,7 +77,7 @@ export async function duplicateCompany(id: string): Promise<Result> {
   const admin = await requireAdmin("businesses.manage");
   if (!ID.test(id)) return { ok: false, error: "Unknown business." };
   const supabase = await createClient();
-  const { data } = await supabase.from("companies").select("name, type, stage, website, linkedin, country, tags, notes, owner").eq("id", id).maybeSingle();
+  const { data } = await supabase.from("companies").select("name, type, stage, website, linkedin, country, tags, relationships, notes, owner").eq("id", id).maybeSingle();
   if (!data) return { ok: false, error: "That business no longer exists." };
   const { data: copy, error } = await supabase.from("companies").insert({ ...data, name: `${data.name} (copy)`.slice(0, 120), created_by: admin.userId }).select("id").single();
   if (error || !copy) return { ok: false, error: "Couldn't duplicate the business." };
@@ -116,9 +117,9 @@ export async function exportCompaniesCsv(): Promise<{ ok: true; csv: string } | 
   return {
     ok: true,
     csv: toCsv(
-      ["Business", "Type", "Stage", "Website", "LinkedIn", "Country", "Tags", "People", "Open deals", "Open value", "Owner", "Status", "Added"],
+      ["Business", "Relationship with VW", "Type", "Stage", "Website", "LinkedIn", "Country", "Tags", "People", "Open deals", "Open value", "Owner", "Status", "Added"],
       rows.map((r) => [
-        r.name, r.type, r.stage, r.website, r.linkedin, r.country, r.tags.join(", "), String(r.people), String(open(r).length),
+        r.name, r.relationships.join(", "), r.type, r.stage, r.website, r.linkedin, r.country, r.tags.join(", "), String(r.people), String(open(r).length),
         open(r).map((d) => money(d.value, d.currency)).join(" + "), r.ownerName, r.status === "archived" ? "Archived" : "Active", r.created_at.slice(0, 10),
       ]),
     ),
@@ -285,19 +286,4 @@ export async function deleteActivity(id: string): Promise<Result> {
   if (error) return { ok: false, error: "Couldn't delete it." };
   refresh();
   return { ok: true, message: "Deleted" };
-}
-
-// ---------------------------------------------------------------- businesses members listed
-
-/** Create a CRM business from a member's listed business and link the member to it. */
-export async function createFromMemberBusiness(memberId: string, b: { name: string; type: string | null; stage: string | null; website: string | null; linkedin: string | null; role: string | null }): Promise<Result> {
-  const admin = await requireAdmin("businesses.manage");
-  if (!ID.test(memberId)) return { ok: false, error: "Unknown member." };
-  const form = new FormData();
-  for (const [k, v] of Object.entries({ name: b.name, type: b.type ?? "", stage: b.stage ?? "", website: b.website ?? "", linkedin: b.linkedin ?? "", owner: admin.userId })) form.set(k, v);
-  const created = await saveCompany(form);
-  if (!created.ok || !created.id) return created;
-  const linked = await linkPerson(created.id, `m:${memberId}`, b.role ?? "");
-  if (!linked.ok) return linked;
-  return { ok: true, message: `${b.name} added and linked`, id: created.id };
 }

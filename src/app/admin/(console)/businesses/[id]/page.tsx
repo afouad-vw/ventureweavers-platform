@@ -61,6 +61,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
               {c.website ? <a href={c.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-link hover:underline"><Globe size={14} aria-hidden="true" />{c.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</a> : null}
               {c.linkedin ? <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-link hover:underline"><Linkedin size={14} aria-hidden="true" />LinkedIn</a> : null}
             </span>
+            {c.relationships.length ? <span className="flex flex-wrap gap-1" aria-label="Relationship with VW">{c.relationships.map((r) => <StatusPill key={r} tone="ok">{r}</StatusPill>)}</span> : null}
             {c.tags.length ? <span className="flex flex-wrap gap-1">{c.tags.map((t) => <MiniTag key={t}>{t}</MiniTag>)}</span> : null}
           </div>
           {manage ? <CompanyActions company={c} staff={staff} base={base} /> : null}
@@ -96,6 +97,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
           <Card>
             <CardHeader title="Details" />
             <dl>
+              <Row label="Relationship with VW">{c.relationships.join(", ")}</Row>
               <Row label="Type">{c.type}</Row>
               {c.type === "Venture" ? <Row label="Stage">{c.stage}</Row> : null}
               <Row label="Country">{c.country}</Row>

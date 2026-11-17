@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { EditorDrawer, type Result, useRunner } from "@/components/admin/crud";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
-import { CURRENCIES, DEAL_STAGES, DEAL_TYPE_HINT, DEAL_TYPES } from "@/lib/crm/format";
+import { CURRENCIES, DEAL_STAGES, DEAL_TYPE_HINT, DEAL_TYPES, RELATIONSHIPS } from "@/lib/crm/format";
+import { cn } from "@/lib/cn";
 import { BUSINESS_STAGES, BUSINESS_TYPES } from "@/lib/profile/about";
 import { saveCompany, saveDeal } from "./actions";
 
@@ -17,6 +18,7 @@ export type CompanyDraft = {
   linkedin: string | null;
   country: string | null;
   tags: string[];
+  relationships: string[];
   notes: string;
   owner: string | null;
   status: "active" | "archived";
@@ -42,6 +44,7 @@ const none = (label: string, list: Opt[]): Opt[] => [{ value: "", label }, ...li
 export function CompanyEditor({ open, company, staff, onClose, onSaved }: { open: boolean; company: CompanyDraft | null; staff: Opt[]; onClose: () => void; onSaved?: (id?: string) => void }) {
   const { pending, error, setError, run } = useRunner();
   const [type, setType] = useState(company?.type ?? "");
+  const [rel, setRel] = useState<string[]>(company?.relationships ?? []);
   const c = company;
   return (
     <EditorDrawer
@@ -63,6 +66,20 @@ export function CompanyEditor({ open, company, staff, onClose, onSaved }: { open
     >
       {c?.id ? <input type="hidden" name="id" value={c.id} /> : null}
       <TextField label="Business name" name="name" defaultValue={c?.name ?? ""} required maxLength={120} />
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="mb-1.5 text-[12.5px] font-bold text-muted">Relationship with VW <span className="font-normal text-faint">(choose any that apply)</span></legend>
+        <div className="flex flex-wrap gap-1.5">
+          {RELATIONSHIPS.map((r) => {
+            const on = rel.includes(r);
+            return (
+              <label key={r} className={cn("inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-[13px] font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary", on ? "border-primary bg-soft text-fg" : "border-line2 text-muted hover:text-fg")}>
+                <input type="checkbox" name="relationships" value={r} checked={on} onChange={() => setRel((l) => (on ? l.filter((x) => x !== r) : [...l, r]))} className="sr-only" />
+                {r}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
       <div className="grid gap-3 sm:grid-cols-2">
         <SelectField label="Type" name="type" defaultValue={c?.type ?? ""} onChange={(e) => setType(e.target.value)} options={none("Not set", BUSINESS_TYPES.map((t) => ({ value: t, label: t })))} />
         {type === "Venture" ? <SelectField label="Stage" name="stage" defaultValue={c?.stage ?? ""} options={none("Not set", BUSINESS_STAGES.map((s) => ({ value: s, label: s })))} /> : null}

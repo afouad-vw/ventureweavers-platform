@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { domainOf, money, nameKey, parseValue, pipelineTotal } from "./format";
+import { domainOf, money, nameKey, parseRelationships, parseValue, pipelineTotal, RELATIONSHIPS } from "./format";
 
 describe("business CRM", () => {
   it("adds up open deals per currency", () => {
@@ -26,5 +26,14 @@ describe("business CRM", () => {
     expect(nameKey("Nile Pay LLC")).toBe(nameKey("nile-pay"));
     expect(domainOf("https://www.NilePay.com/about")).toBe("nilepay.com");
     expect(domainOf("not a url")).toBe("");
+  });
+});
+
+describe("parseRelationships", () => {
+  it("keeps known tags once, in order", () => {
+    expect(parseRelationships(["Partner", "Friend", "Client", "Partner"])).toEqual(["Partner", "Client"]);
+  });
+  it("matches the database list", () => {
+    expect(RELATIONSHIPS).toEqual(["Partner", "Client", "Service Provider", "Sponsor", "Investor", "Portfolio", "Prospect", "Community"]);
   });
 });

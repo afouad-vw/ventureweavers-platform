@@ -82,3 +82,12 @@ export async function adminUnreadThreads(): Promise<number> {
   const { data } = await supabase.from("message_threads").select("last_member_message_at, team_read_at").eq("status", "open").limit(500);
   return ((data ?? []) as Pick<Thread, "last_member_message_at" | "team_read_at">[]).filter(teamUnread).length;
 }
+
+/** One member's conversation for their contact page (staff with the Messages area only). */
+export async function memberThread(memberId: string): Promise<{ thread: Thread | null; messages: Message[] }> {
+  if (!supabaseConfigured || !/^[0-9a-f-]{36}$/.test(memberId)) return { thread: null, messages: [] };
+  const supabase = await createClient();
+  const { data: thread } = await supabase.from("message_threads").select(THREAD_COLS).eq("member_id", memberId).maybeSingle();
+  if (!thread) return { thread: null, messages: [] };
+  return { thread: thread as Thread, messages: await adminThread(thread.id) };
+}

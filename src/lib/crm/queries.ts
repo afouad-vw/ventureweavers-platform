@@ -4,7 +4,7 @@ import { slugOf } from "@/lib/contacts/slug";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { domainOf, isOpen, nameKey } from "./format";
+import { isOpen } from "./format";
 
 export type Company = {
   id: string;
@@ -15,13 +15,14 @@ export type Company = {
   linkedin: string | null;
   country: string | null;
   tags: string[];
+  relationships: string[];
   notes: string;
   owner: string | null;
   status: "active" | "archived";
   created_at: string;
   updated_at: string;
 };
-export const COMPANY_COLS = "id, name, type, stage, website, linkedin, country, tags, notes, owner, status, created_at, updated_at";
+export const COMPANY_COLS = "id, name, type, stage, website, linkedin, country, tags, relationships, notes, owner, status, created_at, updated_at";
 
 export type Deal = {
   id: string;
@@ -45,7 +46,7 @@ export const DEAL_COLS = "id, company_id, title, type, stage, value, currency, e
 export type Activity = { id: string; company_id: string; deal_id: string | null; kind: string; body: string; due_at: string | null; done_at: string | null; author: string | null; created_at: string };
 const ACTIVITY_COLS = "id, company_id, deal_id, kind, body, due_at, done_at, author, created_at";
 
-export type CompanyPerson = { id: string; role: string | null; key: string; name: string; email: string | null; member: boolean; href: string };
+export type CompanyPerson = { id: string; role: string | null; source: "team" | "profile"; key: string; name: string; email: string | null; member: boolean; href: string };
 export type CompanyRow = Company & { people: number; deals: Pick<Deal, "stage" | "value" | "currency">[]; ownerName: string | null; openTasks: number };
 export type Option = { value: string; label: string };
 
@@ -112,7 +113,7 @@ export async function getCompany(id: string): Promise<CompanyView | null> {
   const { data: company } = await supabase.from("companies").select(COMPANY_COLS).eq("id", id).maybeSingle();
   if (!company) return null;
   const [{ data: links }, { data: deals }, { data: acts }, names, { contacts }] = await Promise.all([
-    supabase.from("company_people").select("id, member_id, contact_id, role").eq("company_id", id).order("created_at"),
+    supabase.from("company_people").select("id, member_id, contact_id, role, source").eq("company_id", id).order("created_at"),
     supabase.from("deals").select(DEAL_COLS).eq("company_id", id).order("created_at", { ascending: false }),
     supabase.from("company_activities").select(ACTIVITY_COLS).eq("company_id", id).order("created_at", { ascending: false }).limit(300),
     staffNames(),
@@ -122,10 +123,10 @@ export async function getCompany(id: string): Promise<CompanyView | null> {
   const byContact = new Map(contacts.filter((c) => c.contactId).map((c) => [c.contactId!, c]));
   const people: CompanyPerson[] = [];
   const platform: { who: string; item: ContactItem }[] = [];
-  for (const l of (links ?? []) as { id: string; member_id: string | null; contact_id: string | null; role: string | null }[]) {
+  for (const l of (links ?? []) as { id: string; member_id: string | null; contact_id: string | null; role: string | null; source: "team" | "profile" }[]) {
     const c = l.member_id ? byMember.get(l.member_id) : l.contact_id ? byContact.get(l.contact_id) : undefined;
     if (!c) continue;
-    people.push({ id: l.id, role: l.role, key: c.key, name: c.name, email: c.email, member: Boolean(c.memberId), href: `/contacts/${slugOf(c.key)}` });
+    people.push({ id: l.id, role: l.role, source: l.source, key: c.key, name: c.name, email: c.email, member: Boolean(c.memberId), href: `/contacts/${slugOf(c.key)}` });
     for (const it of c.items.slice(0, 30)) platform.push({ who: c.name, item: it });
   }
   const dealTitle = new Map(((deals ?? []) as Deal[]).map((d) => [d.id, d.title]));
@@ -185,58 +186,23 @@ export async function openTasks(): Promise<TaskRow[]> {
   return ((tasks ?? []) as Activity[]).map((t) => ({ ...t, company: nameOf.get(t.company_id) ?? "Business", who: t.author ? names.get(t.author) ?? null : null }));
 }
 
-export type Suggestion = { key: string; memberId: string; memberName: string; memberHref: string; name: string; type: string | null; stage: string | null; website: string | null; linkedin: string | null; role: string | null; match: { id: string; name: string } | null };
-
-/**
- * Businesses members listed in their profiles that aren't linked in the CRM yet, with the likely match
- * (same website, or the same name written differently) when there is one.
- */
-export async function memberBusinessSuggestions(): Promise<Suggestion[]> {
-  if (!supabaseConfigured) return [];
-  const supabase = await createClient();
-  const [{ data: biz }, { data: companies }, { data: links }, { contacts }] = await Promise.all([
-    createServiceClient().from("member_businesses").select("member_id, name, type, stage, website, member_role, linkedin, position").limit(5000),
-    supabase.from("companies").select("id, name, website").limit(5000),
-    supabase.from("company_people").select("company_id, member_id").not("member_id", "is", null).limit(20000),
-    loadPeople(),
-  ]);
-  const comps = (companies ?? []) as { id: string; name: string; website: string | null }[];
-  const byDomain = new Map(comps.filter((c) => domainOf(c.website)).map((c) => [domainOf(c.website), c]));
-  const byName = new Map(comps.map((c) => [nameKey(c.name), c]));
-  const linked = new Set(((links ?? []) as { company_id: string; member_id: string }[]).map((l) => `${l.company_id}:${l.member_id}`));
-  const memberName = new Map(contacts.filter((c) => c.memberId).map((c) => [c.memberId!, c]));
-  const out: Suggestion[] = [];
-  for (const b of (biz ?? []) as { member_id: string; name: string; type: string | null; stage: string | null; website: string | null; member_role: string | null; linkedin: string | null; position: number }[]) {
-    const m = memberName.get(b.member_id);
-    if (!m) continue; // admins, or members since removed
-    const match = (domainOf(b.website) && byDomain.get(domainOf(b.website))) || byName.get(nameKey(b.name)) || null;
-    if (match && linked.has(`${match.id}:${b.member_id}`)) continue;
-    out.push({
-      key: `${b.member_id}:${b.position}`,
-      memberId: b.member_id,
-      memberName: m.name,
-      memberHref: `/contacts/${slugOf(m.key)}`,
-      name: b.name,
-      type: b.type,
-      stage: b.stage,
-      website: b.website,
-      linkedin: b.linkedin,
-      role: b.member_role,
-      match: match ? { id: match.id, name: match.name } : null,
-    });
-  }
-  return out.sort((a, b) => Number(Boolean(b.match)) - Number(Boolean(a.match)) || a.name.localeCompare(b.name));
-}
-
 /** The businesses a member or contact is linked to (for their contact page). */
-export async function companiesFor(memberId: string | null, contactId: string | null): Promise<{ id: string; name: string; role: string | null }[]> {
+export async function companiesFor(memberId: string | null, contactId: string | null): Promise<{ id: string; name: string; website: string | null; role: string | null; source: string }[]> {
   if (!supabaseConfigured || (!memberId && !contactId)) return [];
   const supabase = await createClient();
-  const q = supabase.from("company_people").select("role, companies(id, name)");
+  const q = supabase.from("company_people").select("role, source, companies(id, name, website)");
   const { data } = await (memberId && contactId ? q.or(`member_id.eq.${memberId},contact_id.eq.${contactId}`) : memberId ? q.eq("member_id", memberId) : q.eq("contact_id", contactId!));
-  return ((data ?? []) as unknown as { role: string | null; companies: { id: string; name: string } | null }[])
+  return ((data ?? []) as unknown as { role: string | null; source: string; companies: { id: string; name: string; website: string | null } | null }[])
     .filter((r) => r.companies)
-    .map((r) => ({ id: r.companies!.id, name: r.companies!.name, role: r.role }));
+    .map((r) => ({ id: r.companies!.id, name: r.companies!.name, website: r.companies!.website, role: r.role, source: r.source }));
+}
+
+/** Active businesses, for "Add to a business". */
+export async function companyOptions(): Promise<Option[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.from("companies").select("id, name").eq("status", "active").order("name").limit(2000);
+  return ((data ?? []) as { id: string; name: string }[]).map((c) => ({ value: c.id, label: c.name }));
 }
 
 /** Counts for the admin Overview. */

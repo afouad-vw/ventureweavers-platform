@@ -17,7 +17,7 @@ import { formatDate } from "@/lib/events/format";
 import { deleteActivity, deleteCompany, deleteDeal, duplicateCompany, duplicateDeal, linkPerson, logActivity, setCompanyStatus, setDealStage, setTaskDone, unlinkPerson, updatePersonRole } from "../actions";
 import { CompanyEditor, DealEditor, type CompanyDraft, type DealDraft, type Opt } from "../crm-editors";
 
-type Person = { id: string; role: string | null; key: string; name: string; email: string | null; member: boolean; href: string };
+type Person = { id: string; role: string | null; source: "team" | "profile"; key: string; name: string; email: string | null; member: boolean; href: string };
 type Deal = DealDraft & { id: string; ownerName: string | null; closed_at: string | null };
 type Entry = { key: string; at: string; kind: string; title: string; detail?: string; who?: string; due_at?: string | null; done_at?: string | null; id?: string; deal?: string };
 
@@ -100,7 +100,7 @@ export function PeopleCard({ companyId, people, options, base, canManage, linkPe
             <li key={p.id} className="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-b-0">
               <span className="min-w-0 flex-1">
                 {linkPeople ? <Link href={`${base}${p.href}`} className="font-bold hover:underline">{p.name}</Link> : <b>{p.name}</b>}
-                <span className="block text-[12px] text-faint">{[p.role, p.member ? "Member" : "Contact", p.email].filter(Boolean).join(" · ")}</span>
+                <span className="block text-[12px] text-faint">{[p.role ?? "Role not given", p.member ? "Member" : "Contact", p.source === "profile" ? "from their profile" : null, p.email].filter(Boolean).join(" · ")}</span>
               </span>
               {canManage ? (
                 roleEdit?.id === p.id ? (
@@ -112,7 +112,7 @@ export function PeopleCard({ companyId, people, options, base, canManage, linkPe
                 ) : (
                   <span className="flex gap-1">
                     <IconBtn label={`Edit ${p.name}'s role`} onClick={() => setRoleEdit({ id: p.id, role: p.role ?? "" })}><Pencil size={14} aria-hidden="true" /></IconBtn>
-                    <IconBtn label={`Remove ${p.name} from this business`} onClick={() => run(() => unlinkPerson(p.id), () => router.refresh())}><X size={15} aria-hidden="true" /></IconBtn>
+                    <IconBtn label={p.source === "profile" ? `Remove ${p.name} (they listed this business; it comes back if they save their profile again)` : `Remove ${p.name} from this business`} onClick={() => run(() => unlinkPerson(p.id), () => router.refresh())}><X size={15} aria-hidden="true" /></IconBtn>
                   </span>
                 )
               ) : null}

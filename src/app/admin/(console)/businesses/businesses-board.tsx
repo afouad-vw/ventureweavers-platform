@@ -3,22 +3,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Archive, ArchiveRestore, Check, Copy, Download, Link2, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Check, Copy, Download, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { ConfirmDelete, IconBtn, TableBox, td, useRunner } from "@/components/admin/crud";
 import { Button, buttonClass } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/misc";
 import { MiniTag, StatusPill } from "@/components/ui/tag";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { DEAL_STAGES, isOpen, money, pipelineTotal } from "@/lib/crm/format";
+import { DEAL_STAGES, isOpen, money, pipelineTotal, RELATIONSHIPS } from "@/lib/crm/format";
 import { formatDate } from "@/lib/events/format";
-import { createFromMemberBusiness, deleteCompany, deleteDeal, duplicateCompany, duplicateDeal, exportCompaniesCsv, linkPerson, setCompanyStatus, setDealStage, setTaskDone } from "./actions";
+import { deleteCompany, deleteDeal, duplicateCompany, duplicateDeal, exportCompaniesCsv, setCompanyStatus, setDealStage, setTaskDone } from "./actions";
 import { CompanyEditor, DealEditor, type CompanyDraft, type DealDraft, type Opt } from "./crm-editors";
 
 type CompanyRow = CompanyDraft & { id: string; people: number; deals: { stage: string; value: number | null; currency: string }[]; ownerName: string | null; openTasks: number };
 type BoardDeal = DealDraft & { id: string; company: string; ownerName: string | null; closed_at: string | null };
 type TaskRow = { id: string; company_id: string; company: string; body: string; due_at: string | null; who: string | null };
-type Suggestion = { key: string; memberId: string; memberName: string; memberHref: string; name: string; type: string | null; stage: string | null; website: string | null; linkedin: string | null; role: string | null; match: { id: string; name: string } | null };
 
 const dueLabel = (iso: string | null) => (iso ? formatDate(iso) : "No due date");
 const overdue = (iso: string | null) => Boolean(iso && new Date(iso).getTime() < Date.now());
@@ -28,6 +27,7 @@ const overdue = (iso: string | null) => Boolean(iso && new Date(iso).getTime() <
 export function CompaniesList({ rows, base, staff, canManage }: { rows: CompanyRow[]; base: string; staff: Opt[]; canManage: boolean }) {
   const [q, setQ] = useState("");
   const [show, setShow] = useState<"active" | "archived">("active");
+  const [relation, setRelation] = useState<string>("All");
   const [editing, setEditing] = useState<CompanyDraft | null | "new">(null);
   const [deleting, setDeleting] = useState<CompanyRow | null>(null);
   const { pending, run } = useRunner();
@@ -35,8 +35,8 @@ export function CompaniesList({ rows, base, staff, canManage }: { rows: CompanyR
   const toast = useToast();
   const needle = q.trim().toLowerCase();
   const list = useMemo(
-    () => rows.filter((r) => r.status === show && (!needle || `${r.name} ${r.type ?? ""} ${r.country ?? ""} ${r.tags.join(" ")} ${r.ownerName ?? ""}`.toLowerCase().includes(needle))),
-    [rows, show, needle],
+    () => rows.filter((r) => r.status === show && (relation === "All" || (relation === "None" ? !r.relationships.length : r.relationships.includes(relation))) && (!needle || `${r.name} ${r.type ?? ""} ${r.country ?? ""} ${r.tags.join(" ")} ${r.ownerName ?? ""}`.toLowerCase().includes(needle))),
+    [rows, show, relation, needle],
   );
   const archived = rows.filter((r) => r.status === "archived").length;
   const href = (id: string) => `${base}/businesses/${id}`;
@@ -50,6 +50,12 @@ export function CompaniesList({ rows, base, staff, canManage }: { rows: CompanyR
             <span className="sr-only">Filter businesses</span>
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name, type, country or tag" className="h-10 w-full rounded-lg border border-line2 bg-card pr-2.5 pl-8 text-[13.5px] placeholder:text-faint focus:border-primary focus:outline-none desk:h-9" />
           </label>
+          <label className="sr-only" htmlFor="rel-filter">Relationship with VW</label>
+          <select id="rel-filter" value={relation} onChange={(e) => setRelation(e.target.value)} className="h-10 rounded-lg border border-line2 bg-card px-2 text-[13.5px] desk:h-9">
+            <option value="All">All relationships</option>
+            {RELATIONSHIPS.map((r) => <option key={r}>{r}</option>)}
+            <option value="None">No relationship set</option>
+          </select>
           {archived ? (
             <Button variant="secondary" size="sm" onClick={() => setShow(show === "active" ? "archived" : "active")}>
               {show === "active" ? `Archived (${archived})` : "Back to active"}
@@ -79,7 +85,7 @@ export function CompaniesList({ rows, base, staff, canManage }: { rows: CompanyR
         </div>
       </div>
 
-      <TableBox minWidth={900} head={["Business", "Type", "People", "Open deals", "Tasks", "Owner", ""]} empty={!list.length && (rows.length ? "No businesses match." : "No businesses yet. Add one, or start from the businesses members listed.")}>
+      <TableBox minWidth={1040} head={["Business", "Relationship with VW", "Type", "People", "Open deals", "Tasks", "Owner", ""]} empty={!list.length && (rows.length ? "No businesses match." : "No businesses yet. Businesses members list in their profiles appear here automatically, or add one.")}>
         {list.map((r) => {
           const open = r.deals.filter((d) => isOpen(d.stage));
           const won = r.deals.filter((d) => d.stage === "Won").length;
@@ -92,6 +98,7 @@ export function CompaniesList({ rows, base, staff, canManage }: { rows: CompanyR
                   {r.tags.slice(0, 3).map((t) => <MiniTag key={t}>{t}</MiniTag>)}
                 </span>
               </td>
+              <td className={td}>{r.relationships.length ? <span className="flex flex-wrap gap-1">{r.relationships.map((x) => <StatusPill key={x} tone="ok">{x}</StatusPill>)}</span> : <span className="text-faint">—</span>}</td>
               <td className={`${td} text-muted`}>{r.type ?? "—"}{r.stage ? <span className="block text-[12px] text-faint">{r.stage}</span> : null}</td>
               <td className={`${td} text-muted`}>{r.people}</td>
               <td className={td}>
@@ -251,45 +258,3 @@ export function TasksList({ tasks, base, canManage }: { tasks: TaskRow[]; base: 
     </TableBox>
   );
 }
-
-// ---------------------------------------------------------------- from member profiles
-
-export function MemberBusinesses({ items, base, canManage }: { items: Suggestion[]; base: string; canManage: boolean }) {
-  const { pending, run } = useRunner();
-  const router = useRouter();
-  if (!items.length) return <EmptyState>Every business members listed in their profiles is already linked here.</EmptyState>;
-  return (
-    <>
-      <p className="text-[13px] text-muted">Businesses members listed in their profiles that aren&apos;t linked yet. Add them as a business, or link the member to a business you already have.</p>
-      <TableBox minWidth={820} head={["Business", "Member", "Their role", "Match", ""]}>
-        {items.map((s) => (
-          <tr key={s.key} className="border-b border-line last:border-b-0 hover:bg-hover">
-            <td className={td}>
-              <b>{s.name}</b>
-              <span className="block text-[12px] text-faint">{[s.type, s.stage, s.website?.replace(/^https?:\/\/(www\.)?/, "")].filter(Boolean).join(" · ") || "—"}</span>
-            </td>
-            <td className={td}><Link href={`${base}${s.memberHref}`} className="font-bold text-link hover:underline">{s.memberName}</Link></td>
-            <td className={`${td} text-muted`}>{s.role ?? "—"}</td>
-            <td className={td}>{s.match ? <Link href={`${base}/businesses/${s.match.id}`} className="text-link hover:underline">{s.match.name}</Link> : <span className="text-faint">New</span>}</td>
-            <td className={`${td} whitespace-nowrap text-right`}>
-              {canManage ? (
-                s.match ? (
-                  <Button variant="secondary" size="sm" disabled={pending} onClick={() => run(() => linkPerson(s.match!.id, `m:${s.memberId}`, s.role ?? ""), () => router.refresh())}>
-                    <Link2 size={14} aria-hidden="true" />
-                    Link to {s.match.name}
-                  </Button>
-                ) : (
-                  <Button size="sm" disabled={pending} onClick={() => run(() => createFromMemberBusiness(s.memberId, s), () => router.refresh())}>
-                    <Plus size={14} aria-hidden="true" />
-                    Add business
-                  </Button>
-                )
-              ) : null}
-            </td>
-          </tr>
-        ))}
-      </TableBox>
-    </>
-  );
-}
-

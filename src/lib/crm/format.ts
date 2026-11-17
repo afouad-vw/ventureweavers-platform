@@ -7,6 +7,11 @@ export const DEAL_TYPE_HINT: Record<(typeof DEAL_TYPES)[number], string> = {
   "Co-creation": "Building a program, show or product together",
   Branding: "Sponsorship and brand partnerships",
 };
+/** How a business relates to VentureWeavers (several allowed). Matches public.relationship_list(). */
+export const RELATIONSHIPS = ["Partner", "Client", "Service Provider", "Sponsor", "Investor", "Portfolio", "Prospect", "Community"] as const;
+export function parseRelationships(values: unknown[]): string[] {
+  return [...new Set(values.map(String).filter((v) => (RELATIONSHIPS as readonly string[]).includes(v)))];
+}
 export const DEAL_STAGES = ["Lead", "Qualified", "Proposal", "Negotiation", "Won", "Lost"] as const;
 export const OPEN_STAGES = ["Lead", "Qualified", "Proposal", "Negotiation"] as const;
 export const CURRENCIES = ["EGP", "USD"] as const;

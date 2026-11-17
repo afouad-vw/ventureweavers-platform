@@ -28,7 +28,7 @@ export function ContactsBoard({ contacts, base, canManage = true, initialQuery =
   const toast = useToast();
   const needle = q.trim().toLowerCase();
   const rows = useMemo(
-    () => contacts.filter((c) => (seg === "All" || c.spaces.includes(seg)) && (!needle || `${c.name} ${c.company ?? ""} ${c.role ?? ""} ${c.email ?? ""} ${c.spaces.join(" ")}`.toLowerCase().includes(needle))),
+    () => contacts.filter((c) => (seg === "All" || c.spaces.includes(seg)) && (!needle || `${c.name} ${c.company ?? ""} ${c.businesses.map((b) => b.name).join(" ")} ${c.role ?? ""} ${c.email ?? ""} ${c.spaces.join(" ")}`.toLowerCase().includes(needle))),
     [contacts, seg, needle],
   );
   const href = (c: Contact) => `${base}/contacts/${c.key.replace(":", "-")}`;
@@ -74,9 +74,9 @@ export function ContactsBoard({ contacts, base, canManage = true, initialQuery =
       <label className="relative flex w-full max-w-[340px] items-center">
         <Search size={16} className="pointer-events-none absolute left-2.5 text-faint" aria-hidden="true" />
         <span className="sr-only">Filter contacts</span>
-        <input value={q} onChange={(ev) => setQ(ev.target.value)} placeholder="Filter by name, role, email or tag" className="h-10 w-full rounded-lg border border-line2 bg-card pr-2.5 pl-8 text-[13.5px] placeholder:text-faint focus:border-primary focus:outline-none desk:h-9" />
+        <input value={q} onChange={(ev) => setQ(ev.target.value)} placeholder="Filter by name, business, role, email or tag" className="h-10 w-full rounded-lg border border-line2 bg-card pr-2.5 pl-8 text-[13.5px] placeholder:text-faint focus:border-primary focus:outline-none desk:h-9" />
       </label>
-      <TableBox minWidth={900} head={["Name", "Ecosystem Role", "Spaces", "Source", "Last activity", ""]} empty={!rows.length && "No contacts match."}>
+      <TableBox minWidth={1040} head={["Name", "Ecosystem Role", "Businesses", "Spaces", "Source", "Last activity", ""]} empty={!rows.length && "No contacts match."}>
         {rows.map((c) => {
           const wa = waNumber(c.phone);
           return (
@@ -95,6 +95,9 @@ export function ContactsBoard({ contacts, base, canManage = true, initialQuery =
                 </Link>
               </td>
               <td className={`${td} text-muted`}>{c.role ?? "—"}</td>
+              <td className={`${td} max-w-[220px] text-muted`}>
+                {c.businesses.length ? c.businesses.map((b, i) => <span key={i} className="block truncate">{b.name}{b.member_role ? <span className="text-faint"> · {b.member_role}</span> : null}</span>) : c.company ?? "—"}
+              </td>
               <td className={td}><span className="flex flex-wrap gap-1">{c.spaces.length ? c.spaces.map((s) => <ThreadTag key={s} thread={s} />) : <span className="text-faint">—</span>}</span></td>
               <td className={`${td} text-muted`}>{c.source}</td>
               <td className={`${td} text-muted`}>{c.last ? <>{c.last.text}<span className="block text-[12px] text-faint">{relativeWhen(c.last.at)}</span></> : "—"}</td>

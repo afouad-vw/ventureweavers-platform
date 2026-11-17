@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Linkedin, Mail, MessageCircle, Video } from "lucide-react";
+import { ArrowLeft, Building2, Linkedin, Mail, MessageCircle, MessagesSquare, Video } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
@@ -13,15 +13,19 @@ import { loadPerson } from "@/lib/contacts/person";
 import { formatDate, formatDateTime, formatEGP } from "@/lib/events/format";
 import { initialsOf } from "@/lib/initials";
 import { can } from "@/lib/auth/permissions";
-import { companiesFor } from "@/lib/crm/queries";
+import { companiesFor, companyOptions } from "@/lib/crm/queries";
+import { domainOf, nameKey } from "@/lib/crm/format";
+import { memberThread } from "@/lib/messages/queries";
 import { KIND_LABEL, statusLabel, statusTone, totals } from "@/lib/payments/format";
 import { splitPhone } from "@/lib/profile/about";
 import { waNumber } from "../wa";
 import { NotesCard, PersonActions, Timeline } from "./person-view";
+import { AddToBusiness } from "./add-to-business";
+import { ContactMessages } from "./contact-messages";
 
 export const metadata: Metadata = { title: "Contact" };
 
-const TABS = ["overview", "activity", "requests", "notes", "payments"] as const;
+const TABS = ["overview", "activity", "requests", "messages", "notes", "payments"] as const;
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -41,7 +45,16 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   if (!person) notFound();
   const { contact: c, account: a, timeline, payments, requests } = person;
   const seeCrm = can(admin, "businesses.view");
-  const crm = seeCrm ? await companiesFor(c.memberId ?? null, c.contactId ?? null) : [];
+  const manageCrm = can(admin, "businesses.manage");
+  const seeMessages = Boolean(c.memberId && !a?.isAdmin && can(admin, "messages.view"));
+  const [crm, crmOptions, convo] = await Promise.all([
+    seeCrm ? companiesFor(c.memberId ?? null, c.contactId ?? null) : Promise.resolve([]),
+    manageCrm ? companyOptions() : Promise.resolve([]),
+    seeMessages ? memberThread(c.memberId!) : Promise.resolve({ thread: null, messages: [] }),
+  ]);
+  const crmMatch = (b: { name: string; website: string | null }) =>
+    crm.find((x) => (domainOf(b.website) && domainOf(x.website) === domainOf(b.website)) || nameKey(x.name) === nameKey(b.name));
+  const who = c.memberId ? `m:${c.memberId}` : c.contactId ? `c:${c.contactId}` : null;
   const now = Date.now();
   const upcoming = requests.filter((r) => r.meetingAt && new Date(r.meetingAt).getTime() + 3600_000 > now).sort((x, y) => x.meetingAt!.localeCompare(y.meetingAt!));
   const tab = (TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as (typeof TABS)[number]) : "overview";
@@ -81,6 +94,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {c.email ? <a href={`mailto:${c.email}`} className={buttonClass("secondary")}><Mail size={15} aria-hidden="true" />Email</a> : null}
+            {seeMessages ? <Link href={`${here}?tab=messages`} className={buttonClass("secondary")}><MessagesSquare size={15} aria-hidden="true" />Messages</Link> : null}
             {wa ? <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary")}><MessageCircle size={15} aria-hidden="true" />WhatsApp</a> : null}
             {manage ? <PersonActions
               contact={c}
@@ -126,6 +140,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
           { value: "overview", label: "Overview" },
           { value: "activity", label: "Activity", count: timeline.length },
           ...(c.memberId ? [{ value: "requests", label: "Requests & meetings", count: requests.length }] : []),
+          ...(seeMessages ? [{ value: "messages", label: "Messages", count: convo.messages.length }] : []),
           { value: "notes", label: "Notes & tags" },
           ...(c.memberId && seePayments ? [{ value: "payments", label: "Payments", count: payments.length }] : []),
         ]}
@@ -145,8 +160,11 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                     <ul className="flex flex-col gap-1.5">
                       {c.businesses.map((b, i) => (
                         <li key={i} className="flex flex-col">
-                          <span><b>{b.name}</b>{b.type ? <span className="text-faint"> · {b.type}{b.stage ? `, ${b.stage}` : ""}</span> : null}</span>
-                          {b.member_role ? <span className="text-[12.5px] text-muted">{b.member_role}</span> : null}
+                          <span>
+                            {seeCrm && crmMatch(b) ? <Link href={`${base}/businesses/${crmMatch(b)!.id}`} className="font-bold text-link hover:underline">{b.name}</Link> : <b>{b.name}</b>}
+                            {b.type ? <span className="text-faint"> · {b.type}{b.stage ? `, ${b.stage}` : ""}</span> : null}
+                          </span>
+                          {b.member_role ? <span className="text-[12.5px] text-muted">Role: {b.member_role}</span> : null}
                           {b.website || b.linkedin ? (
                             <span className="flex flex-wrap gap-3 text-[12.5px]">
                               {b.website ? <a href={b.website} target="_blank" rel="noopener noreferrer" className="font-bold text-link hover:underline">{b.website.replace(/^https?:\/\//, "")}</a> : null}
@@ -162,18 +180,23 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                 <Row label="Business">{c.company}</Row>
               )}
               {seeCrm ? (
-                <Row label="In the CRM">
-                  {crm.length ? (
-                    <span className="flex flex-wrap gap-x-3 gap-y-1">
-                      {crm.map((b) => (
-                        <Link key={b.id} href={`${base}/businesses/${b.id}`} className="font-bold text-link hover:underline">
-                          {b.name}{b.role ? <span className="font-normal text-faint"> · {b.role}</span> : null}
-                        </Link>
-                      ))}
-                    </span>
-                  ) : (
-                    <span className="text-faint">Not linked to a business yet</span>
-                  )}
+                <Row label="In Businesses">
+                  <span className="flex flex-col">
+                    {crm.length ? (
+                      <ul className="flex flex-col gap-1">
+                        {crm.map((b) => (
+                          <li key={b.id} className="flex items-center gap-1.5">
+                            <Building2 size={14} className="shrink-0 text-faint" aria-hidden="true" />
+                            <Link href={`${base}/businesses/${b.id}`} className="font-bold text-link hover:underline">{b.name}</Link>
+                            <span className="text-[12.5px] text-faint">{b.role ?? "Role not given"}{b.source === "profile" ? " · from their profile" : ""}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-faint">Not linked to a business yet</span>
+                    )}
+                    {manageCrm && who ? <AddToBusiness who={who} options={crmOptions.filter((o) => !crm.some((b) => b.id === o.value))} /> : null}
+                  </span>
                 </Row>
               ) : null}
               <Row label={c.memberId ? "Ecosystem Role" : "Role"}>{c.role}</Row>
@@ -225,6 +248,10 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
       ) : null}
 
       {tab === "activity" ? <Timeline items={timeline} /> : null}
+
+      {tab === "messages" && seeMessages ? (
+        <ContactMessages memberId={c.memberId!} name={c.name} thread={convo.thread} messages={convo.messages} canSend={can(admin, "messages.manage")} base={base} />
+      ) : null}
 
       {tab === "notes" ? (
         <div className="max-w-[720px]">
