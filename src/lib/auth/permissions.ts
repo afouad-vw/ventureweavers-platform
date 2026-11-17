@@ -76,7 +76,7 @@ export const PAGE_PERMS: Record<string, Perm[]> = {
   "/admin": ["overview.view"],
   "/admin/contacts": ["contacts.view"],
   "/admin/businesses": ["businesses.view"],
-  "/admin/requests": ["requests.view"],
+  "/admin/requests": ["requests.view", "content.view"],
   "/admin/messages": ["messages.view"],
   "/admin/payments": ["payments.view"],
   "/admin/outloud": ["events.view", "content.view", "live.manage"],

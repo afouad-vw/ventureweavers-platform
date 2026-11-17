@@ -261,6 +261,11 @@ async function Blog({ category }: { category?: string }) {
           <span className="text-[13px] text-muted">Subscribe to stay up to date with VentureWeavers: new shows, programs, content and news.</span>
           <NewsletterToggle on={!!profile?.consent_newsletter} signedIn={!!member} />
         </Card>
+        <Card>
+          <h2 className="text-[15px] font-extrabold">Share your news</h2>
+          <span className="text-[13px] text-muted">Raised a round, launched something or signed a partner? Send it to us for the VW Newsletter or VW Notes.</span>
+          <Link href="/share-news" className={buttonClass("secondary", "sm") + " self-start"}>Share your news</Link>
+        </Card>
         {tags.length ? (
           <Card>
             <CardHeader title="Popular tags" />

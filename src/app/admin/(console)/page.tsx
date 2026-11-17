@@ -59,7 +59,7 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
   const seats = upcoming.reduce((n, e) => n + e.confirmed + e.reserved, 0);
   const bySpace = SPACES.map((s) => contacts.filter((c) => c.spaces.includes(s as never)).length);
   const max = Math.max(1, ...bySpace);
-  const c = counts ?? { questions: 0, newRequests: 0, newApps: 0, payments: 0, toReview: 0, newTopics: 0, waitlist: 0, drafts: 0, openRequests: 0 };
+  const c = counts ?? { questions: 0, newRequests: 0, newApps: 0, payments: 0, toReview: 0, newTopics: 0, waitlist: 0, drafts: 0, memberNews: 0, openRequests: 0 };
 
   const kpis: [string, number, string][] = [
     ["Contacts", contacts.length, "bg-teal"],
@@ -76,6 +76,7 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
     ["hand-ins to review", c.toReview, "/tvs?tab=classroom"],
     ["new topic suggestions", c.newTopics, "/outloud?tab=live"],
     ["drafts not published", c.drafts, "/publishing"],
+    ["member news to review", c.memberNews, "/requests?tab=news"],
     ...(crm
       ? ([
           ["business tasks due by tomorrow", crm.tasksDue, "/businesses?tab=tasks"],

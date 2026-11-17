@@ -258,6 +258,7 @@ export async function attentionCounts() {
     count(svc.from("posts").select("id", head).eq("status", "draft")),
     count(svc.from("qq_log").select("id", head).eq("status", "draft")),
   ]);
+  const memberNews = await count(svc.from("news_submissions").select("id", head).in("status", ["submitted", "in_review"]));
   const [openReq, openApps, { data: liveNow }, pendingRequests] = await Promise.all([
     count(svc.from("requests").select("id", head).not("status", "in", "(won,declined)")),
     count(svc.from("applications").select("id", head).not("status", "in", "(won,declined)")),
@@ -266,5 +267,5 @@ export async function attentionCounts() {
   ]);
   const liveIds = ((liveNow ?? []) as { event_id: string }[]).map((r) => r.event_id);
   const questions = liveIds.length ? await count(svc.from("live_questions").select("id", head).eq("status", "waiting").in("event_id", liveIds)) : 0;
-  return { questions, newRequests, newApps, payments: reservedSeats + offeredSeats + pendingRequests, toReview, newTopics, waitlist, drafts: drafts.reduce((a, b) => a + b, 0), openRequests: openReq + openApps };
+  return { questions, newRequests, newApps, payments: reservedSeats + offeredSeats + pendingRequests, toReview, newTopics, waitlist, drafts: drafts.reduce((a, b) => a + b, 0), memberNews, openRequests: openReq + openApps };
 }

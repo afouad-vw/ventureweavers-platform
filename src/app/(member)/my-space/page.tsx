@@ -26,6 +26,9 @@ import { WithdrawButton } from "@/components/brickr/brickr-client";
 import { CancelReservation } from "./cancel-button";
 import { businessesOf } from "@/lib/profile/businesses";
 import { ProfileForm, type ProfileValues } from "./profile-form";
+import { NEWS_STATUS } from "@/lib/news/format";
+import { myNews } from "@/lib/news/queries";
+import { Megaphone } from "lucide-react";
 
 export const metadata: Metadata = { title: "My space" };
 
@@ -47,6 +50,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
     { value: "learning", label: "Learning" },
     { value: "requests", label: "Requests" },
     { value: "payments", label: "Payments", count: owed || null },
+    { value: "news", label: "My news" },
     { value: "saved", label: "Saved", count: savedCount ?? 0 },
     { value: "profile", label: "Profile & settings" },
   ];
@@ -79,6 +83,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
       {tab === "learning" ? <Learning /> : null}
       {tab === "requests" ? <Requests /> : null}
       {tab === "payments" ? <Payments payments={payments} /> : null}
+      {tab === "news" ? <News /> : null}
       {tab === "saved" ? <Saved /> : null}
       {tab === "profile" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
@@ -364,6 +369,33 @@ async function Requests() {
           </li>
         ))}
       </ul>
+    </Card>
+  );
+}
+
+async function News() {
+  const items = await myNews();
+  return (
+    <Card>
+      <CardHeader title="My news" action={<LinkButton href="/share-news" size="sm"><Megaphone size={14} aria-hidden="true" />Share your news</LinkButton>} />
+      <p className="text-[13px] text-muted">News about your business that you shared with us for the VW Newsletter or VW Notes.</p>
+      {items.length ? (
+        <ul className="flex flex-col">
+          {items.map((n) => (
+            <li key={n.id} className="flex flex-col gap-1 border-b border-line py-3 last:border-b-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <b className="min-w-0 flex-1 text-[14px]">{n.headline}</b>
+                <StatusPill tone={NEWS_STATUS[n.status].tone}>{NEWS_STATUS[n.status].label}</StatusPill>
+              </div>
+              <span className="text-[12.5px] text-faint">{n.business_name} · {n.news_type} · sent {formatDate(n.created_at)}</span>
+              {n.status === "declined" && n.decline_note ? <p className="rounded-lg bg-hover px-3 py-2 text-[13px]"><b>Our note:</b> {n.decline_note}</p> : null}
+              {n.status === "published" && n.href ? <Link href={n.href} className="self-start text-[13px] font-bold text-link hover:underline">Read the published post</Link> : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState>You haven&apos;t shared any news yet. Raised a round, launched something or signed a partner? Tell us.</EmptyState>
+      )}
     </Card>
   );
 }
