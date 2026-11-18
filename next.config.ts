@@ -44,7 +44,17 @@ const nextConfig: NextConfig = {
     remotePatterns: supabaseHost ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }] : [],
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // TEMPORARY (landing-redesign preview only): lets the image-bridge page sit inside Google AI Studio while scenes are regenerated.
+      {
+        source: "/landing/bridge.html",
+        headers: [
+          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'unsafe-inline'; img-src 'self' blob: data:; frame-ancestors https://aistudio.google.com" },
+          { key: "X-Frame-Options", value: "ALLOW-FROM https://aistudio.google.com" },
+        ],
+      },
+    ];
   },
 };
 
