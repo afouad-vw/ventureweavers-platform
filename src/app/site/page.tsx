@@ -297,7 +297,7 @@ export default async function SitePage() {
 
         {/* ---------------------------------------------------------------- the journey (pinned) */}
         <div id="journey" className="scroll-mt-0">
-          <Journey src="/landing/journey.webp" width={4000} height={2233} steps={JOURNEY(app, join)} eyebrow="Walk through the house" title="Four spaces, one path through them." />
+          <Journey src="/landing/journey.webp" width={5504} height={3072} steps={JOURNEY(app, join)} eyebrow="Walk through the house" title="Four spaces, one path through them." />
         </div>
 
         {/* ---------------------------------------------------------------- each space, in depth */}

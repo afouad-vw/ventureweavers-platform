@@ -198,7 +198,7 @@ export function Journey({ src, width, height, steps, eyebrow, title }: { src: st
     <section ref={section} className="lp-journey relative" style={{ "--n": steps.length } as React.CSSProperties} aria-label={title}>
       <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
         <div className="mx-auto grid w-full max-w-[1240px] items-center gap-4 px-5 pt-20 desk:gap-6 desk:pt-16 desk:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] desk:gap-12 desk:px-8">
-          <div className="relative aspect-[16/11] overflow-hidden rounded-[22px] desk:rounded-[28px] border border-white/10 bg-[#010c17] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] desk:aspect-[5/4]">
+          <div className="relative aspect-[16/11] overflow-hidden rounded-[22px] desk:rounded-[28px] border border-white/10 bg-[#03091a] shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)] desk:aspect-[5/4]">
             {/* The scene fills the frame's width; the camera moves the chosen point (image %) to the centre and zooms. */}
             <div
               className="lp-cam absolute top-1/2 left-1/2 w-full"
