@@ -90,9 +90,9 @@ const SPACES: Space[] = [
     cta: "Join the waitlist",
     href: "/quidquo",
     photo: "/landing/lab.webp",
-    size: [1564, 1260],
-    labels: [{ label: "Waitlist open", x: 77.1, y: 26.4 }],
-    flows: [[[0.0, 96.8], [35.7, 68.0], [44.9, 63.7]]],
+    size: [1800, 1443],
+    labels: [{ label: "Waitlist open", x: 72, y: 22 }],
+    flows: [[[0, 94], [37, 68], [48, 60.5]]],
     icon: Cpu,
   },
 ];
@@ -255,8 +255,8 @@ export default async function SitePage() {
               <FloatingScene
                 src="/landing/house.webp"
                 alt="A 3D cutaway of the VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, joined by glowing teal threads"
-                width={1764}
-                height={1455}
+                width={2000}
+                height={1623}
                 priority
                 sizes="(min-width: 900px) 760px, 100vw"
                 hotspots={HOUSE_SPOTS}
