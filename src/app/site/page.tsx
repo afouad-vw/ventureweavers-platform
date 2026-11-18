@@ -73,9 +73,9 @@ const SPACES: Space[] = [
     cta: "Request a meeting",
     href: "/brickr",
     photo: "/landing/workshop.webp",
-    size: [1800, 1397],
-    labels: [{ label: "Lead", x: 53, y: 38 }, { label: "Mentor", x: 81, y: 48 }],
-    flows: [[[0, 43], [23, 60], [28, 64.5], [46, 75.5]], [[45, 80], [59, 70.5]]],
+    size: [1425, 1397],
+    labels: [{ label: "Lead", x: 40.6, y: 38 }, { label: "Mentor", x: 76, y: 48 }],
+    flows: [[[2.7, 60], [9.1, 64.5], [31.8, 75.5]], [[30.5, 80], [48.2, 70.5]]],
     icon: Briefcase,
   },
   {
