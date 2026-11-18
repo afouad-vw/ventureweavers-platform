@@ -55,8 +55,8 @@ export function OpenFloorStage() {
       <Image
         src="/landing/openfloor.webp"
         alt="Open Floor: hosts and a founder on a round stage under amber spotlights, the audience raising their hands"
-        width={1436}
-        height={1295}
+        width={1800}
+        height={1465}
         quality={90}
         sizes="(min-width: 900px) 760px, 100vw"
         className="relative h-auto w-full select-none"
@@ -65,7 +65,7 @@ export function OpenFloorStage() {
       {/* Questions rise from the audience. */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {visible.map(({ q, k }) => (
-          <span key={`${tick}-${k}`} className="lp-q" style={{ left: `${[46.7, 66.7, 56.7][k]}%`, "--k": k } as React.CSSProperties}>
+          <span key={`${tick}-${k}`} className="lp-q" style={{ left: `${[58, 76, 67][k]}%`, "--k": k } as React.CSSProperties}>
             <span className="lp-q-hand">💬</span> {q}
           </span>
         ))}
