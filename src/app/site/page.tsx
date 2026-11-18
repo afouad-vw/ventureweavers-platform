@@ -256,7 +256,7 @@ export default async function SitePage() {
                 src="/landing/house.webp"
                 alt="A 3D cutaway of the VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, joined by glowing teal threads"
                 width={2000}
-                height={1623}
+                height={1587}
                 priority
                 sizes="(min-width: 900px) 760px, 100vw"
                 hotspots={HOUSE_SPOTS}
