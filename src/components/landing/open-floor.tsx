@@ -56,7 +56,7 @@ export function OpenFloorStage() {
         src="/landing/openfloor.webp"
         alt="Open Floor: hosts and a founder on a round stage under amber spotlights, the audience raising their hands"
         width={1800}
-        height={1465}
+        height={1476}
         quality={90}
         sizes="(min-width: 900px) 760px, 100vw"
         className="relative h-auto w-full select-none"
