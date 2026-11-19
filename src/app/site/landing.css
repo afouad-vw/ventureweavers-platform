@@ -132,23 +132,16 @@ a.lp-hot:focus-visible { outline: none; }
 .lp-soon::after { content: ""; position: absolute; inset: -4px; border-radius: inherit; border: 1px solid #E39B2D; opacity: 0; animation: lp-soon 2.4s ease-out infinite; }
 @keyframes lp-soon { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.18); } }
 
-/* ---------------------------------------------------------------- TVAC curriculum path */
-.lp-tvac-run { stroke-dasharray: 12 88; stroke-dashoffset: 0; opacity: 0; }
-.lp-tvac-on .lp-tvac-run { opacity: 1; animation: lp-tvac-run var(--cycle) linear infinite; }
-@keyframes lp-tvac-run { to { stroke-dashoffset: -100; } }
-.lp-tvac-halo { opacity: 0; transform-box: fill-box; transform-origin: center; }
-.lp-tvac-on .lp-tvac-halo { animation: lp-tvac-halo var(--cycle) linear infinite; animation-delay: var(--delay); }
-@keyframes lp-tvac-halo { 0% { opacity: .95; transform: scale(1); } 9% { opacity: 0; transform: scale(1.55); } 100% { opacity: 0; transform: scale(1.55); } }
-.lp-tvac-node circle:first-child { transition: fill .3s; }
-.lp-tvac-on .lp-tvac-node circle:first-child { animation: lp-tvac-fill var(--cycle) ease-out infinite; animation-delay: var(--delay); }
-@keyframes lp-tvac-fill { 0% { fill: #3a6fd6; } 14%, 100% { fill: var(--base); } }
-.lp-soon-blue::after { border-color: #5d86d6; }
-.lp-tvac-drop { position: absolute; left: 50%; top: 0; width: 4px; height: 56px; translate: -50% -100%; border-radius: 4px; background: linear-gradient(180deg, transparent, #8AAEF0 70%, #DCE8FF); box-shadow: 0 0 12px #8AAEF0; opacity: 0; }
-.lp-tvac-on .lp-tvac-drop { animation: lp-tvac-drop var(--cycle) linear infinite; }
-@keyframes lp-tvac-drop { 0% { top: 0; opacity: 0; } 4% { opacity: 1; } 96% { opacity: 1; } 100% { top: calc(100% + 56px); opacity: 0; } }
-.lp-tvac-dot { background: var(--base); }
-.lp-tvac-on .lp-tvac-dot { animation: lp-tvac-dot var(--cycle) ease-out infinite; animation-delay: var(--delay); }
-@keyframes lp-tvac-dot { 0% { background: #3a6fd6; box-shadow: 0 0 0 6px rgb(138 174 240 / .25); } 14%, 100% { background: var(--base); box-shadow: 0 0 0 0 transparent; } }
+/* ---------------------------------------------------------------- TVAC classroom */
+.lp-q-blue { border-color: rgb(93 134 214 / .55); }
+.lp-tv .lp-q { bottom: 34%; }
+.lp-tv-on .lp-q { animation: lp-q-rise 2.8s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--k) * 0.5s); }
+.lp-tv-screen { left: 66%; top: 12%; width: 22%; height: 34%; border-radius: 40%; background: radial-gradient(closest-side, rgb(138 174 240 / .55), rgb(31 79 163 / .25) 60%, transparent); mix-blend-mode: screen; filter: blur(14px); opacity: 0; }
+.lp-tv-on .lp-tv-screen { animation: lp-tv-screen 5.6s ease-in-out both; }
+@keyframes lp-tv-screen { 0% { opacity: 0; } 18% { opacity: .9; } 60% { opacity: .45; } 100% { opacity: .3; } }
+.lp-tv-bar { width: calc(var(--half) * 50%); }
+.lp-tv-on .lp-tv-bar { animation: lp-tv-bar 2.8s linear both; }
+@keyframes lp-tv-bar { from { width: calc(var(--half) * 50%); } to { width: calc(var(--half) * 50% + 50%); } }
 
 /* ---------------------------------------------------------------- statement lit by scroll */
 .lp-lit > span { color: rgb(220 241 221 / .16); transition: color .25s; }

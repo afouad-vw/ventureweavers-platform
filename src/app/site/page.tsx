@@ -7,7 +7,7 @@ import {
   UserPlus, Users, MessagesSquare, Youtube, type LucideIcon,
 } from "lucide-react";
 import { HScroll, LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgress, StackDeck, Tilt } from "@/components/landing/fx";
-import { LogoWeave, OpenFloorStage, TvacPath } from "@/components/landing/open-floor";
+import { LogoWeave, OpenFloorStage, TvacRoom } from "@/components/landing/open-floor";
 import { FloatingScene, Journey, type FlowPath, type Hotspot, type JourneyStep } from "@/components/landing/scene";
 import { SmoothScroll } from "@/components/landing/smooth-scroll";
 import { hostConfig, SURFACE_HEADER } from "@/lib/hosts";
@@ -487,7 +487,7 @@ export default async function SitePage() {
                 Two flagships. <span className="lp-grad">Coming soon.</span>
               </h2>
               <p className="mt-5 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
-                A live show where the room shares and discusses real venture stories, and a program that teaches the venture asset class beyond the mechanics. Get notified when they open, or book a private one for your team.
+                A live show where the room shares and discusses real venture stories, and an experiential program on the venture asset class beyond the mechanics. Get notified when they open, or book a private one for your team.
               </p>
             </div>
           </div>
@@ -546,7 +546,7 @@ export default async function SitePage() {
           </article>
           <article id="tvac" className="relative mt-8 scroll-mt-24 bg-[radial-gradient(ellipse_at_70%_50%,rgb(31_79_163/0.18),transparent_60%)] py-10 desk:mt-16">
             <div className="mx-auto grid max-w-[1240px] items-center gap-10 px-5 desk:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] desk:gap-14 desk:px-8">
-              <div>
+              <div className="order-1">
                 <div className="flex flex-wrap items-center gap-2" data-reveal>
                   <span className="inline-flex items-center gap-2 rounded-full border border-[#5d86d6]/45 bg-[#1F4FA3]/15 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[.14em] text-[#8AAEF0] uppercase">A TVS program · Flagship</span>
                   <span className="lp-soon lp-soon-blue inline-flex items-center gap-1.5 rounded-full bg-[#1F4FA3] px-3 py-1.5 text-[11.5px] font-extrabold text-white"><span className="h-1.5 w-1.5 rounded-full bg-white" />Coming soon</span>
@@ -559,10 +559,10 @@ export default async function SitePage() {
                   The Venture Asset Class. <span className="text-[#8AAEF0]">Beyond Technicalities.</span>
                 </p>
                 <p className="mt-4 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-                  A 6-session experiential program on the logic, mindset and integrated thinking behind venture capital, for every stakeholder. It goes beyond the mechanics, so you can read a fast-changing venture world and find your place in it.
+                  An experiential program on the logic, mindset and integrated thinking behind venture capital, for every stakeholder. It goes beyond the mechanics, so you can read a fast-changing venture world, see how its parts connect and find your place in it.
                 </p>
                 <dl className="mt-6 grid grid-cols-3 gap-2" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
-                  {[["6", "experiential sessions"], ["2", "formats: masterclass or program"], ["1", "cohort that becomes a community"]].map(([n, l]) => (
+                  {[["Every", "stakeholder at the same table"], ["Deep", "logic and mindset, not mechanics"], ["Live", "learning by experience"]].map(([n, l]) => (
                     <div key={l} className="lp-glass rounded-2xl px-3 py-3">
                       <dt className="font-display text-[24px] leading-none font-semibold text-[#8AAEF0] desk:text-[28px]">{n}</dt>
                       <dd className="mt-1 text-[11.5px] leading-snug text-[var(--lp-fg)]">{l}</dd>
@@ -571,8 +571,8 @@ export default async function SitePage() {
                 </dl>
                 <ul className="mt-3 grid grid-cols-2 gap-2">
                   {([
-                    [Mic, "Masterclass", "One session with the big picture of how ventures are built and backed."],
-                    [Users, "Program", "Six sessions as a cohort, with certificates and a closing mixer."],
+                    [Mic, "Masterclass", "A focused session on the big picture of how ventures are built and backed."],
+                    [Users, "Program", "The full experience: an in-depth journey into how venture really thinks and works."],
                   ] as [LucideIcon, string, string][]).map(([Icon, t, b], i) => (
                     <li key={t} className="lp-glass flex gap-2.5 rounded-2xl p-3" data-reveal style={{ "--d": i + 4 } as React.CSSProperties}>
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1F4FA3]/25 text-[#8AAEF0]"><Icon size={16} aria-hidden="true" /></span>
@@ -590,8 +590,8 @@ export default async function SitePage() {
                 </div>
                 <p className="mt-3 text-[13px] text-[var(--lp-muted)]" data-reveal>Open cohorts for the community. Private programs for your team, portfolio or community.</p>
               </div>
-              <div data-reveal>
-                <TvacPath />
+              <div className="order-2" data-reveal>
+                <TvacRoom />
               </div>
             </div>
           </article>
