@@ -10,6 +10,7 @@ import { HScroll, LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgr
 import { LogoWeave, OpenFloorStage, TvacRoom } from "@/components/landing/open-floor";
 import { FloatingScene, Journey, type FlowPath, type Hotspot, type JourneyStep } from "@/components/landing/scene";
 import { SmoothScroll } from "@/components/landing/smooth-scroll";
+import { FounderReadMore, type Founder } from "@/components/landing/founder-bio";
 import { hostConfig, SURFACE_HEADER } from "@/lib/hosts";
 import "./landing.css";
 
@@ -151,17 +152,29 @@ const JOURNEY = (app: string, join: string): JourneyStep[] => [
   { key: "quidquo", tab: "QuidQuo", kicker: "Technology", title: "Raise with less friction", body: "QuidQuo is the AI we are building for capital formation, for founders and investors alike. Follow the build and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 86, y: 51, s: 2.5 }, label: { x: 50, y: 22 } },
 ];
 
-const FOUNDERS = [
+const FOUNDERS: Founder[] = [
   {
     name: "Ahmed Fouad",
+    role: "Founding Partner",
     photo: "/landing/ahmed.webp",
-    bio: "A venture builder and ecosystem enabler with 15 years of cross-functional experience across venture building, investment management, and consulting.\nWith deep experience in the tech ecosystem, building, operating, scaling, and funding ventures across different markets and sectors including e-commerce, health-tech, fintech, F&B, transportation, trading, edtech, and investment.",
+    short: "Ahmed Fouad, Founding Partner of VentureWeavers, is a venture builder and ecosystem enabler with 15 years of diverse, cross-functional experience across venture building, investment management and consulting. He operated in multiple ventures, co-founded Sweetspot Consulting, and served as Managing Partner of DINARe Ventures, evaluating more than 300 ventures.",
+    long: [
+      "Ahmed Fouad is a Founding Partner of VentureWeavers, based in Cairo. A venture builder and ecosystem enabler, he brings 15 years of diverse, cross-functional experience across venture building, investment management and consulting. He began as a mechanical and production engineer in paper and plastic manufacturing, then moved into consulting with ADS Consulting and Solutions Consulting, while assisting a professor on master's programmes at several universities.",
+      "He operated inside ventures that later went through M&A, including Easy Taxi, Yumamia, Akelni and Tabibi. He co-founded Sweetspot Consulting, later acqui-hired by SeaSand Shipping, and served as Managing Partner of DINARe Ventures. Along the way he has evaluated more than 300 ventures, advised over 50, participated in two exits, founded two ventures and developed three educational programmes.",
+      "Today he leads product architecture and AI workflow design at VentureWeavers, turning frameworks into working systems. He sits on the GLG council and is a member of Empower Africa.",
+    ],
     linkedin: "https://www.linkedin.com/in/ahmed-fouad-azm",
   },
   {
     name: "Karim Hemdan",
+    role: "Founding Partner",
     photo: "/landing/karim.webp",
-    bio: "A decade of operating experience across Rocket Internet, Delivery Hero, and Jumia Group in key strategic roles: the companies that defined the first generation of high-growth digital infrastructure in the region.\nManaging Partner of DINARe Ventures under an Arabian family office, focused on technology ventures in specific MENA markets. Direct fund management experience, with the capital allocator perspective that most platform founders lack entirely.",
+    short: "Karim Hemdan is a Founding Partner of VentureWeavers. Over 15+ years he moved from telecom engineering to Rocket Internet's venture playbook, then operated inside Easy Taxi, Yumamia, Jumia and Delivery Hero/Talabat across Egypt, Nigeria, Kenya and Central MENA. He later co-founded Sweetspot Consulting and led DINARe Ventures as Managing Partner.",
+    long: [
+      "Karim Hemdan is a Founding Partner of VentureWeavers, based in Cairo. He began in RF and telecom engineering, then joined Rocket Internet in Berlin and moved into Easy Taxi as Entrepreneur in Residence. Over the following decade he operated inside ventures that went on to an IPO or M&A: leading logistics and fulfilment at Yumamia, strategic projects and logistics expansion at Jumia Group across Egypt, Nigeria and Kenya, and expansion across Egypt and Central MENA at Delivery Hero/Talabat.",
+      "He co-founded Sweetspot Consulting, later acqui-hired by SeaSand Shipping, where as CVC Director he launched the venture studio that spun out as DINARe Ventures, which he led as Managing Partner.",
+      "He is an alumnus of 500 Global VCU, Angel School and Morrow/GSSN, sits on four boards, judges for Founder Institute MENA, and was selected for the Swedish Institute's Impact Pioneers '26 programme. He works as a strategist, investor, operator and ecosystem enabler.",
+    ],
     linkedin: "https://www.linkedin.com/in/karim-hemdan",
   },
 ];
@@ -623,12 +636,15 @@ export default async function SitePage() {
                         <Image src={f.photo} alt={f.name} fill quality={90} sizes="(min-width: 900px) 300px, (min-width: 640px) 46vw, 100vw" className="object-cover object-top" />
                       </div>
                       <div className="lp-pop flex flex-1 flex-col gap-2 p-6">
-                        <span className="text-[11px] font-extrabold tracking-[.16em] text-teal uppercase">Co-founder &amp; Managing Partner</span>
+                        <span className="text-[11px] font-extrabold tracking-[.16em] text-teal uppercase">{f.role}</span>
                         <h3 className="font-display text-[24px] font-semibold">{f.name}</h3>
-                        <p className="text-[14px] leading-relaxed whitespace-pre-line text-[var(--lp-fg)]">{f.bio}</p>
-                        <a href={f.linkedin} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13.5px] font-bold text-teal hover:underline">
-                          <Linkedin size={15} aria-hidden="true" /> LinkedIn
-                        </a>
+                        <p className="text-[14px] leading-relaxed text-[var(--lp-fg)]">{f.short}</p>
+                        <div className="mt-auto flex flex-wrap items-center gap-4 pt-3">
+                          <FounderReadMore founder={f} />
+                          <a href={f.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-teal hover:underline">
+                            <Linkedin size={15} aria-hidden="true" /> LinkedIn
+                          </a>
+                        </div>
                       </div>
                     </article>
                   </Tilt>
