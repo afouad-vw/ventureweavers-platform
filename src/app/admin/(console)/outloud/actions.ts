@@ -57,11 +57,12 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-  if (type !== "private_session" && !starts_at) return { ok: false, error: "Add a date and time." };
   const capacity = Number(s("capacity") || 0);
   if (!Number.isInteger(capacity) || capacity < 0 || capacity > 10000) return { ok: false, error: "Capacity must be a whole number." };
   const banner = (BANNER_OPTIONS as readonly string[]).includes(s("banner")) ? s("banner") : "Stage";
   const status = parsePubStatus(s("status"));
+  // A show can be Draft or Coming soon without a date (members see TBA); it needs one to be Published.
+  if (type !== "private_session" && !starts_at && status === "published") return { ok: false, error: "Add a date and time before publishing, or keep it Coming soon (members see TBA)." };
   const banner_url = s("banner_url") || null;
   if (banner_url && !banner_url.startsWith(BANNER_PREFIX())) return { ok: false, error: "That banner image isn't from the upload folder." };
   const storage = `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/`;
@@ -126,6 +127,11 @@ export async function saveEvent(form: FormData): Promise<ActionResult> {
     const { data: left } = await supabase.rpc("event_seats_left", { p_event: id });
     const taken = before.capacity - (typeof left === "number" ? left : 0);
     if (capacity < taken) return { ok: false, error: `${taken} seats are already taken. Capacity can't be lower than that.` };
+    // Removing the date: active bookings must be cancelled or refunded first (Bookings page › Cancel all bookings).
+    if (before.starts_at && !starts_at) {
+      const { count } = await supabase.from("bookings").select("id", { count: "exact", head: true }).eq("event_id", id).in("status", ["reserved", "confirmed"]);
+      if (count) return { ok: false, error: `${count} booking${count === 1 ? " is" : "s are"} still active. Open Bookings and use "Cancel all bookings" (paid ones are marked refunded), then remove the date.` };
+    }
     const { error } = await supabase.from("events").update(row).eq("id", id);
     if (error) return { ok: false, error: "Couldn't save. Please try again." };
     await saveMeetLink(supabase, id, meetUrl);
@@ -211,6 +217,10 @@ export async function setEventStatus(id: string, next: PubStatus): Promise<Actio
   const admin = await requireAdmin(["events.manage", "tvs.manage"]);
   const status = parsePubStatus(next);
   const supabase = await createClient();
+  if (status === "published") {
+    const { data: ev } = await supabase.from("events").select("type, starts_at").eq("id", id).maybeSingle();
+    if (ev && ev.type !== "private_session" && !ev.starts_at) return { ok: false, error: "Add a date and time before publishing, or keep it Coming soon (members see TBA)." };
+  }
   const { error } = await supabase.from("events").update({ status }).eq("id", id);
   if (error) return { ok: false, error: "Couldn't change the status." };
   await audit(admin.userId, `event.${status === "published" ? "publish" : status === "coming_soon" ? "coming_soon" : "unpublish"}`, "events", { entityId: id });
@@ -257,6 +267,27 @@ export async function cancelBooking(bookingId: string, refund: boolean): Promise
   if (error) return { ok: false, error: explain(error.message) };
   refresh();
   return { ok: true, message: refund ? "Cancelled and marked refunded" : "Booking cancelled" };
+}
+
+/** Cancels every active booking on an event: reservations are released, paid bookings are marked refunded (or just cancelled). */
+export async function cancelAllBookings(eventId: string, refundPaid: boolean): Promise<ActionResult> {
+  await requireAdmin(["events.manage", "payments.manage"]);
+  if (!/^[0-9a-f-]{36}$/.test(eventId)) return { ok: false, error: "Unknown event." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("bookings").select("id, status").eq("event_id", eventId).in("status", ["reserved", "confirmed"]);
+  if (error) return { ok: false, error: "Couldn't load the bookings." };
+  const rows = (data ?? []) as { id: string; status: string }[];
+  if (!rows.length) return { ok: true, message: "No active bookings." };
+  let done = 0, refunded = 0;
+  const failed: string[] = [];
+  for (const b of rows) {
+    const { error: e } = await supabase.rpc("admin_cancel_booking", { p_booking: b.id, p_refund: refundPaid });
+    if (e) failed.push(explain(e.message));
+    else { done++; if (refundPaid && b.status === "confirmed") refunded++; }
+  }
+  refresh();
+  if (!done) return { ok: false, error: failed[0] ?? "Nothing was cancelled." };
+  return { ok: true, message: `${done} booking${done === 1 ? "" : "s"} cancelled${refunded ? `, ${refunded} marked refunded (send the money back by bank transfer)` : ""}${failed.length ? `; ${failed.length} failed` : ""}.` };
 }
 
 export type CheckInResult = {

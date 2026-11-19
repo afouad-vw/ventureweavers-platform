@@ -75,7 +75,7 @@ export function EventsManager({ events, base, mode = "outloud", access = {}, wai
                   <b className="block">{ev.title}</b>
                   <span className="text-faint">{ev.type === "masterclass" ? ev.format ?? "Online" : typeLabel(ev.type)} · {ev.venue ?? "[VENUE]"}</span>
                 </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">{ev.starts_at ? formatDateTime(ev.starts_at) : "By request"}</td>
+                <td className="px-3 py-2.5 whitespace-nowrap">{ev.starts_at ? formatDateTime(ev.starts_at) : ev.type === "private_session" ? "By request" : "TBA"}</td>
                 <td className="px-3 py-2.5 whitespace-nowrap">
                   {ev.type === "private_session" ? "—" : (
                     <>
@@ -153,7 +153,7 @@ export function EventsManager({ events, base, mode = "outloud", access = {}, wai
               <SelectField label="Status" name="status" defaultValue={e?.status ?? "draft"} options={PUB_STATUS_OPTIONS} hint="Coming soon shows Notify me. Publishing tells everyone waiting." />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <TextField label="Starts (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint={mc ? undefined : "Leave empty for private sessions."} />
+              <TextField label="Starts (Cairo)" name="starts_at" type="datetime-local" defaultValue={e?.starts_at ? isoToCairoLocal(e.starts_at) : ""} hint={mc ? "Leave empty while Coming soon (members see TBA)." : "Leave empty for private sessions, or while Coming soon (members see TBA)."} />
               <TextField label="Ends (Cairo)" name="ends_at" type="datetime-local" defaultValue={e?.ends_at ? isoToCairoLocal(e.ends_at) : ""} />
             </div>
             {mc ? <MasterclassPlace e={e} /> : <TbaField name="venue" label="Location" initial={e?.venue ?? null} placeholder="[VENUE], Cairo" />}

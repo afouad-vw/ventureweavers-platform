@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ScanLine } from "lucide-react";
 import { BookingsTable } from "@/components/admin/bookings-table";
+import { CancelAllBookings } from "@/components/admin/cancel-all-bookings";
 import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/misc";
+import { can } from "@/lib/auth/permissions";
 import { currentAdminBase, requireAdmin } from "@/lib/auth/guards";
 import { adminEventWithBookings } from "@/lib/events/admin-queries";
 import { bookingBadge, formatDateTime, formatEGP } from "@/lib/events/format";
@@ -13,7 +15,7 @@ import { bookingBadge, formatDateTime, formatEGP } from "@/lib/events/format";
 export const metadata: Metadata = { title: "Bookings" };
 
 export default async function EventBookingsPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdmin(["events.view", "tvs.view"]);
+  const admin = await requireAdmin(["events.view", "tvs.view"]);
   const base = await currentAdminBase();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
@@ -24,6 +26,10 @@ export default async function EventBookingsPage({ params }: { params: Promise<{ 
   const sum = (labels: string[]) => badges.filter((x) => labels.includes(x.label)).reduce((n, x) => n + x.b.seats, 0);
   const paidSeats = sum(["Confirmed", "Checked in"]);
   const collected = badges.filter((x) => ["Confirmed", "Checked in"].includes(x.label)).reduce((n, x) => n + x.b.amount_piasters, 0);
+
+  const active = bookings.filter((b) => b.status === "reserved" || b.status === "confirmed");
+  const paidActive = active.filter((b) => b.status === "confirmed");
+  const canCancel = can(admin, "events.manage") || can(admin, "payments.manage");
 
   const stats = [
     ["Paid seats", `${paidSeats} / ${event.capacity}`],
@@ -40,8 +46,13 @@ export default async function EventBookingsPage({ params }: { params: Promise<{ 
       </Link>
       <PageHeader
         title={event.title}
-        description={`${event.starts_at ? formatDateTime(event.starts_at) : ""} · ${event.venue ?? "[VENUE]"} · ${formatEGP(event.price_piasters)} per seat`}
-        actions={<LinkButton href={`${base}/check-in`} variant="secondary"><ScanLine size={15} aria-hidden="true" />Door check-in</LinkButton>}
+        description={`${event.starts_at ? formatDateTime(event.starts_at) : "Date TBA"} · ${event.venue ?? "Venue TBA"} · ${event.price_piasters != null ? `${formatEGP(event.price_piasters)} per seat` : "Price TBA"}`}
+        actions={
+          <>
+            {canCancel ? <CancelAllBookings eventId={event.id} active={active.length} paid={paidActive.length} paidAmount={paidActive.reduce((n, b) => n + b.amount_piasters, 0)} /> : null}
+            <LinkButton href={`${base}/check-in`} variant="secondary"><ScanLine size={15} aria-hidden="true" />Door check-in</LinkButton>
+          </>
+        }
       />
       <div className="grid grid-cols-2 gap-3 desk:grid-cols-4">
         {stats.map(([k, v]) => (

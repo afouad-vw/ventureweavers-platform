@@ -54,7 +54,7 @@ export default async function AdminOutloudPage({ searchParams }: { searchParams:
       />
       <LinkTabs label="Outloud admin sections" items={TABS} value={tab} hrefFor={(v) => `${base}/outloud${v === "events" ? "" : `?tab=${v}`}`} />
       {tab === "events" ? <EventsManager events={events} base={base} access={await accessLists("event", events.map((x) => x.id))} waitlists={await adminWaitlists("event", events.map((x) => x.id))} /> : null}
-      {tab === "content" ? <ContentManager items={content} series={series} sync={sync} /> : null}
+      {tab === "content" ? <ContentManager items={content} series={series} sync={sync} isSuper={admin.isSuper} /> : null}
       {tab === "blog" ? <BlogManager posts={blog} appOrigin={appOrigin} access={await accessLists("blog", blog.map((x) => x.id))} /> : null}
       {tab === "live" && live ? (
         <>

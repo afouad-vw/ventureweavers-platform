@@ -3,6 +3,7 @@ import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { BLOG_COLS, CONTENT_COLS, POST_COLS, RESOURCE_COLS, SERIES_COLS, type BlogPost, type ContentItem, type PostRow, type Resource, type Series } from "./queries";
+import type { InstagramTokenStatus } from "./instagram-token";
 
 export type AdminResource = Resource & { file_path: string | null; file_name: string | null; file_size: number | null; link_url: string | null };
 export type AdminTopic = { id: string; text: string; status: "new" | "picked" | "archived"; created_at: string; member: string };
@@ -23,6 +24,7 @@ export async function adminContent(): Promise<ContentItem[]> {
 }
 
 export type SeriesWithCount = Series & { count: number };
+export type { InstagramTokenStatus };
 export type SyncStatus = { source: string; last_run_at: string | null; last_ok_at: string | null; last_count: number; last_error: string | null };
 
 /** Series in the order admins see them (newest first), with how many items each holds. */
@@ -39,12 +41,15 @@ export async function adminSeries(): Promise<SeriesWithCount[]> {
 }
 
 /** When each connected account last synced, and which accounts are connected. */
-export async function socialStatus(): Promise<{ connected: string[]; runs: SyncStatus[] }> {
-  const connected = [process.env.YOUTUBE_API_KEY ? "youtube" : null, process.env.INSTAGRAM_ACCESS_TOKEN ? "instagram" : null].filter(Boolean) as string[];
-  if (!supabaseConfigured) return { connected, runs: [] };
+export async function socialStatus(): Promise<{ connected: string[]; runs: SyncStatus[]; instagram?: InstagramTokenStatus }> {
+  const { configuredSources } = await import("./social-sync");
+  const { instagramTokenStatus } = await import("./instagram-token");
+  const connected: string[] = await configuredSources().catch(() => []);
+  const instagram = await instagramTokenStatus().catch(() => undefined);
+  if (!supabaseConfigured) return { connected, runs: [], instagram };
   const supabase = await createClient();
   const { data } = await supabase.from("social_sync").select("source, last_run_at, last_ok_at, last_count, last_error");
-  return { connected, runs: (data ?? []) as SyncStatus[] };
+  return { connected, runs: (data ?? []) as SyncStatus[], instagram };
 }
 
 export async function adminBlog(): Promise<BlogPost[]> {

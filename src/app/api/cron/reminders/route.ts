@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sendEventReminder } from "@/lib/email/booking";
 import { sendClassroomReminder } from "@/lib/email/tvs";
 import { formatDateTime } from "@/lib/events/format";
+import { renewInstagramToken } from "@/lib/content/instagram-token";
 import { syncSocial } from "@/lib/content/social-sync";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendWaitlistEmails } from "@/lib/waitlist-server";
@@ -37,11 +38,12 @@ export async function GET(req: NextRequest) {
   // Notifications are kept for 90 days.
   const { count: purged } = await svc.from("notifications").delete({ count: "exact" }).lt("created_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
   // Also pull the latest Shorts from @ventureweavers (the Outloud page refreshes them hourly when visited).
+  const instagram = await renewInstagramToken().catch(() => "failed" as const);
   const social = await syncSocial({ force: true }).catch(() => []);
   const waitlist = await sendWaitlistEmails().catch(() => 0);
   // Client projects: date-based status moves (start date, a month in, a month before the end).
   const { data: projects } = await svc.rpc("project_auto_status");
-  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0, social, waitlist, projects: projects ?? 0 });
+  return NextResponse.json({ events: events?.length ?? 0, sent, classroom, purged: purged ?? 0, instagram, social, waitlist, projects: projects ?? 0 });
 }
 
 /**

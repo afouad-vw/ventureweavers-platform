@@ -9,10 +9,10 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill } from "@/components/ui/tag";
 import { CONTENT_FORMATS, CONTENT_STATUSES, PLATFORMS, relativeWhen } from "@/lib/content/format";
-import type { SeriesWithCount, SyncStatus } from "@/lib/content/admin-queries";
+import type { InstagramTokenStatus, SeriesWithCount, SyncStatus } from "@/lib/content/admin-queries";
 import type { ContentItem } from "@/lib/content/queries";
 import { formatDate } from "@/lib/events/format";
-import { deleteContent, deleteSeries, duplicateContent, saveContent, saveSeries, setContentStatus, syncShortsNow } from "../content-actions";
+import { deleteContent, deleteSeries, duplicateContent, saveContent, saveSeries, setContentStatus, syncShortsNow, connectInstagram, disconnectInstagram } from "../content-actions";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const tone = (s: string) => (s === "published" ? "ok" : s === "scheduled" ? "blue" : "draft") as "ok" | "blue" | "draft";
@@ -21,7 +21,8 @@ const label = (s: string) => CONTENT_STATUSES.find((x) => x.value === s)?.label 
 const SOURCE_LABEL: Record<string, string> = { youtube: "YouTube", instagram: "Instagram", tiktok: "TikTok" };
 
 /** Admin › Outloud › Digital content: Shorts (pulled from @ventureweavers or added by hand), episodes and their series. */
-export function ContentManager({ items, series, sync }: { items: ContentItem[]; series: SeriesWithCount[]; sync: { connected: string[]; runs: SyncStatus[] } }) {
+export function ContentManager({ items, series, sync, isSuper = false }: { items: ContentItem[]; series: SeriesWithCount[]; sync: { connected: string[]; runs: SyncStatus[]; instagram?: InstagramTokenStatus }; isSuper?: boolean }) {
+  const [igOpen, setIgOpen] = useState(false);
   const [editing, setEditing] = useState<ContentItem | "new" | null>(null);
   const [del, setDel] = useState<ContentItem | null>(null);
   const [editSeries, setEditSeries] = useState<SeriesWithCount | "new" | null>(null);
@@ -54,7 +55,7 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
               <li key={src} className="flex flex-wrap items-center gap-2">
                 <b className="w-[150px]">{src === "youtube" ? "YouTube · Episodes" : "Instagram · Shorts"}</b>
                 {!on ? (
-                  <span className="text-faint">Not connected ({src === "youtube" ? "YOUTUBE_API_KEY" : "INSTAGRAM_ACCESS_TOKEN"} in Vercel)</span>
+                  <span className="text-faint">Not connected{src === "youtube" ? " (YOUTUBE_API_KEY in Vercel)" : ""}</span>
                 ) : r?.last_error ? (
                   <StatusPill tone="bad">Last sync failed: {r.last_error}</StatusPill>
                 ) : r?.last_ok_at ? (
@@ -65,6 +66,38 @@ export function ContentManager({ items, series, sync }: { items: ContentItem[]; 
               </li>
             );
           })}
+          {isSuper ? (
+            <li className="flex flex-col gap-2 rounded-lg bg-paper/60 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted">
+                  Instagram token:{" "}
+                  {sync.instagram?.connected
+                    ? sync.instagram.fromEnv
+                      ? "from Vercel (not renewed automatically). Paste it here to have it renewed."
+                      : `saved, renewed weekly${sync.instagram.expiresAt ? ` · valid until ${formatDate(sync.instagram.expiresAt)}` : ""}${sync.instagram.lastError ? ` · ${sync.instagram.lastError}` : ""}`
+                    : "not connected"}
+                </span>
+                <Button variant="secondary" size="sm" disabled={pending} onClick={() => { setError(null); setIgOpen((v) => !v); }}>
+                  {sync.instagram?.connected ? "Replace token" : "Connect Instagram"}
+                </Button>
+                {sync.instagram?.connected && !sync.instagram.fromEnv ? (
+                  <Button variant="ghost" size="sm" disabled={pending} onClick={() => run(() => disconnectInstagram())}>Disconnect</Button>
+                ) : null}
+              </div>
+              {igOpen ? (
+                <form
+                  className="flex flex-wrap items-end gap-2"
+                  onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); run(() => connectInstagram(fd), () => setIgOpen(false)); }}
+                >
+                  <div className="min-w-[260px] flex-1">
+                    <TextField label="Long-lived access token (Instagram API with Instagram Login)" name="token" type="password" autoComplete="off" required minLength={20} maxLength={1000} hint="Checked with Instagram, stored server-side only and renewed automatically. Super admins only." />
+                  </div>
+                  <Button type="submit" size="sm" disabled={pending}>Connect and sync</Button>
+                </form>
+              ) : null}
+              {igOpen && error ? <p className="text-[13px] text-bad-fg">{error}</p> : null}
+            </li>
+          ) : null}
           <li className="flex flex-wrap items-center gap-2"><b className="w-[150px]">TikTok · Shorts</b><span className="text-faint">Add reels by link (New content); the preview is found for you</span></li>
         </ul>
       </Card>

@@ -33,7 +33,8 @@ export type ShowTile = {
   id: string;
   slug: string;
   title: string;
-  starts_at: string;
+  starts_at: string | null;
+  soon: boolean;
   venue: string | null;
   banner: string;
   banner_url: string | null;
@@ -67,15 +68,15 @@ export function NextShowTile({ show }: { show: ShowTile | null }) {
             height={220}
             label={show.title}
             chip="Outloud · Show"
-            chipRight={show.mine === "confirmed" ? "Your seat" : show.mine === "reserved" ? "Payment due" : undefined}
+            chipRight={show.mine === "confirmed" ? "Your seat" : show.mine === "reserved" ? "Payment due" : show.soon ? "Coming soon" : undefined}
           />
         </Link>
         <div className="flex flex-1 flex-col gap-3 p-4">
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-[13.5px] text-muted">
-            <span className="flex items-center gap-1.5"><CalendarDays size={15} aria-hidden="true" />{formatDateTime(show.starts_at)}</span>
+            <span className="flex items-center gap-1.5"><CalendarDays size={15} aria-hidden="true" />{show.starts_at ? formatDateTime(show.starts_at) : "Date TBA"}</span>
             <span className="flex items-center gap-1.5"><MapPin size={15} aria-hidden="true" />{show.venue ?? "Venue TBA"}</span>
           </div>
-          {show.capacity > 0 ? (
+          {show.capacity > 0 && !show.soon ? (
             <div className="flex items-center gap-3">
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-hover" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Seats taken">
                 <div className="h-full rounded-full bg-[linear-gradient(90deg,#02686f,#29be9c)]" style={{ width: `${pct}%` }} />
@@ -87,7 +88,7 @@ export function NextShowTile({ show }: { show: ShowTile | null }) {
             {show.mine ? (
               <LinkButton href="/my-space">{show.mine === "reserved" ? <Wallet size={15} aria-hidden="true" /> : <Ticket size={15} aria-hidden="true" />}{show.mine === "reserved" ? "Pay to confirm" : "Show ticket"}</LinkButton>
             ) : (
-              <LinkButton href={`/outloud/events/${show.slug}`}><Ticket size={15} aria-hidden="true" />Book a seat</LinkButton>
+              <LinkButton href={`/outloud/events/${show.slug}`}><Ticket size={15} aria-hidden="true" />{show.soon ? "Notify me" : "Book a seat"}</LinkButton>
             )}
             {show.mine === "confirmed" ? (
               show.live ? (
@@ -368,7 +369,7 @@ export function ProfileTile({ complete }: { complete: number }) {
   );
 }
 
-export function ComingUpTile({ shows }: { shows: { id: string; slug: string; title: string; starts_at: string; booked: boolean; seats_left: number }[] }) {
+export function ComingUpTile({ shows }: { shows: { id: string; slug: string; title: string; starts_at: string | null; soon: boolean; booked: boolean; seats_left: number }[] }) {
   return (
     <section className={tileClass}>
       <TileHead left={<Label>Coming up</Label>} />
@@ -378,7 +379,7 @@ export function ComingUpTile({ shows }: { shows: { id: string; slug: string; tit
             <li key={e.id}>
               <Link href={`/outloud/events/${e.slug}`} className="flex flex-col border-b border-line py-1.5 last:border-b-0 hover:[&_b]:underline">
                 <b className="truncate text-[13.5px]">{e.title}</b>
-                <span className="text-[12px] text-faint">{formatDate(e.starts_at)} · {e.booked ? "Booked" : e.seats_left > 0 ? "Seats open" : "Sold out"}</span>
+                <span className="text-[12px] text-faint">{e.starts_at ? formatDate(e.starts_at) : "Date TBA"} · {e.soon ? "Coming soon" : e.booked ? "Booked" : e.seats_left > 0 ? "Seats open" : "Sold out"}</span>
               </Link>
             </li>
           ))}

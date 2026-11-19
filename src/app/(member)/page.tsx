@@ -107,14 +107,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const nextUp = bookings
     .filter((b) => (b.status === "confirmed" || (b.status === "reserved" && b.hold_expires_at && new Date(b.hold_expires_at).getTime() > now)) && b.events?.starts_at && new Date(b.events.starts_at).getTime() > now)
     .sort((a, b) => new Date(a.events!.starts_at!).getTime() - new Date(b.events!.starts_at!).getTime())[0];
-  const shows = events.filter((e) => e.type !== "private_session" && e.type !== "masterclass" && e.starts_at);
+  const shows = events.filter((e) => e.type !== "private_session" && e.type !== "masterclass" && (e.starts_at || e.status === "coming_soon"));
   const showEvent = (nextUp?.events && events.find((e) => e.id === nextUp.events!.id)) || shows[0] || null;
-  const show: ShowTile | null = showEvent?.starts_at
+  const show: ShowTile | null = showEvent
     ? {
         id: showEvent.id,
         slug: showEvent.slug,
         title: showEvent.title,
         starts_at: showEvent.starts_at,
+        soon: showEvent.status === "coming_soon",
         venue: showEvent.venue,
         banner: showEvent.banner,
         banner_url: showEvent.banner_url,
@@ -150,7 +151,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   // One line about the week ahead.
   const week: string[] = [];
-  if (show?.mine && new Date(show.starts_at).getTime() - now < 7 * DAY) week.push("a show");
+  if (show?.mine && show.starts_at && new Date(show.starts_at).getTime() - now < 7 * DAY) week.push("a show");
   if (masterclass?.booked && new Date(masterclass.starts_at).getTime() - now < 7 * DAY) week.push("a masterclass");
   if (confirmedMeeting && new Date(confirmedMeeting.meeting_at!).getTime() - now < 7 * DAY) week.push("a meeting with the partners");
   if (learning.kind === "classroom" && learning.next) week.push("a live class");
@@ -163,7 +164,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // Bento rows of four: one wide tile and two small ones per row, so the grid never leaves a gap on desktop.
   const wide1 = reminders.length ? <RemindersTile reminders={reminders} /> : announcements.length ? <AnnouncementsTile posts={announcements} /> : <RemindersTile reminders={[]} />;
   const wide2 = reminders.length > 0 && announcements.length > 0;
-  const comingUp = shows.filter((e) => e.id !== show?.id).slice(0, 3).map((e) => ({ id: e.id, slug: e.slug, title: e.title, starts_at: e.starts_at!, booked: booked.has(e.id), seats_left: e.seats_left }));
+  const comingUp = shows.filter((e) => e.id !== show?.id).slice(0, 3).map((e) => ({ id: e.id, slug: e.slug, title: e.title, starts_at: e.starts_at, soon: e.status === "coming_soon", booked: booked.has(e.id), seats_left: e.seats_left }));
   const pool = [
     <MasterclassTile key="mc" m={masterclass} />,
     complete < 100 ? <ProfileTile key="profile" complete={complete} /> : null,
@@ -185,7 +186,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Edit interests
             </LinkButton>
           </div>
-          {show && new Date(show.starts_at).getTime() > now ? <Countdown to={show.starts_at} label={`to ${show.title}`} /> : null}
+          {show?.starts_at && !show.soon && new Date(show.starts_at).getTime() > now ? <Countdown to={show.starts_at} label={`to ${show.title}`} /> : null}
         </div>
       </section>
 

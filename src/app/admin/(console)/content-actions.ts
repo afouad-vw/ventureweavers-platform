@@ -322,7 +322,7 @@ export async function deleteSeries(id: string): Promise<ActionResult> {
 export async function syncShortsNow(): Promise<ActionResult> {
   const admin = await requireAdmin("content.manage");
   const { configuredSources, syncSocial } = await import("@/lib/content/social-sync");
-  if (!configuredSources().length) return { ok: false, error: "No account is connected yet. Add YOUTUBE_API_KEY (and INSTAGRAM_ACCESS_TOKEN for Instagram) in Vercel." };
+  if (!(await configuredSources()).length) return { ok: false, error: "No account is connected yet. Add YOUTUBE_API_KEY in Vercel, or connect Instagram here." };
   const results = await syncSocial({ force: true });
   await audit(admin.userId, "sync", "content", { after: { results } });
   refresh();
@@ -330,6 +330,31 @@ export async function syncShortsNow(): Promise<ActionResult> {
   const added = results.reduce((n, r) => n + r.added, 0);
   if (failed.length === results.length) return { ok: false, error: failed.map((f) => `${f.source}: ${f.error}`).join(" · ") };
   return { ok: true, message: `${added ? `${added} new item${added === 1 ? "" : "s"} added` : "Up to date"}${failed.length ? ` (${failed.map((f) => `${f.source}: ${f.error}`).join(" · ")})` : ""}.` };
+}
+
+/** Super admins connect Instagram by pasting a long-lived token; it's checked, stored server-side and renewed weekly. */
+export async function connectInstagram(form: FormData): Promise<ActionResult> {
+  const admin = await requireAdmin("super");
+  const token = String(form.get("token") ?? "").trim();
+  if (token.length < 20 || token.length > 1000 || /\s/.test(token)) return { ok: false, error: "Paste the whole access token (one line, no spaces)." };
+  const { saveInstagramToken } = await import("@/lib/content/instagram-token");
+  const res = await saveInstagramToken(token, admin.userId === "dev" ? null : admin.userId);
+  if (!res.ok) return res;
+  await audit(admin.userId, "connect", "instagram", { after: { username: res.username } });
+  const { syncSocial } = await import("@/lib/content/social-sync");
+  const results = await syncSocial({ force: true });
+  refresh();
+  const ig = results.find((r) => r.source === "instagram");
+  return { ok: true, message: `Connected @${res.username}.${ig ? (ig.ok ? ` ${ig.added} new Short${ig.added === 1 ? "" : "s"} pulled.` : ` First sync failed: ${ig.error}`) : ""}` };
+}
+
+export async function disconnectInstagram(): Promise<ActionResult> {
+  const admin = await requireAdmin("super");
+  const { removeInstagramToken } = await import("@/lib/content/instagram-token");
+  await removeInstagramToken();
+  await audit(admin.userId, "disconnect", "instagram", {});
+  refresh();
+  return { ok: true, message: "Instagram disconnected. Pulled Shorts stay until you set them to Draft." };
 }
 
 // ---------------------------------------------------------------- blog

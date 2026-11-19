@@ -6,8 +6,8 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-dvh desk:grid-cols-[1.05fr_1fr]">
       <aside className="relative hidden overflow-hidden bg-ink desk:block">
-        <Image src="/images/stage.jpg" alt="" fill priority sizes="50vw" className="object-cover opacity-80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+        <Image src="/images/signup-door.webp" alt="A founder walks through an open door into a warm room where young people talk around a table, a teal thread of light on the floor leading him in" fill priority sizes="50vw" className="object-cover object-[50%_30%]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
         <div className="absolute inset-x-10 bottom-10 flex flex-col gap-3 text-white">
           <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={200} height={14} />
           <p className="max-w-[420px] font-display text-[26px] leading-tight font-semibold">

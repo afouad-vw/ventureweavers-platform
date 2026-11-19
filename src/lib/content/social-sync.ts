@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getInstagramToken } from "./instagram-token";
 import { findPreview } from "./preview";
 import {
   LOOSE_EPISODES,
@@ -17,7 +18,7 @@ import {
  * Keeps Outloud's digital content up to date from the VentureWeavers accounts:
  * - YouTube (@Venture_Weavers, YOUTUBE_API_KEY, optional YOUTUBE_HANDLE): videos become Episodes;
  *   each public playlist is a show, videos in no playlist go under "More episodes". Shorts on YouTube are skipped.
- * - Instagram (INSTAGRAM_ACCESS_TOKEN, a 60-day token): reels become Shorts.
+ * - Instagram (token pasted in admin and renewed by the daily cron; INSTAGRAM_ACCESS_TOKEN as fallback): reels become Shorts.
  * - Every run also finds preview images for posts admins added by link (TikTok, YouTube).
  * Pulled posts are published straight away; admins can set one to Draft to hide it (it stays hidden).
  */
@@ -29,8 +30,8 @@ const STALE_MINUTES = 60;
 const YT = "https://www.googleapis.com/youtube/v3";
 const PER_PLAYLIST = 50;
 
-export const configuredSources = (): Source[] =>
-  [process.env.YOUTUBE_API_KEY ? "youtube" : null, process.env.INSTAGRAM_ACCESS_TOKEN ? "instagram" : null].filter(Boolean) as Source[];
+export const configuredSources = async (): Promise<Source[]> =>
+  [process.env.YOUTUBE_API_KEY ? "youtube" : null, (await getInstagramToken()) ? "instagram" : null].filter(Boolean) as Source[];
 
 async function getJson(url: string, init?: RequestInit): Promise<{ status: number; json: unknown }> {
   const res = await fetch(url, { ...init, cache: "no-store", signal: AbortSignal.timeout(10000) });
@@ -81,7 +82,8 @@ async function fetchYouTube(): Promise<{ items: SyncedItem[]; shows: { name: str
 }
 
 async function fetchInstagram(): Promise<{ items: SyncedItem[]; shows: { name: string; description: string }[] }> {
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN!;
+  const token = await getInstagramToken();
+  if (!token) throw new Error("Instagram isn't connected");
   const fields = "id,caption,media_type,media_product_type,permalink,thumbnail_url,timestamp";
   const r = await getJson(`https://graph.instagram.com/me/media?fields=${fields}&limit=30`, { headers: { Authorization: `Bearer ${token}` } });
   if (r.status !== 200) throw new Error(`Instagram said ${r.status} (the access token may have expired)`);
@@ -145,7 +147,7 @@ export async function refreshPreviews(limit = 8): Promise<number> {
 /** Sync every configured account. With force = false, only those not synced in the last hour. */
 export async function syncSocial({ force = false } = {}): Promise<SyncResult[]> {
   if (!supabaseConfigured) return [];
-  const sources = configuredSources();
+  const sources = await configuredSources();
   let due = sources;
   if (!force && sources.length) {
     const { data } = await createServiceClient().from("social_sync").select("source, last_run_at").in("source", sources);
