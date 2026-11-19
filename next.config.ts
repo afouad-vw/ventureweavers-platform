@@ -39,6 +39,9 @@ const supabaseHost = (() => {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Put titles, descriptions and share images in <head> for every visitor, so every link preview and crawler sees them
+  // (by default Next streams them later for browsers it doesn't recognise as bots).
+  htmlLimitedBots: /.*/,
   // Files go straight from the browser to Supabase Storage (signed upload links), not through server actions.
   images: {
     remotePatterns: supabaseHost ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }] : [],

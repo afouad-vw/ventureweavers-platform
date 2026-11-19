@@ -14,16 +14,64 @@ import { FounderReadMore, type Founder } from "@/components/landing/founder-bio"
 import { hostConfig, SURFACE_HEADER } from "@/lib/hosts";
 import "./landing.css";
 
+const SITE_URL = `https://${hostConfig().site}`;
+const TITLE = "VentureWeavers | One house for MENA's venture ecosystem";
+const DESCRIPTION =
+  "Shows, venture education, fractional leadership and AI for capital formation from Ahmed Fouad and Karim Hemdan. Based in Cairo, working across MENA.";
+const SHARE_IMAGE = { url: "/images/og-logo.png", width: 1200, height: 630, alt: "VentureWeavers", type: "image/png" };
+
 export const metadata: Metadata = {
-  title: { absolute: "VentureWeavers · Four spaces, one house for MENA's venture ecosystem" },
-  description:
-    "VentureWeavers is Ahmed Fouad and Karim Hemdan. Shows, a venture school, fractional leadership and mentorship, and AI for capital formation, connected by one member platform. Based in Cairo, working across MENA.",
+  metadataBase: new URL(SITE_URL),
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  applicationName: "VentureWeavers",
+  authors: [{ name: "Ahmed Fouad" }, { name: "Karim Hemdan" }],
+  creator: "VentureWeavers",
+  publisher: "VentureWeavers",
+  category: "Business",
+  keywords: [
+    "VentureWeavers", "MENA venture ecosystem", "Cairo startups", "Egypt venture capital", "venture building", "fractional leadership",
+    "startup mentorship", "venture education", "The Venture School", "Open Floor", "Outloud", "BRICKR", "QuidQuo", "capital formation", "angel investing",
+  ],
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  formatDetection: { telephone: false, email: false, address: false },
   openGraph: {
-    title: "VentureWeavers · Four spaces, one house",
-    description: "Outloud, The Venture School, BRICKR and QuidQuo, connected by one member platform. Join the community.",
-    images: ["/images/stage.jpg"],
+    type: "website",
+    url: "/",
+    siteName: "VentureWeavers",
+    locale: "en_US",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [SHARE_IMAGE],
   },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [SHARE_IMAGE] },
 };
+
+/** Structured data for search engines: the organisation, its founders and the website. */
+function jsonLd(founders: Founder[]) {
+  const org = `${SITE_URL}/#organization`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": org,
+        name: "VentureWeavers",
+        url: `${SITE_URL}/`,
+        logo: { "@type": "ImageObject", url: `${SITE_URL}/brand/icon-512.png`, width: 512, height: 512 },
+        image: `${SITE_URL}/images/og-logo.png`,
+        description: DESCRIPTION,
+        email: "info@ventureweavers.com",
+        address: { "@type": "PostalAddress", addressLocality: "Cairo", addressCountry: "EG" },
+        areaServed: "Middle East and North Africa",
+        founders: founders.map((f) => ({ "@type": "Person", name: f.name, jobTitle: f.role, sameAs: [f.linkedin] })),
+        sameAs: ["https://www.linkedin.com/company/ventureweavers", "https://www.instagram.com/ventureweavers", "https://www.youtube.com/@Venture_Weavers"],
+      },
+      { "@type": "WebSite", "@id": `${SITE_URL}/#website`, url: `${SITE_URL}/`, name: "VentureWeavers", inLanguage: "en", publisher: { "@id": org } },
+    ],
+  };
+}
 
 type Space = { key: string; name: string; colour: string; tint: string; kicker: string; line: string; body: string; points: string[]; cta: string; href: string; photo: string; size: [number, number]; labels: { label: string; x: number; y: number }[]; flows: [number, number][][]; icon: LucideIcon };
 
@@ -214,6 +262,7 @@ export default async function SitePage() {
 
   return (
     <div className="lp min-h-dvh font-sans text-[14px]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(FOUNDERS)).replace(/</g, "\\u003c") }} />
       <RevealOnScroll />
       <SmoothScroll />
       <NavScroll />

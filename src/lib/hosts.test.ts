@@ -5,6 +5,10 @@ const cfg = hostConfig({});
 const strict = hostConfig({ HOST_MODE: "strict" });
 
 describe("site host", () => {
+  it("serves its own sitemap and manifest", () => {
+    expect(decide("ventureweavers.com", "/sitemap.xml", cfg)).toEqual({ kind: "next", surface: "site" });
+    expect(decide("ventureweavers.com", "/manifest.webmanifest", cfg)).toEqual({ kind: "next", surface: "site" });
+  });
   it("serves the landing page at /", () => {
     expect(decide("ventureweavers.com", "/", cfg)).toEqual({ kind: "rewrite", path: "/site", surface: "site" });
   });

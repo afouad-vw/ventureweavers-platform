@@ -53,5 +53,5 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   // Everything except Next internals and static files.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|apple-icon.png|brand/|images/|landing/|robots.txt).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|apple-icon.png|brand/|images/|landing/|robots.txt|sitemap.xml|manifest.webmanifest).*)"],
 };

@@ -33,6 +33,9 @@ export type Decision =
   | { kind: "redirect"; url: string }
   | { kind: "notfound" };
 
+/** Files search engines and link previews ask the landing page for directly (robots.txt and icons skip the middleware). */
+const SITE_FILES = new Set(["/sitemap.xml", "/manifest.webmanifest"]);
+
 const isUnder = (path: string, base: string) => path === base || path.startsWith(base + "/");
 
 export function decide(rawHost: string | null, pathname: string, cfg: HostConfig): Decision {
@@ -62,6 +65,7 @@ export function decide(rawHost: string | null, pathname: string, cfg: HostConfig
   if (host === cfg.site) {
     if (admin || site) return { kind: "notfound" };
     if (pathname === "/") return { kind: "rewrite", path: SITE_PATH, surface: "site" };
+    if (SITE_FILES.has(pathname)) return { kind: "next", surface: "site" };
     return { kind: "redirect", url: `https://${cfg.app}${pathname}` };
   }
 

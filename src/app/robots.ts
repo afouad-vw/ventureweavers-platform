@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
+import { robotsFor, seoHost } from "@/lib/seo";
 
-export default function robots(): MetadataRoute.Robots {
-  return { rules: [{ userAgent: "*", allow: "/", disallow: ["/admin", "/dev", "/site", "/my-space", "/live"] }] };
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  return robotsFor(seoHost((await headers()).get("host")));
 }
