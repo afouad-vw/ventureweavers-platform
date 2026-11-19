@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { headers } from "next/headers";
 import {
-  ArrowRight, ArrowUpRight, BookOpen, Briefcase, Building2, CalendarCheck, Compass, Cpu, GraduationCap, Handshake, Landmark, Library,
+  ArrowRight, ArrowUpRight, BellRing, BookOpen, Briefcase, Building2, CalendarCheck, Compass, Cpu, GraduationCap, Handshake, Landmark, Library,
   Lightbulb, Linkedin, Mail, Megaphone, MessageCircleQuestion, MessageSquare, Mic, Instagram, QrCode, Rocket, Route, Shuffle, Sparkles,
   UserPlus, Users, MessagesSquare, Youtube, type LucideIcon,
 } from "lucide-react";
 import { HScroll, LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgress, StackDeck, Tilt } from "@/components/landing/fx";
-import { LogoWeave, OpenFloorStage } from "@/components/landing/open-floor";
+import { LogoWeave, OpenFloorStage, TvacPath } from "@/components/landing/open-floor";
 import { FloatingScene, Journey, type FlowPath, type Hotspot, type JourneyStep } from "@/components/landing/scene";
 import { SmoothScroll } from "@/components/landing/smooth-scroll";
 import { hostConfig, SURFACE_HEADER } from "@/lib/hosts";
@@ -41,7 +41,7 @@ const SPACES: Space[] = [
     photo: "/landing/stage.webp",
     size: [1800, 1525],
     labels: [{ label: "Live", x: 42, y: 27 }, { label: "The room", x: 74, y: 46 }],
-    flows: [[[6.5, 59.5], [17, 63.5], [46, 85]], [[17, 63.5], [27, 57.5]]],
+    flows: [[[6.3, 60.2], [45.8, 85.1]], [[6.6, 60.6], [13, 63.2], [16, 63.4], [27, 57.4]], [[27.2, 57.8], [18.5, 63], [17.6, 65.5], [19, 67], [37, 78.6]]],
     icon: Mic,
   },
   {
@@ -58,7 +58,7 @@ const SPACES: Space[] = [
     photo: "/landing/classroom.webp",
     size: [1800, 1397],
     labels: [{ label: "Programs", x: 76, y: 17 }, { label: "Masterclasses", x: 47, y: 45 }],
-    flows: [[[9, 55.5], [30, 70], [38, 74.5], [46, 71]]],
+    flows: [[[10, 55.3], [36.5, 73.3], [38.6, 74.2], [41, 73.7], [48.3, 70]]],
     icon: GraduationCap,
   },
   {
@@ -75,7 +75,7 @@ const SPACES: Space[] = [
     photo: "/landing/workshop.webp",
     size: [1425, 1397],
     labels: [{ label: "Lead", x: 40.6, y: 38 }, { label: "Mentor", x: 76, y: 48 }],
-    flows: [[[2.7, 60], [9.1, 64.5], [31.8, 75.5]], [[30.5, 80], [48.2, 70.5]]],
+    flows: [[[9.6, 64.4], [33, 77.9]], [[31.1, 80.7], [48.8, 71]]],
     icon: Briefcase,
   },
   {
@@ -92,7 +92,7 @@ const SPACES: Space[] = [
     photo: "/landing/lab.webp",
     size: [1800, 1442],
     labels: [{ label: "Waitlist open", x: 72, y: 22 }],
-    flows: [[[0, 94], [37, 68], [48, 60.5]]],
+    flows: [[[0, 94.6], [36, 70], [37.6, 68.4], [48, 61.6]]],
     icon: Cpu,
   },
 ];
@@ -132,13 +132,15 @@ const HOUSE_SPOTS: Hotspot[] = [
   { label: "BRICKR", x: 82.7, y: 53.5, colour: "#B5532F", href: "#space-brickr" },
 ];
 
-// The teal threads in the house, in % of the image (from each room to the atrium).
+// The teal threads on the house floors, traced from the image (in % of it).
 const HOUSE_FLOWS: FlowPath[] = [
-  { colour: "#29BE9C", points: [[34.4, 83.6], [40.5, 78.2], [50.0, 74.8]] },
-  { colour: "#29BE9C", points: [[66.3, 83.8], [58.2, 78.2], [50.0, 74.8]] },
-  { colour: "#29BE9C", points: [[39.1, 42.4], [45.9, 36.3], [50.0, 33.8]] },
-  { colour: "#29BE9C", points: [[60.9, 42.4], [54.1, 36.3], [50.0, 33.8]] },
-  { colour: "#29BE9C", points: [[43.2, 44.9], [45.9, 51.1], [47.3, 59.1], [45.2, 67.1]] },
+  { colour: "#29BE9C", points: [[31.8, 45.3], [42, 39.5], [46, 35.6], [47.7, 33.6]] },
+  { colour: "#29BE9C", points: [[64.8, 45.5], [56, 40.2], [51.6, 35.6], [50.2, 34.4]] },
+  { colour: "#29BE9C", points: [[40.5, 45], [44, 47], [46, 50], [46.2, 53], [44.8, 57]] },
+  { colour: "#29BE9C", points: [[29.3, 86.2], [33, 87.9], [35.5, 87.6], [46, 79.5], [48.4, 78.2]] },
+  { colour: "#29BE9C", points: [[70.5, 83.9], [66, 87.4], [64, 87.6], [51, 79.3], [48.4, 78.2]] },
+  { colour: "#29BE9C", points: [[37.9, 71], [48.4, 78.2], [58.6, 84.8]] },
+  { colour: "#29BE9C", points: [[37.7, 84.7], [48.4, 78.2], [58.4, 70.7]] },
 ];
 
 const JOURNEY = (app: string, join: string): JourneyStep[] => [
@@ -215,6 +217,7 @@ export default async function SitePage() {
             <a href="#spaces" className="hover:text-white">Spaces</a>
             <a href="#platform" className="hover:text-white">The platform</a>
             <a href="#who" className="hover:text-white">Who it&apos;s for</a>
+            <a href="#flagships" className="hover:text-white">Flagships</a>
             <a href="#team" className="hover:text-white">Who we are</a>
           </nav>
           <span className="flex-1" />
@@ -475,8 +478,20 @@ export default async function SitePage() {
           </HScroll>
         </div>
 
-        {/* ---------------------------------------------------------------- Outloud: Open Floor (flagship, coming soon) */}
-        <section id="open-floor" className="relative scroll-mt-24 overflow-hidden border-y border-[var(--lp-line)] bg-[radial-gradient(ellipse_at_30%_60%,rgb(227_155_45/0.12),transparent_60%)] py-24 desk:py-32">
+        {/* ---------------------------------------------------------------- Upcoming flagships: Open Floor (Outloud) and TVAC (TVS) */}
+        <section id="flagships" aria-labelledby="flagships-h" className="relative scroll-mt-24 overflow-hidden border-y border-[var(--lp-line)] py-24 desk:py-32">
+          <div className="mx-auto max-w-[1240px] px-5 desk:px-8">
+            <div className="max-w-[720px]">
+              <p className="lp-eyebrow" data-reveal>Upcoming flagships</p>
+              <h2 id="flagships-h" className="mt-4 font-display text-[36px] leading-[1.05] font-semibold desk:text-[52px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
+                Two flagships. <span className="lp-grad">Coming soon.</span>
+              </h2>
+              <p className="mt-5 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
+                A live show where the room shares and discusses real venture stories, and a program that teaches the venture asset class beyond the mechanics. Get notified when they open, or book a private one for your team.
+              </p>
+            </div>
+          </div>
+          <article id="open-floor" className="relative mt-8 scroll-mt-24 bg-[radial-gradient(ellipse_at_30%_60%,rgb(227_155_45/0.12),transparent_60%)] py-10 desk:mt-20">
           <div className="mx-auto grid max-w-[1240px] items-center gap-10 px-5 desk:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] desk:gap-14 desk:px-8">
             <div className="order-2 desk:order-1" data-reveal>
               <OpenFloorStage />
@@ -519,12 +534,67 @@ export default async function SitePage() {
               </ol>
               <div className="mt-7 flex flex-wrap items-center gap-3" data-reveal>
                 <Magnetic href={join} className="group inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(180deg,#f2b65a,#E39B2D)] px-6 text-[15px] font-bold text-ink shadow-[0_10px_40px_-8px_rgb(227_155_45/0.6)] hover:brightness-110">
-                  Get first seats <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-1" />
+                  <BellRing size={16} aria-hidden="true" /> Get notified
                 </Magnetic>
-                <span className="text-[13px] text-[var(--lp-muted)]">Public shows for the community. Private sessions for partners.</span>
+                <a href={`${app}/outloud`} className="group inline-flex h-12 items-center gap-2 rounded-full border border-[#E39B2D]/50 px-6 text-[15px] font-bold text-[#F2B65A] transition-colors hover:bg-[#E39B2D]/10">
+                  Book a private session <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-1" />
+                </a>
               </div>
+              <p className="mt-3 text-[13px] text-[var(--lp-muted)]" data-reveal>Public shows for the community. Private sessions for your team, portfolio or community.</p>
             </div>
           </div>
+          </article>
+          <article id="tvac" className="relative mt-8 scroll-mt-24 bg-[radial-gradient(ellipse_at_70%_50%,rgb(31_79_163/0.18),transparent_60%)] py-10 desk:mt-16">
+            <div className="mx-auto grid max-w-[1240px] items-center gap-10 px-5 desk:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] desk:gap-14 desk:px-8">
+              <div>
+                <div className="flex flex-wrap items-center gap-2" data-reveal>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[#5d86d6]/45 bg-[#1F4FA3]/15 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[.14em] text-[#8AAEF0] uppercase">A TVS program · Flagship</span>
+                  <span className="lp-soon lp-soon-blue inline-flex items-center gap-1.5 rounded-full bg-[#1F4FA3] px-3 py-1.5 text-[11.5px] font-extrabold text-white"><span className="h-1.5 w-1.5 rounded-full bg-white" />Coming soon</span>
+                </div>
+                <h2 className="mt-5 flex items-center gap-3 font-display text-[44px] leading-[1] font-semibold desk:text-[68px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
+                  <GraduationCap className="h-10 w-10 shrink-0 text-[#8AAEF0] desk:h-14 desk:w-14" aria-hidden="true" />
+                  <span>TVAC<span className="text-[#8AAEF0]">.</span></span>
+                </h2>
+                <p className="mt-4 font-display text-[22px] leading-tight font-semibold text-white desk:text-[28px]" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
+                  The Venture Asset Class. <span className="text-[#8AAEF0]">Beyond Technicalities.</span>
+                </p>
+                <p className="mt-4 text-[15px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
+                  A 6-session experiential program on the logic, mindset and integrated thinking behind venture capital, for every stakeholder. It goes beyond the mechanics, so you can read a fast-changing venture world and find your place in it.
+                </p>
+                <dl className="mt-6 grid grid-cols-3 gap-2" data-reveal style={{ "--d": 3 } as React.CSSProperties}>
+                  {[["6", "experiential sessions"], ["2", "formats: masterclass or program"], ["1", "cohort that becomes a community"]].map(([n, l]) => (
+                    <div key={l} className="lp-glass rounded-2xl px-3 py-3">
+                      <dt className="font-display text-[24px] leading-none font-semibold text-[#8AAEF0] desk:text-[28px]">{n}</dt>
+                      <dd className="mt-1 text-[11.5px] leading-snug text-[var(--lp-fg)]">{l}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <ul className="mt-3 grid grid-cols-2 gap-2">
+                  {([
+                    [Mic, "Masterclass", "One session with the big picture of how ventures are built and backed."],
+                    [Users, "Program", "Six sessions as a cohort, with certificates and a closing mixer."],
+                  ] as [LucideIcon, string, string][]).map(([Icon, t, b], i) => (
+                    <li key={t} className="lp-glass flex gap-2.5 rounded-2xl p-3" data-reveal style={{ "--d": i + 4 } as React.CSSProperties}>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1F4FA3]/25 text-[#8AAEF0]"><Icon size={16} aria-hidden="true" /></span>
+                      <span><b className="block text-[13.5px]">{t}</b><span className="text-[12px] leading-snug text-[var(--lp-fg)]">{b}</span></span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-7 flex flex-wrap items-center gap-3" data-reveal>
+                  <Magnetic href={join} className="group inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(180deg,#3d72d9,#1F4FA3)] px-6 text-[15px] font-bold text-white shadow-[0_10px_40px_-8px_rgb(31_79_163/0.7)] hover:brightness-110">
+                    <BellRing size={16} aria-hidden="true" /> Get notified
+                  </Magnetic>
+                  <a href={`${app}/tvs`} className="group inline-flex h-12 items-center gap-2 rounded-full border border-[#5d86d6]/55 px-6 text-[15px] font-bold text-[#8AAEF0] transition-colors hover:bg-[#1F4FA3]/15">
+                    Book a private session <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-1" />
+                  </a>
+                </div>
+                <p className="mt-3 text-[13px] text-[var(--lp-muted)]" data-reveal>Open cohorts for the community. Private programs for your team, portfolio or community.</p>
+              </div>
+              <div data-reveal>
+                <TvacPath />
+              </div>
+            </div>
+          </article>
         </section>
 
         {/* ---------------------------------------------------------------- founders */}

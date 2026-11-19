@@ -66,54 +66,97 @@ export function FloatingScene({
       c.style.width = `${w}px`; c.style.height = `${h}px`;
       c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      build();
     };
-    // Precompute each path's length so lights move at an even speed.
-    const paths = flows.map((f) => {
-      const segs = f.points.slice(1).map((p, i) => Math.hypot(p[0] - f.points[i][0], p[1] - f.points[i][1]));
-      return { ...f, segs, total: segs.reduce((a, b) => a + b, 0) };
-    });
-    const at = (p: (typeof paths)[number], t: number) => {
-      let d = t * p.total;
-      for (let i = 0; i < p.segs.length; i++) {
-        if (d <= p.segs[i]) {
-          const k = d / p.segs[i], a = p.points[i], b = p.points[i + 1];
-          return [(a[0] + (b[0] - a[0]) * k) / 100 * w, (a[1] + (b[1] - a[1]) * k) / 100 * h];
+    // Round the corners (Chaikin), keeping the ends, so lights glide around bends instead of snapping.
+    const smooth = (pts: [number, number][]) => {
+      let a = pts;
+      for (let it = 0; it < 3; it++) {
+        if (a.length < 3) break;
+        const out: [number, number][] = [a[0]];
+        for (let i = 0; i < a.length - 1; i++) {
+          const [x0, y0] = a[i], [x1, y1] = a[i + 1];
+          if (i > 0) out.push([x0 * 0.75 + x1 * 0.25, y0 * 0.75 + y1 * 0.25]);
+          if (i < a.length - 2) out.push([x0 * 0.25 + x1 * 0.75, y0 * 0.25 + y1 * 0.75]);
         }
-        d -= p.segs[i];
+        out.push(a[a.length - 1]);
+        a = out;
       }
-      const z = p.points.at(-1)!;
-      return [z[0] / 100 * w, z[1] / 100 * h];
+      return a;
     };
+    const paths = flows.map((f) => ({ colour: f.colour, pts: smooth(f.points) }));
+    // Pixel geometry for the current size: points, segment lengths and total length.
+    type Geo = { colour: string; xy: [number, number][]; segs: number[]; len: number };
+    let geo: Geo[] = [];
+    const build = () => {
+      geo = paths.map((p) => {
+        const xy = p.pts.map(([x, y]) => [x / 100 * w, y / 100 * h] as [number, number]);
+        const segs = xy.slice(1).map((q, i) => Math.hypot(q[0] - xy[i][0], q[1] - xy[i][1]));
+        return { colour: p.colour, xy, segs, len: segs.reduce((a, b) => a + b, 0) };
+      });
+    };
+    const at = (g: Geo, d: number): [number, number] => {
+      d = Math.max(0, Math.min(g.len, d));
+      for (let i = 0; i < g.segs.length; i++) {
+        if (d <= g.segs[i] || i === g.segs.length - 1) {
+          const k = g.segs[i] ? Math.min(1, d / g.segs[i]) : 0, a = g.xy[i], b = g.xy[i + 1];
+          return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+        }
+        d -= g.segs[i];
+      }
+      return g.xy[g.xy.length - 1];
+    };
+    const ease = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
     const draw = (time: number) => {
       ctx.clearRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
-      paths.forEach((p, pi) => {
-        for (let k = 0; k < 2; k++) {
-          const t = ((time / 1000) * (0.16 + pi * 0.015) + k / 2 + pi * 0.23) % 1;
-          // A thin streak of light with a bright head.
-          const N = 14;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      const sec = time / 1000;
+      const speed = Math.max(40, w * 0.07); // px per second, the same on every path
+      const breathe = 0.1 + 0.05 * Math.sin(sec * 1.2);
+      geo.forEach((g, gi) => {
+        if (g.len < 4) return;
+        // The line itself glows softly, so the light always sits on a visible thread.
+        ctx.globalAlpha = breathe;
+        ctx.strokeStyle = g.colour;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        g.xy.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        ctx.stroke();
+        // Pulses flow along the thread at an even pace, fading in at the start and out at the end.
+        const tail = Math.min(g.len * 0.45, Math.max(36, w * 0.1));
+        const run = g.len + tail;
+        const count = Math.max(1, Math.round(run / Math.max(160, w * 0.42)));
+        for (let k = 0; k < count; k++) {
+          const head = ((sec * speed + (k / count) * run + gi * 97) % run);
+          const fade = ease(head / (tail * 0.8)) * ease((run - head) / (tail * 0.8));
+          if (fade <= 0.01) continue;
+          const N = 18;
           for (let s2 = 0; s2 < N; s2++) {
-            const [x1, y1] = at(p, Math.max(0, t - (s2 + 1) * 0.012));
-            const [x0, y0] = at(p, Math.max(0, t - s2 * 0.012));
-            ctx.globalAlpha = (1 - s2 / N) * 0.9;
-            ctx.strokeStyle = p.colour;
-            ctx.lineWidth = 2.2 * (1 - s2 / N) + 0.4;
-            ctx.lineCap = "round";
+            const d0 = head - (s2 / N) * tail, d1 = head - ((s2 + 1) / N) * tail;
+            if (d1 > g.len || d0 < 0) continue;
+            const [x0, y0] = at(g, d0), [x1, y1] = at(g, d1);
+            const f = 1 - s2 / N;
+            ctx.globalAlpha = fade * f * f * 0.85;
+            ctx.lineWidth = 0.6 + 2 * f;
             ctx.beginPath();
             ctx.moveTo(x0, y0);
             ctx.lineTo(x1, y1);
             ctx.stroke();
           }
-          const [hx, hy] = at(p, t);
-          const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 9);
-          g.addColorStop(0, "rgba(220,255,245,0.95)");
-          g.addColorStop(0.35, p.colour);
-          g.addColorStop(1, "transparent");
-          ctx.globalAlpha = 0.9;
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(hx, hy, 9, 0, Math.PI * 2);
-          ctx.fill();
+          if (head <= g.len) {
+            const [hx, hy] = at(g, head);
+            const r = 5;
+            const grd = ctx.createRadialGradient(hx, hy, 0, hx, hy, r);
+            grd.addColorStop(0, "rgba(225,255,246,0.9)");
+            grd.addColorStop(1, "rgba(41,190,156,0)");
+            ctx.globalAlpha = fade * 0.7;
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(hx, hy, r, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       });
       ctx.globalAlpha = 1;

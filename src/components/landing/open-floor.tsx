@@ -120,3 +120,107 @@ export function LogoWeave() {
     </div>
   );
 }
+
+const SESSIONS = [
+  { t: "The Leaders of Tomorrow", s: "Building the mindset", f: "Wellness & mindfulness" },
+  { t: "The Investment Landscape", s: "Where capital comes from", f: "Role play" },
+  { t: "VC: Misconception vs. Reality", s: "How it really works", f: "Guest speakers" },
+  { t: "Multiple Dimensions of Success", s: "Beyond the returns", f: "Game / challenge" },
+  { t: "The Healthy Ecosystem", s: "How the parts connect", f: "Panel discussion" },
+  { t: "The Future of VC", s: "Your path forward", f: "Book club" },
+];
+const PATH_W = 600, PATH_H = 380, CYCLE = 9;
+const NODES = SESSIONS.map((_, i) => ({ x: 50 + i * 100, y: i % 2 ? 250 : 130 }));
+
+/**
+ * TVAC's six sessions as one path: a light travels the curriculum at an even pace and each session lights up
+ * as it passes. Runs only while on screen; still for reduced motion.
+ */
+export function TvacPath() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting), { threshold: 0.2 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const d = NODES.map((n, i) => `${i ? "L" : "M"}${n.x} ${n.y}`).join(" ");
+  return (
+    <div ref={ref} className={`lp-tvac relative ${on ? "lp-tvac-on" : ""}`} style={{ "--cycle": `${CYCLE}s` } as React.CSSProperties}>
+      <div className="pointer-events-none absolute inset-x-[8%] top-[20%] h-[60%] rounded-full bg-[#1F4FA3] opacity-30 blur-[90px]" />
+      <div className="lp-glass relative rounded-[28px] p-4 desk:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-mono text-[11px] font-bold tracking-[.14em] text-[#8AAEF0] uppercase">The curriculum · 6 sessions</span>
+          <span className="flex items-center gap-1.5 text-[11px] font-bold text-white/60"><GraduationCapIcon />TVAC</span>
+        </div>
+        <div className="relative mt-2 hidden sm:block" style={{ aspectRatio: `${PATH_W} / ${PATH_H}` }}>
+          <svg viewBox={`0 0 ${PATH_W} ${PATH_H}`} className="absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
+            <defs>
+              <filter id="lp-tvac-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5" /></filter>
+            </defs>
+            <path d={d} fill="none" stroke="#1F4FA3" strokeOpacity=".55" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+            <path className="lp-tvac-run" d={d} pathLength={100} fill="none" stroke="#8AAEF0" strokeWidth="10" strokeLinejoin="round" strokeLinecap="round" filter="url(#lp-tvac-glow)" />
+            <path className="lp-tvac-run" d={d} pathLength={100} fill="none" stroke="#DCE8FF" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+            {NODES.map((n, i) => {
+              // The light's head reaches session i at this point of the cycle.
+              const phase = (((i * 20 - 14) % 100) + 100) % 100 / 100;
+              return (
+                <g key={i} className="lp-tvac-node" style={{ "--delay": `${phase * CYCLE - CYCLE}s`, "--base": i === 5 ? "#1F4FA3" : "#0b1c33" } as React.CSSProperties}>
+                  <circle cx={n.x} cy={n.y} r="27" fill={i === 5 ? "#1F4FA3" : "#0b1c33"} stroke="#5d86d6" strokeWidth="2.5" />
+                  <circle className="lp-tvac-halo" cx={n.x} cy={n.y} r="27" fill="none" stroke="#8AAEF0" strokeWidth="2" />
+                  <text x={n.x} y={n.y + 6} textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff" fontFamily="inherit">0{i + 1}</text>
+                </g>
+              );
+            })}
+          </svg>
+          {SESSIONS.map((s, i) => {
+            const n = NODES[i], top = i % 2 === 0;
+            return (
+              <div
+                key={s.t}
+                className="absolute flex w-[33%] flex-col items-center text-center"
+                style={{ left: `${(n.x / PATH_W) * 100}%`, ...(top ? { bottom: `${(1 - (n.y - 36) / PATH_H) * 100}%` } : { top: `${((n.y + 36) / PATH_H) * 100}%` }), translate: "-50% 0" }}
+              >
+                {top ? <Tag f={s.f} /> : null}
+                <b className={`text-[11px] leading-tight text-white desk:text-[13px] ${top ? "mt-1.5" : ""}`}>{s.t}</b>
+                <span className="mt-0.5 text-[10px] leading-tight text-[var(--lp-muted)] desk:text-[11.5px]">{s.s}</span>
+                {top ? null : <Tag f={s.f} className="mt-1.5" />}
+              </div>
+            );
+          })}
+        </div>
+        {/* Phones: the same path, top to bottom. */}
+        <ol className="relative mt-4 sm:hidden">
+          <span className="absolute top-5 bottom-5 left-[19px] w-[2px] -translate-x-1/2 bg-[#1F4FA3]/60" aria-hidden="true">
+            <span className="lp-tvac-drop" />
+          </span>
+          {SESSIONS.map((s, i) => (
+            <li key={s.t} className="lp-tvac-row relative flex items-start gap-3 py-2" style={{ "--delay": `${(i / 5) * CYCLE - CYCLE}s`, "--base": i === 5 ? "#1F4FA3" : "#0b1c33" } as React.CSSProperties}>
+              <span className="lp-tvac-dot relative z-[1] flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[#5d86d6] font-display text-[14px] font-bold text-white">0{i + 1}</span>
+              <span className="min-w-0 pt-0.5">
+                <b className="block text-[14px] leading-tight text-white">{s.t}</b>
+                <span className="mt-0.5 block text-[12px] text-[var(--lp-muted)]">{s.s}</span>
+                <Tag f={s.f} className="mt-1.5 inline-block" />
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-2 text-center text-[12px] text-[var(--lp-fg)] italic desk:text-[13px]">Closing mixer: certificates, networking, and a cohort that becomes a lasting community.</p>
+      </div>
+    </div>
+  );
+}
+
+function Tag({ f, className }: { f: string; className?: string }) {
+  return <span className={`rounded-full border border-[#1F4FA3]/60 bg-[#1F4FA3]/25 px-2 py-0.5 text-[9.5px] font-bold whitespace-nowrap text-[#C9DAFB] desk:text-[10.5px] ${className ?? ""}`}>{f}</span>;
+}
+
+function GraduationCapIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M22 10 12 5 2 10l10 5 10-5Z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
+    </svg>
+  );
+}
