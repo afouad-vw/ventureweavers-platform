@@ -32,6 +32,7 @@ describe("panelMeta", () => {
     expect(panelMeta("/live").space).toBe("outloud");
     expect(panelMeta("/projects/acme").space).toBe("brickr");
     expect(panelMeta("/messages").space).toBe("house");
+    expect(panelMeta("/updates").title).toBe("Updates & Notifications");
   });
   it("marks detail pages so the panel shows Back", () => {
     expect(panelMeta("/outloud/events/open-floor-show-01").detail).toBe(true);

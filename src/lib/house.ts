@@ -113,6 +113,7 @@ const SUBS: Record<string, string> = {
   "Profile settings": "How you appear to the team, and how we reach you.",
   Library: "Guides, templates and resources from the team.",
   Messages: "You and the VentureWeavers team.",
+  "Updates & Notifications": "What's new for you across the house, and everything that needs your attention.",
   Search: "Find shows, programs, services and posts.",
   "Share your news": "Tell us what happened at your business.",
 };
@@ -158,6 +159,8 @@ export function panelMeta(pathname: string, search: string | URLSearchParams = "
       return make("me", "Share your news", "mega", false);
     case "library":
       return make("me", "Library", "book", false);
+    case "updates":
+      return make("house", "Updates & Notifications", "bell", false);
     case "messages":
       return make("house", "Messages", "msg", false);
     case "search":

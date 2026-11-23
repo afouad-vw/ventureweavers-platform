@@ -10,7 +10,7 @@ const SPACES = [
   { name: "QuidQuo", colour: COLOURS.quidquo },
 ];
 
-/** Sign in, Join and the other account pages: dark backdrop, a framed photo beside a glass card (phones: logo and card). */
+/** Sign in, Join and the other account pages: dark backdrop, the house's way in (the Join scene) beside a glass card (phones: logo and card). */
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="vw-dark au">
@@ -21,7 +21,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       </div>
       <div className="au-grid">
         <aside className="au-photo">
-          <Image src="/images/signup-door.webp" alt="A founder walks through an open door into a warm room where young people talk around a table, a teal thread of light on the floor leading him in" fill priority sizes="(min-width: 900px) 640px, 1px" className="object-cover object-[50%_30%]" />
+          <Image src="/images/signup-join.webp" alt="People walk along a glowing teal thread towards an open door of light, the way into the VentureWeavers house" fill priority sizes="(min-width: 900px) 640px, 1px" className="object-cover object-[50%_35%]" />
           <div className="au-photo-shade" />
           <Link href="https://ventureweavers.com" className="au-photo-logo" aria-label="VentureWeavers home">
             <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={190} height={13} priority />

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Activity, ArrowLeft, BookMarked, BookOpen, Bookmark, BrickWall, Briefcase, ChevronLeft, ChevronRight, ClipboardList, Compass, Cpu, CreditCard,
+  Activity, ArrowLeft, Bell, BookMarked, BookOpen, Bookmark, BrickWall, Briefcase, ChevronLeft, ChevronRight, ClipboardList, Compass, Cpu, CreditCard,
   GraduationCap, House, Inbox, LogOut, Megaphone, MessageSquare, Mic, MonitorPlay, Presentation, Radio, Search, SlidersHorizontal, Ticket, User, Users, X,
   type LucideIcon,
 } from "lucide-react";
@@ -13,7 +13,8 @@ import { signOut } from "@/app/(auth)/actions";
 import { panelMeta, SLIDES, slideIndex, type DockItem, type SpaceKey } from "@/lib/house";
 import type { Notice } from "@/lib/notifications/format";
 import { MessagesButton } from "@/components/shell/messages-button";
-import { NotificationsBell } from "@/components/shell/notifications-bell";
+import { fetchNotifications } from "@/app/(member)/notification-actions";
+import { badgeText, unreadCount } from "@/lib/notifications/format";
 import { SCENES } from "./scenes";
 import { SceneView } from "./scene-view";
 import "./house.css";
@@ -21,7 +22,7 @@ import "./house.css";
 const ICONS: Record<string, LucideIcon> = {
   mic: Mic, cap: GraduationCap, bricks: BrickWall, cpu: Cpu, user: User, radio: Radio, play: MonitorPlay, book: BookOpen, board: Presentation,
   users: Users, brief: Briefcase, compass: Compass, activity: Activity, list: ClipboardList, ticket: Ticket, learn: BookMarked, inbox: Inbox,
-  card: CreditCard, mega: Megaphone, mark: Bookmark, sliders: SlidersHorizontal, out: LogOut, msg: MessageSquare, search: Search, house: House,
+  card: CreditCard, mega: Megaphone, mark: Bookmark, sliders: SlidersHorizontal, out: LogOut, msg: MessageSquare, search: Search, house: House, bell: Bell,
 };
 
 export type HouseMember = { name: string; firstName: string; initials: string; avatar?: string | null } | null;
@@ -130,8 +131,8 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
           {live ? <Link href="/live" className="hs-live">Live</Link> : null}
           {member ? (
             <>
-              <NotificationsBell initial={notifications} />
-              <MessagesButton initial={unreadMessages} />
+              <span className="hs-tip" data-tip="Updates & Notifications"><UpdatesButton initial={notifications} /></span>
+              <span className="hs-tip" data-tip="Messages"><MessagesButton initial={unreadMessages} /></span>
               <button type="button" className={`hs-me ${slide === 5 && !panelOpen ? "on" : ""}`} aria-label="My space" onClick={() => toSpace("me")}>
                 {member.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
@@ -211,6 +212,28 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
         <div hidden>{children}</div>
       )}
     </div>
+  );
+}
+
+/** Opens Updates & Notifications; shows unread notifications. Refreshes every 60 seconds. */
+function UpdatesButton({ initial }: { initial: Notice[] }) {
+  const [unread, setUnread] = useState(unreadCount(initial));
+  const path = usePathname();
+  const onPage = path === "/updates";
+  useEffect(() => {
+    const refresh = async () => {
+      const next = await fetchNotifications().catch(() => null);
+      if (next) setUnread(unreadCount(next));
+    };
+    if (!onPage) void refresh();
+    const t = setInterval(() => document.visibilityState === "visible" && refresh(), 60_000);
+    return () => clearInterval(t);
+  }, [onPage]);
+  return (
+    <Link href="/updates" scroll={false} className="hs-ib" aria-label={unread ? `Updates & Notifications, ${unread} unread` : "Updates & Notifications"} aria-current={onPage ? "page" : undefined}>
+      <Bell size={18} aria-hidden="true" />
+      {unread ? <span className="hs-badge">{badgeText(unread)}</span> : null}
+    </Link>
   );
 }
 
