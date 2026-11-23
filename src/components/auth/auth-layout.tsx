@@ -1,27 +1,48 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SceneView } from "@/components/house/scene-view";
+import { SCENES } from "@/components/house/scenes";
+import { COLOURS } from "@/lib/house";
+import "@/components/house/house.css";
 
-/** Split screen for sign-in and sign-up: photo on the left from 900px up, form on the right. */
+// The house without its clickable spots (they lead to spaces inside the app).
+const HOUSE = { ...SCENES.house!, spots: undefined };
+const SPACES = [
+  { name: "Outloud", colour: COLOURS.outloud },
+  { name: "The Venture School", colour: COLOURS.tvs },
+  { name: "BRICKR", colour: COLOURS.brickr },
+  { name: "QuidQuo", colour: COLOURS.quidquo },
+];
+
+/** Sign in, Join and the other account pages in the house look: the floating house beside a glass card. */
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid min-h-dvh desk:grid-cols-[1.05fr_1fr]">
-      <aside className="relative hidden overflow-hidden bg-ink desk:block">
-        <Image src="/images/signup-door.webp" alt="A founder walks through an open door into a warm room where young people talk around a table, a teal thread of light on the floor leading him in" fill priority sizes="50vw" className="object-cover object-[50%_30%]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
-        <div className="absolute inset-x-10 bottom-10 flex flex-col gap-3 text-white">
-          <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={200} height={14} />
-          <p className="max-w-[420px] font-display text-[26px] leading-tight font-semibold">
-            Experience, knowledge and access to MENA&apos;s venture ecosystem.
-          </p>
-          <p className="text-[13.5px] text-ink-fg">Outloud · The Venture School · BRICKR · QuidQuo</p>
-        </div>
-      </aside>
-      <main className="flex flex-col items-center justify-center bg-bg px-4 py-10">
-        <Link href="/" className="mb-8 desk:hidden">
-          <Image src="/brand/logo-on-light.svg" alt="VentureWeavers" width={190} height={14} className="dark:invert" />
-        </Link>
-        <div className="flex w-full max-w-[380px] flex-col gap-5">{children}</div>
-      </main>
+    <div className="vw-dark au">
+      <div className="hs-bg" aria-hidden="true">
+        <span className="hs-orb a" />
+        <span className="hs-orb b" />
+        <span className="hs-glow" style={{ backgroundColor: COLOURS.teal }} />
+        <span className="hs-grain" />
+      </div>
+      <div className="au-grid">
+        <aside className="au-side">
+          <Link href="https://ventureweavers.com" aria-label="VentureWeavers home">
+            <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={220} height={15} priority />
+          </Link>
+          <div className="au-house"><SceneView scene={HOUSE} eager sizes="(min-width: 900px) 620px, 1px" /></div>
+          <p className="au-tag">Experience, knowledge and access to MENA&apos;s venture ecosystem.</p>
+          <div className="au-spaces">
+            {SPACES.map((s) => <span key={s.name} style={{ "--c": s.colour } as React.CSSProperties}><i />{s.name}</span>)}
+          </div>
+        </aside>
+        <main className="au-main">
+          <Link href="https://ventureweavers.com" className="au-logo-s" aria-label="VentureWeavers home">
+            <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={170} height={12} priority />
+          </Link>
+          <div className="au-mini"><SceneView scene={HOUSE} eager={false} sizes="(max-width: 899px) 300px, 1px" /></div>
+          <div className="au-card">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

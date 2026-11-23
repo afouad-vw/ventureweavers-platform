@@ -1,7 +1,7 @@
 /* The house member app (one screen, pop-up panels). Plain CSS so it sits above Tailwind's utility layer. */
 
-/* The whole member app runs on the dark tokens, including dialogs portalled to <body>. */
-:root:has(.vw-house) {
+/* The whole member app and the sign-in pages run on the dark tokens, including dialogs portalled to <body>. */
+:root:has(.vw-house), :root:has(.vw-dark) {
   --bg: #071112;
   --card: #0f2122;
   --fg: #e4f1ec;
@@ -222,3 +222,33 @@
   .hs-spot, .hs-tag, .hs-scene, .hs-cap, .hs-dock { opacity: 1 !important; transform: none; }
   .hs-spot, .hs-tag { transform: translate(-50%, -50%); }
 }
+
+/* Sign in, Join and the other account pages */
+.au { position: relative; min-height: 100dvh; overflow-x: clip; color: #fff; background: #071112; }
+.au .hs-bg { position: fixed; }
+.au-grid { position: relative; z-index: 1; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: 24px; padding: 32px max(32px, env(safe-area-inset-right)) 32px max(32px, env(safe-area-inset-left)); max-width: 1320px; margin: 0 auto; }
+.au-side { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; }
+.au-house { width: min(100%, 620px); container-type: inline-size; }
+.au .hs-scene { width: 100%; opacity: 1; transform: none; }
+.au-tag { margin: 0; max-width: 460px; font-family: var(--font-display); font-size: 26px; line-height: 1.15; font-weight: 600; }
+.au-spaces { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.au-spaces span { height: 30px; padding: 0 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 800; color: #dcf1dd; background: rgb(255 255 255 / .05); border: 1px solid rgb(220 241 221 / .12); }
+.au-spaces i { width: 7px; height: 7px; border-radius: 9999px; background: var(--c); }
+.au-main { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.au-logo-s { display: none; }
+.au-card { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 20px; padding: 32px; border-radius: 28px; background: radial-gradient(120% 60% at 50% 0%, rgb(41 190 156 / .12), transparent 60%), linear-gradient(180deg, rgb(14 33 34 / .92), rgb(9 22 23 / .92)); border: 1px solid rgb(255 255 255 / .12); box-shadow: 0 50px 120px -30px rgb(0 0 0 / .95), inset 0 1px 0 rgb(255 255 255 / .08); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); animation: hs-rise-s .45s cubic-bezier(.2, .8, .2, 1); }
+.au-card h1 { color: #fff; }
+.au-foot { font-size: 12px; color: #a9c9c1; }
+.au-foot a { color: #dcf1dd; font-weight: 700; }
+@media (max-width: 899px) {
+  .au-grid { grid-template-columns: minmax(0, 1fr); padding: calc(20px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); align-items: start; }
+  .au-side { display: none; }
+  .au-logo-s { display: block; }
+  .au-logo-s img { width: 170px; height: auto; }
+  .au-mini { width: min(100%, 300px); container-type: inline-size; margin: -6px 0 -14px; }
+  .au-card { padding: 24px 20px; border-radius: 24px; }
+}
+@media (min-width: 900px) { .au-mini { display: none; } }
+@media (prefers-reduced-motion: reduce) { .au-card { animation: none; } }
+.au-card button[type="submit"] { background: linear-gradient(180deg, #3fd3b0, #29be9c); color: #071112; box-shadow: 0 10px 30px -12px rgb(41 190 156 / .6); }
+.au-card button[type="submit"]:disabled { opacity: .6; }

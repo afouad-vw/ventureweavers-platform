@@ -45,7 +45,9 @@ export function Turnstile({ resetKey }: { resetKey?: unknown }) {
     loadScript()
       .then(() => {
         if (cancelled || !box.current || !window.turnstile || id.current) return;
-        id.current = window.turnstile.render(box.current, { sitekey: siteKey, theme: "auto", size: "flexible" });
+        // Dark widget on the dark account pages (house look), the browser's choice elsewhere.
+        const theme = box.current.closest(".vw-dark, .vw-house") ? "dark" : "auto";
+        id.current = window.turnstile.render(box.current, { sitekey: siteKey, theme, size: "flexible" });
       })
       .catch(() => {});
     return () => {
