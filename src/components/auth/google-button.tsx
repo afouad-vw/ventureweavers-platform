@@ -71,11 +71,10 @@ export function GoogleButton({ clientId, verb, next, fallback }: { clientId: str
             }),
         });
         box.current.innerHTML = "";
-        // Dark button on the dark account pages, always in English like the rest of the page.
-        const dark = Boolean(box.current.closest(".vw-dark, .vw-house"));
+        // Google's white button, always in English like the rest of the page.
         window.google.accounts.id.renderButton(box.current, {
           type: "standard",
-          theme: dark ? "filled_black" : "outline",
+          theme: "outline",
           locale: "en",
           size: "large",
           shape: "rectangular",
