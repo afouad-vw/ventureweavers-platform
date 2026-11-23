@@ -71,9 +71,12 @@ export function GoogleButton({ clientId, verb, next, fallback }: { clientId: str
             }),
         });
         box.current.innerHTML = "";
+        // Dark button on the dark account pages, always in English like the rest of the page.
+        const dark = Boolean(box.current.closest(".vw-dark, .vw-house"));
         window.google.accounts.id.renderButton(box.current, {
           type: "standard",
-          theme: "outline",
+          theme: dark ? "filled_black" : "outline",
+          locale: "en",
           size: "large",
           shape: "rectangular",
           text: verb === "Sign in" ? "continue_with" : "signup_with",
@@ -92,7 +95,8 @@ export function GoogleButton({ clientId, verb, next, fallback }: { clientId: str
   if (failed) return <>{fallback}</>;
   return (
     <div className="flex flex-col gap-1.5">
-      <div ref={box} aria-busy={pending} className={`flex min-h-11 w-full justify-center ${pending ? "pointer-events-none opacity-60" : ""}`} />
+      {/* color-scheme: light stops the browser painting an opaque white box behind Google's frame on dark pages. */}
+      <div ref={box} aria-busy={pending} style={{ colorScheme: "light" }} className={`flex min-h-11 w-full justify-center ${pending ? "pointer-events-none opacity-60" : ""}`} />
       <FormNote state={state} />
     </div>
   );
