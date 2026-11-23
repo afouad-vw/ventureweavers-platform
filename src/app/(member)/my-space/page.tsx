@@ -61,7 +61,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <Card className="sm:flex-row sm:items-center">
+      <Card className="house-hide sm:flex-row sm:items-center">
         <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-display text-lg font-bold text-white">
           {p?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
@@ -82,7 +82,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
           <LinkButton href="/my-space?tab=profile" variant="secondary" scroll={false}>Edit profile</LinkButton>
         </span>
       </Card>
-      <LinkTabs label="My space sections" items={tabs} value={tab} hrefFor={(v) => (v === "tickets" ? "/my-space" : `/my-space?tab=${v}`)} />
+      <LinkTabs sections label="My space sections" items={tabs} value={tab} hrefFor={(v) => (v === "tickets" ? "/my-space" : `/my-space?tab=${v}`)} />
 
       {tab === "tickets" ? <Tickets bookings={bookings} /> : null}
       {tab === "learning" ? <Learning /> : null}

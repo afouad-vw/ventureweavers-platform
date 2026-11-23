@@ -12,15 +12,19 @@ import { ThreadTag } from "@/components/ui/tag";
 import { getMember } from "@/lib/auth/guards";
 import { listServices, myRequests } from "@/lib/brickr/queries";
 import { myProjects } from "@/lib/projects/queries";
+import { isMentorship } from "@/lib/house";
 
 export const metadata: Metadata = { title: "BRICKR" };
 
-export default async function BrickrPage() {
-  const [member, services] = await Promise.all([getMember(), listServices()]);
+export default async function BrickrPage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
+  const { kind } = await searchParams;
+  const [member, all] = await Promise.all([getMember(), listServices()]);
+  // The house look splits BRICKR into Fractional services and Mentorship; the classic look shows everything.
+  const services = kind === "mentorship" ? all.filter(isMentorship) : kind === "fractional" ? all.filter((s) => !isMentorship(s)) : all;
   const [mine, projects] = member ? await Promise.all([myRequests(), myProjects()]) : [[], []];
   const open = mine.filter((r) => r.status !== "declined").length;
   const isClient = mine.some((r) => r.status === "won");
-  const diagnostic = services.find((s) => s.slug === "growth-diagnostic") ?? services.find((s) => s.space === "BRICKR");
+  const diagnostic = all.find((s) => s.slug === "growth-diagnostic") ?? all.find((s) => s.space === "BRICKR");
 
   return (
     <>

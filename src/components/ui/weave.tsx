@@ -59,10 +59,10 @@ export function WeaveHero({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[24px] border border-white/[0.06] bg-[linear-gradient(135deg,#0d2a2b,#071112_62%)] px-5 py-6 text-white shadow-depth-lg desk:px-7 desk:py-7">
+    <section className="weave-hero relative overflow-hidden rounded-[24px] border border-white/[0.06] bg-[linear-gradient(135deg,#0d2a2b,#071112_62%)] px-5 py-6 text-white shadow-depth-lg desk:px-7 desk:py-7">
       <Weave id={id} className="absolute inset-0 h-full w-full" />
       <div className="relative flex flex-wrap items-end justify-between gap-5">
-        <div className="flex min-w-0 flex-col gap-1.5">
+        <div className="weave-hero-text flex min-w-0 flex-col gap-1.5">
           {above}
           <h1 className="font-display text-[26px] leading-tight font-semibold desk:text-[32px]">{title}</h1>
           {description ? <p className="max-w-[60ch] text-[14px] text-ink-muted">{description}</p> : null}

@@ -1,0 +1,48 @@
+import { describe, expect, it } from "vitest";
+import { isMentorship, panelMeta, SLIDES, slideIndex } from "./house";
+
+describe("house slides", () => {
+  it("has the house, four spaces and My space in order", () => {
+    expect(SLIDES.map((s) => s.key)).toEqual(["house", "outloud", "tvs", "brickr", "quidquo", "me"]);
+    expect(slideIndex("me")).toBe(5);
+  });
+  it("lists the sections asked for under each space", () => {
+    const labels = (k: string) => SLIDES.find((s) => s.key === k)!.dock.map((d) => d.label);
+    expect(labels("outloud")).toEqual(["Live content", "Digital content", "Blogs"]);
+    expect(labels("tvs")).toEqual(["Programs", "Masterclasses", "Private programs"]);
+    expect(labels("brickr")).toEqual(["Fractional services", "Mentorship"]);
+    expect(labels("quidquo")).toEqual(["Progress", "Waiting list"]);
+    expect(labels("me")).toEqual(["Tickets", "Learning", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
+  });
+});
+
+describe("panelMeta", () => {
+  it("names the section for each page", () => {
+    expect(panelMeta("/outloud", "").title).toBe("Live content");
+    expect(panelMeta("/outloud", "?tab=content").title).toBe("Digital content");
+    expect(panelMeta("/outloud", "tab=blog").title).toBe("Blogs");
+    expect(panelMeta("/tvs", "?tab=private").title).toBe("Private programs");
+    expect(panelMeta("/brickr", "?kind=mentorship").title).toBe("Mentorship");
+    expect(panelMeta("/quidquo", "?tab=waitlist").title).toBe("Waiting list");
+    expect(panelMeta("/my-space", "?tab=profile").title).toBe("Profile settings");
+    expect(panelMeta("/my-space", "").title).toBe("Tickets");
+  });
+  it("puts each page behind the right space", () => {
+    expect(panelMeta("/live").space).toBe("outloud");
+    expect(panelMeta("/projects/acme").space).toBe("brickr");
+    expect(panelMeta("/messages").space).toBe("house");
+  });
+  it("marks detail pages so the panel shows Back", () => {
+    expect(panelMeta("/outloud/events/open-floor-show-01").detail).toBe(true);
+    expect(panelMeta("/tvs/programs/tvac").detail).toBe(true);
+    expect(panelMeta("/outloud").detail).toBe(false);
+  });
+});
+
+describe("isMentorship", () => {
+  it("splits BRICKR services", () => {
+    expect(isMentorship({ name: "Founder Mentorship" })).toBe(true);
+    expect(isMentorship({ name: "Portfolio support", tags: ["Mentorship"] })).toBe(true);
+    expect(isMentorship({ name: "Fractional leadership", slug: "fractional-leadership" })).toBe(false);
+  });
+});

@@ -11,8 +11,10 @@ import { formatDate } from "@/lib/events/format";
 
 export const metadata: Metadata = { title: "QuidQuo" };
 
-export default async function QuidQuoPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
-  const { ref } = await searchParams;
+export default async function QuidQuoPage({ searchParams }: { searchParams: Promise<{ ref?: string; tab?: string }> }) {
+  const { ref, tab } = await searchParams;
+  // The house look's "Waiting list" section shows only the waitlist card.
+  const waitlistOnly = tab === "waitlist";
   const refCode = ref && /^[2-9A-Z]{8}$/.test(ref) ? ref : null;
   const member = await getMember();
   const [stages, log, mine] = await Promise.all([qqStages(), qqLog(), member ? myWaitlist(member.id) : null]);
@@ -27,6 +29,7 @@ export default async function QuidQuoPage({ searchParams }: { searchParams: Prom
         description="AI for raising capital, built in the open. Follow every stage and be first in when it opens."
         actions={mine ? <StatusPill tone="ok">On the waitlist</StatusPill> : undefined}
       />
+      {waitlistOnly ? null : (
       <Card>
         <CardHeader title="Where we are" action={stages.length ? <span className="font-normal text-faint">Stage {Math.max(1, (nowIdx < 0 ? stages.length - 1 : nowIdx) + 1)} of {stages.length}</span> : null} />
         {stages.length ? (
@@ -46,7 +49,9 @@ export default async function QuidQuoPage({ searchParams }: { searchParams: Prom
           <span className="text-[13px] text-faint">Stages are on the way.</span>
         )}
       </Card>
-      <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-[18px]">
+      )}
+      <div className={waitlistOnly ? "grid max-w-[560px] gap-4" : "grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px] desk:gap-[18px]"}>
+        {waitlistOnly ? null : (
         <Card>
           <CardHeader title="Build log" />
           {log.length ? (
@@ -65,6 +70,7 @@ export default async function QuidQuoPage({ searchParams }: { searchParams: Prom
             <EmptyState>The first entries are coming soon.</EmptyState>
           )}
         </Card>
+        )}
         <aside className="flex min-w-0 flex-col gap-4">
           {mine ? (
             <Card>

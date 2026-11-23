@@ -45,7 +45,7 @@ export default async function OutloudPage({ searchParams }: { searchParams: Prom
         description="Shows and events, digital content from the floor, and the blog."
         actions={tab === "shows" ? <a href="#topic" className={buttonClass("secondary")}><MessageSquare size={15} aria-hidden="true" />Suggest a topic</a> : undefined}
       />
-      <LinkTabs label="Outloud sections" items={TABS} value={tab} hrefFor={(v) => (v === "shows" ? "/outloud" : `/outloud?tab=${v}`)} />
+      <LinkTabs sections label="Outloud sections" items={TABS} value={tab} hrefFor={(v) => (v === "shows" ? "/outloud" : `/outloud?tab=${v}`)} />
       {tab === "shows" ? <Shows /> : tab === "content" ? <DigitalContent format={format} /> : <Blog category={category} />}
     </>
   );

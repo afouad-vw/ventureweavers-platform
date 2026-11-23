@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { HOUSE_COOKIE, HOUSE_VALUE } from "@/lib/house";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { FeedItem } from "@/components/content/feed-item";
@@ -82,6 +84,8 @@ async function learningTile(): Promise<LearningTile> {
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ space?: string }> }) {
+  // In the house look the home screen is the house itself (drawn by the layout).
+  if ((await cookies()).get(HOUSE_COOKIE)?.value === HOUSE_VALUE) return null;
   const { space: raw } = await searchParams;
   const space = raw && isSpace(raw) ? raw : "All";
   const member = await getMember();

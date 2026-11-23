@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: "The Venture School" };
 
 export default async function TvsPage({ searchParams }: { searchParams: Promise<{ tab?: string; format?: string }> }) {
   const { tab: raw, format } = await searchParams;
-  const tab = raw === "masterclasses" ? "masterclasses" : "programs";
+  const tab = raw === "masterclasses" ? "masterclasses" : raw === "private" ? "private" : "programs";
   const member = await getMember();
   const [programs, classes, mine] = await Promise.all([listPrograms(), listUpcomingEvents("masterclasses"), myTvs()]);
   const enrolled = mine.enrolments.some((e) => e.status === "confirmed");
@@ -52,15 +52,23 @@ export default async function TvsPage({ searchParams }: { searchParams: Promise<
         }
       />
       <LinkTabs
+        sections
         label="TVS sections"
-        value={tab}
+        value={tab === "private" ? "programs" : tab}
         hrefFor={(v) => (v === "programs" ? "/tvs" : `/tvs?tab=${v}`)}
         items={[
           { value: "programs", label: "Programs", count: programs.length },
           { value: "masterclasses", label: "Masterclasses", count: classes.length },
         ]}
       />
-      {tab === "programs" ? <Programs programs={programs} mine={mine} signedIn={!!member} memberId={member?.id ?? null} /> : <Masterclasses classes={classes} format={format} signedIn={!!member} />}
+      {tab === "programs" ? (
+        <Programs programs={programs} mine={mine} signedIn={!!member} memberId={member?.id ?? null} />
+      ) : tab === "private" ? (
+        // Private programs on their own (the house look's TVS section; the tab is not listed in the classic look).
+        <PrivateRequestCard kind="program" className="desk:max-w-[640px]" />
+      ) : (
+        <Masterclasses classes={classes} format={format} signedIn={!!member} />
+      )}
     </>
   );
 }

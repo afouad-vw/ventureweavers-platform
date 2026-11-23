@@ -7,14 +7,17 @@ export function LinkTabs({
   value,
   hrefFor,
   label,
+  sections,
 }: {
   items: { value: string; label: string; count?: number | null }[];
   value: string;
   hrefFor: (v: string) => string;
   label: string;
+  /** The space's top-level sections: hidden in the house panel, where the space's icons pick them. */
+  sections?: boolean;
 }) {
   return (
-    <nav aria-label={label} className="no-scrollbar flex gap-0.5 overflow-x-auto border-b border-line">
+    <nav aria-label={label} data-section-tabs={sections ? "" : undefined} className="no-scrollbar flex gap-0.5 overflow-x-auto border-b border-line">
       {items.map((t) => {
         const on = t.value === value;
         return (
