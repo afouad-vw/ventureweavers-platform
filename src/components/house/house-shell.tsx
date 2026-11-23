@@ -230,7 +230,7 @@ function UpdatesButton({ initial }: { initial: Notice[] }) {
     return () => clearInterval(t);
   }, [onPage]);
   return (
-    <Link href="/updates" scroll={false} className="hs-ib" aria-label={unread ? `Updates & Notifications, ${unread} unread` : "Updates & Notifications"} aria-current={onPage ? "page" : undefined}>
+    <Link href={unread ? "/updates?tab=notifications" : "/updates"} scroll={false} className="hs-ib" aria-label={unread ? `Updates & Notifications, ${unread} unread` : "Updates & Notifications"} aria-current={onPage ? "page" : undefined}>
       <Bell size={18} aria-hidden="true" />
       {unread ? <span className="hs-badge">{badgeText(unread)}</span> : null}
     </Link>

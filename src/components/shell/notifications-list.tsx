@@ -43,7 +43,7 @@ export function NotificationsList({ initial }: { initial: Notice[] }) {
         ) : null}
       </div>
       {items.length ? (
-        <ul className="flex max-h-[340px] flex-col overflow-y-auto">
+        <ul className="flex flex-col">
           {items.map((n) => (
             <li key={n.id}>
               <button type="button" onClick={() => go(n)} className={cn("flex w-full cursor-pointer gap-2.5 rounded-xl px-3 py-2.5 text-left hover:bg-hover", !n.read_at && "bg-soft")}>
