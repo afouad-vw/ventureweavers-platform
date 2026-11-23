@@ -7,7 +7,8 @@ import { needsAbout } from "@/lib/profile/about";
 import { createClient } from "@/lib/supabase/server";
 import { MemberShell } from "@/components/shell/shells";
 import { HouseShell } from "@/components/house/house-shell";
-import { HOUSE_COOKIE, HOUSE_VALUE } from "@/lib/house";
+import { HOUSE_COOKIE, isHouseLook } from "@/lib/house";
+import { sharpAvatar } from "@/lib/avatar";
 import { initialsOf } from "@/lib/initials";
 import { getMember } from "@/lib/auth/guards";
 import { myLiveShows } from "@/lib/live/queries";
@@ -35,10 +36,10 @@ export default async function MemberLayout({ children }: { children: React.React
     ? await Promise.all([myLiveShows().catch(() => []), myNotifications().catch(() => []), myUnreadMessages().catch(() => 0)])
     : [[], [], 0];
   const live = liveShows.length > 0;
-  // The one-screen "house" look, while in preview: only browsers that opened /new-look get it.
-  if ((await cookies()).get(HOUSE_COOKIE)?.value === HOUSE_VALUE) {
+  // The one-screen "house" look (the classic sidebar look only for browsers that chose it at /new-look?off=1).
+  if (isHouseLook((await cookies()).get(HOUSE_COOKIE)?.value)) {
     return (
-      <HouseShell live={live} notifications={notifications} unreadMessages={unreadMessages} member={m ? { name, firstName: name.split(/[\s@]/)[0] || name, initials: initialsOf(name), avatar: m.avatar } : null}>
+      <HouseShell live={live} notifications={notifications} unreadMessages={unreadMessages} member={m ? { name, firstName: name.split(/[\s@]/)[0] || name, initials: initialsOf(name), avatar: sharpAvatar(m.avatar) } : null}>
         {children}
       </HouseShell>
     );

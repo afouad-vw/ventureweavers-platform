@@ -39,6 +39,7 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
   const router = useRouter();
   const track = useRef<HTMLDivElement>(null);
   const panelBody = useRef<HTMLDivElement>(null);
+  const pager = useRef<HTMLElement>(null);
   const [slide, setSlide] = useState(0);
   const panelOpen = pathname !== "/";
   const meta = panelMeta(pathname, params.toString());
@@ -65,6 +66,12 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
 
   // Each new page starts at the top of the panel.
   useEffect(() => { panelBody.current?.scrollTo({ top: 0 }); }, [pathname, params]);
+
+  // On phones the row of space names scrolls: keep the current one in view.
+  useEffect(() => {
+    const row = pager.current, btn = row?.children[slide] as HTMLElement | undefined;
+    if (row && btn && row.scrollWidth > row.clientWidth) row.scrollTo({ left: btn.offsetLeft - (row.clientWidth - btn.offsetWidth) / 2, behavior: still() ? "auto" : "smooth" });
+  }, [slide]);
 
   const onScroll = () => {
     const el = track.current;
@@ -111,7 +118,7 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
         <Link href="/?s=house" className="hs-logo" aria-label="VentureWeavers home" onClick={() => go(0)}>
           <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={176} height={12} priority />
         </Link>
-        <nav className="hs-pager" aria-label="Spaces">
+        <nav className="hs-pager" aria-label="Spaces" ref={pager}>
           {SLIDES.map((s, i) => (
             <button key={s.key} type="button" className={`hs-pg ${i === slide ? "on" : ""}`} style={{ "--c": s.colour } as React.CSSProperties} aria-label={s.short} aria-current={i === slide ? "true" : undefined} onClick={() => toSpace(s.key)}>
               <i /><span>{s.short}</span>
@@ -151,10 +158,16 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
               </div>
               <div className="hs-cap">
                 <span className="hs-kick">{s.key === "me" && member ? `Welcome back, ${member.firstName}` : s.kicker}</span>
-                {i === 0 ? <h1 className="hs-ttl">{s.name}</h1> : <h2 className="hs-ttl">{s.name}</h2>}
+                {i === 0 ? (
+                  <h1 className="hs-ttl hs-ttl-logo">
+                    <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={360} height={25} />
+                  </h1>
+                ) : (
+                  <h2 className="hs-ttl">{s.name}</h2>
+                )}
                 <p className="hs-line">{s.line}</p>
               </div>
-              <Dock items={s.dock} onSpace={toSpace} />
+              {s.dock.length ? <Dock items={s.dock} onSpace={toSpace} /> : null}
             </section>
           ))}
         </div>
@@ -271,7 +284,7 @@ function Dock({ items, onSpace }: { items: DockItem[]; onSpace: (k: SpaceKey) =>
           const Icon = ICONS[d.icon] ?? House;
           const inner = (
             <>
-              <span className="hs-o-c"><Icon size={26} strokeWidth={1.6} aria-hidden="true" /></span>
+              <span className="hs-o-c"><Icon size={22} strokeWidth={1.7} aria-hidden="true" /></span>
               <span className="hs-o-l">{d.label}</span>
             </>
           );

@@ -4,9 +4,10 @@
  * Shared by the shell (client) and the layout (server); no React here so it stays testable.
  */
 
-/** Cookie that turns the new look on for one browser while it is in preview. */
+/** The house look is the member app for everyone; this cookie set to "classic" brings back the old sidebar look (fallback). */
 export const HOUSE_COOKIE = "vw_ui";
-export const HOUSE_VALUE = "house";
+export const CLASSIC_VALUE = "classic";
+export const isHouseLook = (cookie: string | undefined) => cookie !== CLASSIC_VALUE;
 
 export type SpaceKey = "house" | "outloud" | "tvs" | "brickr" | "quidquo" | "me";
 
@@ -31,13 +32,8 @@ export const SLIDES: Slide[] = [
   {
     key: "house", short: "House", name: "VentureWeavers", kicker: "One house · four spaces",
     line: "Tap a space on the house, or use the arrow to walk through it.", colour: COLOURS.teal, tint: TINTS.teal,
-    dock: [
-      { label: "Outloud", href: "#outloud", icon: "mic", colour: COLOURS.outloud },
-      { label: "TVS", href: "#tvs", icon: "cap", colour: COLOURS.tvs },
-      { label: "BRICKR", href: "#brickr", icon: "bricks", colour: COLOURS.brickr },
-      { label: "QuidQuo", href: "#quidquo", icon: "cpu", colour: COLOURS.quidquo },
-      { label: "My space", href: "#me", icon: "user", colour: COLOURS.teal },
-    ],
+    // No icons on the house itself: the top row and the house lead to each space.
+    dock: [],
   },
   {
     key: "outloud", short: "Outloud", name: "Outloud", kicker: "Content · Live and digital", line: "Live in the room. Shared on screen.",

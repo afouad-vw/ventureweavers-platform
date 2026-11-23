@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isMentorship, panelMeta, SLIDES, slideIndex } from "./house";
+import { isHouseLook, isMentorship, panelMeta, SLIDES, slideIndex } from "./house";
 
 describe("house slides", () => {
   it("has the house, four spaces and My space in order", () => {
     expect(SLIDES.map((s) => s.key)).toEqual(["house", "outloud", "tvs", "brickr", "quidquo", "me"]);
+    expect(SLIDES[0].dock).toEqual([]);
     expect(slideIndex("me")).toBe(5);
   });
   it("lists the sections asked for under each space", () => {
@@ -44,5 +45,13 @@ describe("isMentorship", () => {
     expect(isMentorship({ name: "Founder Mentorship" })).toBe(true);
     expect(isMentorship({ name: "Portfolio support", tags: ["Mentorship"] })).toBe(true);
     expect(isMentorship({ name: "Fractional leadership", slug: "fractional-leadership" })).toBe(false);
+  });
+});
+
+describe("isHouseLook", () => {
+  it("is on for everyone unless the browser chose the classic look", () => {
+    expect(isHouseLook(undefined)).toBe(true);
+    expect(isHouseLook("house")).toBe(true);
+    expect(isHouseLook("classic")).toBe(false);
   });
 });
