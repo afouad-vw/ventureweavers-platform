@@ -62,7 +62,7 @@ export const SLIDES: Slide[] = [
     ],
   },
   {
-    key: "quidquo", short: "QuidQuo", name: "QuidQuo", kicker: "Technology · In development", line: "Less friction between capital and the people who need it.",
+    key: "quidquo", short: "QuidQuo", name: "QuidQuo", kicker: "Capital · In development", line: "Less friction between capital and the people who need it.",
     colour: COLOURS.quidquo, tint: TINTS.quidquo,
     dock: [
       { label: "Progress", href: "/quidquo", icon: "activity", colour: COLOURS.quidquo },

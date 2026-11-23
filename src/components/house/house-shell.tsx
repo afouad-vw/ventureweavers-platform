@@ -233,8 +233,8 @@ function MeHero({ member }: { member: HouseMember }) {
       </div>
       <Link href="/my-space?tab=tickets" className="hs-float" style={{ "--c": "#F2B65A", left: "8%", top: "14%" } as React.CSSProperties}><small>Tickets</small><b>Your seats</b></Link>
       <Link href="/my-space?tab=learning" className="hs-float" style={{ "--c": "#8AAEF0", right: "6%", top: "20%", animationDelay: "-2s" } as React.CSSProperties}><small>Learning</small><b>Your programs</b></Link>
-      <Link href="/my-space?tab=requests" className="hs-float wide" style={{ "--c": "#E8896A", left: "12%", bottom: "14%", animationDelay: "-4s" } as React.CSSProperties}><small>Requests</small><b>Your meetings</b></Link>
-      <Link href="/quidquo?tab=waitlist" className="hs-float wide" style={{ "--c": "#B4DD5E", right: "10%", bottom: "12%", animationDelay: "-6s" } as React.CSSProperties}><small>QuidQuo</small><b>Waiting list</b></Link>
+      <Link href="/my-space?tab=requests" className="hs-float" style={{ "--c": "#E8896A", left: "12%", bottom: "14%", animationDelay: "-4s" } as React.CSSProperties}><small>Requests</small><b>Your meetings</b></Link>
+      <Link href="/my-space?tab=profile" className="hs-float" style={{ "--c": "#5fe0c0", right: "10%", bottom: "12%", animationDelay: "-6s" } as React.CSSProperties}><small>Profile settings</small><b>About you</b></Link>
     </div>
   );
 }
@@ -242,15 +242,25 @@ function MeHero({ member }: { member: HouseMember }) {
 function Dock({ items, onSpace }: { items: DockItem[]; onSpace: (k: SpaceKey) => void }) {
   const row = useRef<HTMLDivElement>(null);
   const more = items.length > 5;
-  const nudge = () => {
+  // Arrows like the space arrows: left once scrolled, right until the end.
+  const [edge, setEdge] = useState({ left: false, right: more });
+  const measure = useCallback(() => {
     const el = row.current;
     if (!el) return;
-    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    el.scrollTo({ left: end ? 0 : el.scrollLeft + 220, behavior: still() ? "auto" : "smooth" });
+    setEdge({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+  }, []);
+  useEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure]);
+  const nudge = (dir: 1 | -1) => {
+    const el = row.current;
+    if (el) el.scrollBy({ left: dir * Math.max(160, el.clientWidth * 0.6), behavior: still() ? "auto" : "smooth" });
   };
   return (
-    <div className={`hs-dock ${more ? "more" : "few"}`}>
-      <div className="hs-dock-row" ref={row}>
+    <div className={`hs-dock ${more ? "more" : "few"} ${edge.left ? "at-l" : ""} ${edge.right ? "at-r" : ""}`}>
+      <div className="hs-dock-row" ref={row} onScroll={measure}>
         {items.map((d) => {
           const Icon = ICONS[d.icon] ?? House;
           const inner = (
@@ -273,7 +283,8 @@ function Dock({ items, onSpace }: { items: DockItem[]; onSpace: (k: SpaceKey) =>
           return <Link key={d.label} href={d.href} scroll={false} className="hs-o" style={style}>{inner}</Link>;
         })}
       </div>
-      {more ? <button type="button" className="hs-dock-more" aria-label="Show more" onClick={nudge}><ChevronRight size={16} aria-hidden="true" /></button> : null}
+      {more && edge.left ? <button type="button" className="hs-dock-more prev" aria-label="Show earlier sections" onClick={() => nudge(-1)}><ChevronLeft size={16} aria-hidden="true" /></button> : null}
+      {more && edge.right ? <button type="button" className="hs-dock-more" aria-label="Show more sections" onClick={() => nudge(1)}><ChevronRight size={16} aria-hidden="true" /></button> : null}
     </div>
   );
 }
