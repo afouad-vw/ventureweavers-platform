@@ -6,14 +6,15 @@ import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
 import { isNetworkTab, NETWORK_TABS, type MemberLite, type NetworkTab } from "@/lib/blong/format";
-import { memberDirectory, myNetwork, myPrivacy } from "@/lib/blong/queries";
+import { blongFeed, memberDirectory, myNetwork, myPrivacy } from "@/lib/blong/queries";
+import { FeedList } from "@/components/blong/activity-list";
 import { ROLES } from "@/lib/profile/options";
 
 export const metadata: Metadata = { title: "Networking" };
 
 const ROLE_FILTERS = ["Founder", "Angel Investor", "Institutional investor", "Corporate", "Venture Studio", "Mentor", "Expert"] as const;
 
-/** BLong › Networking: find members, follow them, and answer follow requests. */
+/** BLong › Networking: find members, see what the people you follow are up to, and answer follow requests. */
 export default async function NetworkingPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; role?: string }> }) {
   const me = await requireMember("/blong/networking");
   const { tab: rawTab, q = "", role: rawRole } = await searchParams;
@@ -22,7 +23,9 @@ export default async function NetworkingPage({ searchParams }: { searchParams: P
   const [requests, privacy] = await Promise.all([myNetwork("requests"), myPrivacy(me.id)]);
   let list: MemberLite[] = [];
   let sent: MemberLite[] = [];
+  const feed = tab === "feed" ? await blongFeed() : [];
   if (tab === "members") list = await memberDirectory(q, role);
+  else if (tab === "feed") list = [];
   else if (tab === "following") list = await myNetwork("following");
   else if (tab === "followers") list = await myNetwork("followers");
   else [list, sent] = [requests, await myNetwork("sent")];
@@ -66,7 +69,13 @@ export default async function NetworkingPage({ searchParams }: { searchParams: P
         </>
       ) : null}
 
-      {list.length ? (
+      {tab === "feed" ? (
+        feed.length ? <FeedList items={feed} /> : (
+          <EmptyState>
+            Nothing new from the people you follow. <Link href="/blong/networking" className="font-bold text-link">Find members to follow</Link>; what they share (shows, programs, communities, news) shows up here.
+          </EmptyState>
+        )
+      ) : list.length ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 desk:grid-cols-4">
           {list.map((m) => <MemberTile key={m.id} m={m} mode={tab === "requests" ? "request" : tab === "followers" ? "follower" : "follow"} />)}
         </div>

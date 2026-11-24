@@ -99,6 +99,7 @@ export function cleanLinks(raw: { label?: unknown; url?: unknown }[]): { label: 
 
 export const NETWORK_TABS = [
   { value: "members", label: "Members" },
+  { value: "feed", label: "Feed" },
   { value: "following", label: "Following" },
   { value: "followers", label: "Followers" },
   { value: "requests", label: "Requests" },
@@ -123,4 +124,18 @@ export function blongError(message: string): string {
   if (message.includes("not_a_member")) return "Your account can't do this.";
   if (message.includes("not_found")) return "This member isn't available.";
   return "Something went wrong. Please try again.";
+}
+
+export type Activity = { kind: "events" | "programs" | "communities" | "posts"; verb: string; title: string; href: string; at: string; starts_at: string | null };
+export type FeedItem = Activity & { member_id: string; name: string; avatar_url: string | null };
+
+export const ACTIVITY_LABEL: Record<Activity["kind"], string> = { events: "Event", programs: "Program", communities: "BLong", posts: "News" };
+
+/** "Today", "Yesterday", "3 Nov", in Cairo time. */
+export function activityDay(iso: string, now = new Date()): string {
+  const f = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo" }).format(d);
+  const day = f(new Date(iso));
+  if (day === f(now)) return "Today";
+  if (day === f(new Date(now.getTime() - 86_400_000))) return "Yesterday";
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "short" }).format(new Date(iso));
 }

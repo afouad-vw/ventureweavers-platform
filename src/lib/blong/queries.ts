@@ -3,7 +3,7 @@ import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { CommunityPage, CommunityPerson, CommunityRow, CommunityTab } from "./communities";
 import type { DiscussionPage, DiscussionRow, DiscussionTab, RoomMessage } from "./discussions";
-import { isUuid, type DmMessage, type DmThread, type MemberCard, type MemberLite } from "./format";
+import { isUuid, type Activity, type DmMessage, type DmThread, type FeedItem, type MemberCard, type MemberLite } from "./format";
 
 /** Members to follow (the database leaves out admins, suspended members, blocks and yourself). */
 export async function memberDirectory(q?: string, role?: string): Promise<MemberLite[]> {
@@ -124,4 +124,22 @@ export async function roomMessages(id: string): Promise<RoomMessage[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("room_messages", { p_id: id, p_after: null });
   return (data ?? []) as RoomMessage[];
+}
+
+// ---------------------------------------------------------------- activity and feed (18d)
+
+/** What a member did, as far as their privacy and choices allow the viewer to see. */
+export async function memberActivity(id: string): Promise<Activity[]> {
+  if (!supabaseConfigured || !isUuid(id)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("member_activity", { p_id: id, p_limit: 30 });
+  return (data ?? []) as Activity[];
+}
+
+/** Updates from the people the member follows. */
+export async function blongFeed(): Promise<FeedItem[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_feed", { p_limit: 60 });
+  return (data ?? []) as FeedItem[];
 }

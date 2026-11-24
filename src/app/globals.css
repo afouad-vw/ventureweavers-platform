@@ -370,3 +370,5 @@ h3 {
 .bl-role.on { background: rgb(124 92 224 / .18); color: #7c5ce0; }
 :root:has(.vw-house) .bl-role.on, :root:has(.vw-dark) .bl-role.on { color: #b4a2f5; }
 button.bl-pill { font-family: inherit; }
+.bl-ico { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9999px; background: rgb(124 92 224 / .16); color: #7c5ce0; border: 1px solid rgb(124 92 224 / .3); }
+:root:has(.vw-house) .bl-ico, :root:has(.vw-dark) .bl-ico { color: #b4a2f5; }

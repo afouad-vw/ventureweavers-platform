@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blongError, cleanBio, cleanLinks, followLabel, isNetworkTab, isReportReason, isUuid, memberLine } from "./format";
+import { activityDay, blongError, cleanBio, cleanLinks, followLabel, isNetworkTab, isReportReason, isUuid, memberLine } from "./format";
 
 describe("followLabel", () => {
   it("asks Private accounts and follows Public ones", () => {
@@ -33,7 +33,8 @@ describe("helpers", () => {
   });
   it("checks values", () => {
     expect(isNetworkTab("requests")).toBe(true);
-    expect(isNetworkTab("feed")).toBe(false);
+    expect(isNetworkTab("feed")).toBe(true);
+    expect(isNetworkTab("posts")).toBe(false);
     expect(isReportReason("spam")).toBe(true);
     expect(isReportReason("rude")).toBe(false);
     expect(isUuid("00000000-0000-0000-0000-00000000b001")).toBe(true);
@@ -42,5 +43,14 @@ describe("helpers", () => {
   it("writes a member line and friendly errors", () => {
     expect(memberLine({ roles: ["Founder", "Mentor", "Expert"], business: "Acme", country: "Egypt" })).toBe("Founder, Mentor · Acme · Egypt");
     expect(blongError("ERROR: cannot_message")).toMatch(/accept your follow/);
+  });
+});
+
+describe("activityDay", () => {
+  it("says Today, Yesterday or the date in Cairo", () => {
+    const now = new Date("2026-11-24T10:00:00Z");
+    expect(activityDay("2026-11-24T06:00:00Z", now)).toBe("Today");
+    expect(activityDay("2026-11-23T20:00:00Z", now)).toBe("Yesterday");
+    expect(activityDay("2026-11-03T10:00:00Z", now)).toBe("3 Nov");
   });
 });

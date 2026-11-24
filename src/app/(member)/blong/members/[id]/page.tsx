@@ -7,7 +7,8 @@ import { MemberAvatar } from "@/components/blong/member-avatar";
 import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { requireMember } from "@/lib/auth/guards";
-import { memberCard } from "@/lib/blong/queries";
+import { memberActivity, memberCard } from "@/lib/blong/queries";
+import { ActivityList } from "@/components/blong/activity-list";
 
 export const metadata: Metadata = { title: "Member" };
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: "Member" };
 export default async function MemberPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireMember(`/blong/members/${id}`);
-  const m = await memberCard(id);
+  const [m, activity] = await Promise.all([memberCard(id), memberActivity(id)]);
   if (!m) notFound();
   const first = m.name.split(/\s+/)[0] || m.name;
 
@@ -65,7 +66,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
             <p className="text-[14px] whitespace-pre-line">{m.bio || `${first} hasn't written a bio yet.`}</p>
             {m.country ? <p className="inline-flex items-center gap-1.5 text-[13px] text-faint"><MapPin size={14} aria-hidden="true" />{m.country}</p> : null}
             <h2 className="bl-sec mt-3">VW activity</h2>
-            <p className="text-[13px] text-faint">Shows, programs, communities and posts {first} shares appear here soon.</p>
+            <ActivityList items={activity} first={m.self ? "you" : first} />
           </Card>
           <Card>
             <h2 className="bl-sec">Businesses</h2>

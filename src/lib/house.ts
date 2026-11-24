@@ -129,7 +129,7 @@ const SUBS: Record<string, string> = {
   "Share your news": "Tell us what happened at your business.",
   Communities: "Groups around a topic, an industry, a role or a place. Join one or start your own.",
   Discussions: "Rooms to talk one topic through. Join an open room, ask to join, or start one.",
-  Networking: "Find members, follow them, and answer follow requests.",
+  Networking: "Find members, follow them, and see what the people you follow are up to.",
 };
 
 const SPACE_NAMES: Record<SpaceKey, string> = { house: "VentureWeavers", outloud: "Outloud", tvs: "The Venture School", brickr: "BRICKR", quidquo: "QuidQuo", blong: "BLong", me: "My space" };
