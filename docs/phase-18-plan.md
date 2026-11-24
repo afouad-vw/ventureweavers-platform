@@ -1,6 +1,6 @@
 # Phase 18 plan: BLong, the community space
 
-Status: **approved 2026-11-24** with the six recommendations below as written. 18a (networking) and 18b (communities) live; 18c (discussions) and 18d (feed and activity) built on branch `blong-18d`, waiting for their database step.
+Status: **approved 2026-11-24** with the six recommendations below as written. All four steps live (18a–18d, 2026-11-24).
 
 BLong is the fifth space: where members meet, talk and follow each other. It has three sections, Communities, Discussions and Networking, plus member-to-member messages in the top-bar Messages button. It appears in the house look (web and iPhone app) as a sixth slide between QuidQuo and My space, in the middle of the house where the staircase is today.
 
