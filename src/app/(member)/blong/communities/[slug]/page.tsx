@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Globe, Lock, MessagesSquare, Pencil, Users } from "lucide-react";
+import { Globe, Lock, MessagesSquare, Pencil, Plus, Users } from "lucide-react";
 import { CommunityCover } from "@/components/blong/community-card";
 import { CommunityOwnerZone, InviteBox, JoinControls, PeopleList, ReportCommunity } from "@/components/blong/community-actions";
 import { MemberAvatar } from "@/components/blong/member-avatar";
@@ -10,13 +10,14 @@ import { Card } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
-import { communityPage, communityPeople } from "@/lib/blong/queries";
+import { communityPage, communityPeople, listDiscussions } from "@/lib/blong/queries";
+import { DiscussionCard } from "@/components/blong/discussion-card";
 
 export const metadata: Metadata = { title: "Community" };
 
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", month: "long", year: "numeric" }).format(new Date(iso));
 
-/** A community: About, Members (and requests for its admins), and its discussions (18c). */
+/** A community: About, its discussions, and Members (with requests for its admins). */
 export default async function CommunityPageView({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ tab?: string }> }) {
   const { slug } = await params;
   const { tab: raw } = await searchParams;
@@ -30,7 +31,10 @@ export default async function CommunityPageView({ params, searchParams }: { para
     { value: "members", label: "Members", count: admin && c.requests ? c.requests : null },
   ];
   const tab = tabs.some((t) => t.value === raw) ? raw! : "about";
-  const people = tab === "members" && c.can_see_inside ? await communityPeople(c.id) : [];
+  const [people, rooms] = await Promise.all([
+    tab === "members" && c.can_see_inside ? communityPeople(c.id) : Promise.resolve([]),
+    tab === "discussions" && c.can_see_inside ? listDiscussions("explore", { community: c.id }) : Promise.resolve([]),
+  ]);
 
   return (
     <div className="bl flex flex-col gap-4">
@@ -91,11 +95,27 @@ export default async function CommunityPageView({ params, searchParams }: { para
       ) : null}
 
       {tab === "discussions" ? (
-        <EmptyState>
-          <MessagesSquare size={22} className="mx-auto mb-2" aria-hidden="true" />
-          <b className="mb-1 block text-[15px] text-fg">Discussions open soon</b>
-          Rooms inside this community, for its members to talk one topic through, come in the next update.
-        </EmptyState>
+        c.can_see_inside ? (
+          <div className="flex flex-col gap-3">
+            {c.my_status === "active" && c.status === "active" ? (
+              <LinkButton href={`/blong/discussions/new?community=${c.id}`} scroll={false} className="bl-follow self-start"><Plus size={15} aria-hidden="true" />Start a discussion here</LinkButton>
+            ) : null}
+            {rooms.length ? (
+              <div className="grid gap-3 sm:grid-cols-2">{rooms.map((d) => <DiscussionCard key={d.id} d={d} showCommunity={false} />)}</div>
+            ) : (
+              <EmptyState>
+                <MessagesSquare size={22} className="mx-auto mb-2" aria-hidden="true" />
+                {c.my_status === "active" ? "No discussions here yet. Start the first one." : c.visibility === "public" ? "No discussions yet. Join the community to start one." : "No discussions yet."}
+              </EmptyState>
+            )}
+          </div>
+        ) : (
+          <div className="bl-lock flex flex-col items-center gap-2 rounded-[22px] border border-dashed px-5 py-9 text-center">
+            <Lock size={22} aria-hidden="true" />
+            <b className="font-display text-[19px] font-semibold">Private community</b>
+            <p className="max-w-[440px] text-[13.5px] text-faint">Discussions show once an admin accepts your request.</p>
+          </div>
+        )
       ) : null}
 
       {tab === "members" ? (

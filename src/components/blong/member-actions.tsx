@@ -9,7 +9,7 @@ import { SelectField, TextArea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { followLabel, REPORT_REASONS, type FollowState, type Visibility } from "@/lib/blong/format";
 import {
-  blockMember, followMember, removeFollower, reportContent, respondToFollow, startChat, unblockMember, unfollowMember,
+  blockMember, followMember, removeFollower, reportContent, respondToFollow, startChat, unblockMember, unfollowMember, type ReportKind,
 } from "@/app/(member)/blong/actions";
 
 /** Follow / Ask to follow / Requested / Following. Clicking Requested or Following undoes it. */
@@ -129,7 +129,7 @@ export function UnblockButton({ id }: { id: string }) {
 }
 
 /** Report a member or one of their messages. */
-export function ReportDialog({ open, onClose, kind, target, name }: { open: boolean; onClose: () => void; kind: "member" | "message"; target: string; name: string }) {
+export function ReportDialog({ open, onClose, kind, target, name }: { open: boolean; onClose: () => void; kind: ReportKind; target: string; name: string }) {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
   const [pending, start] = useTransition();
@@ -139,7 +139,7 @@ export function ReportDialog({ open, onClose, kind, target, name }: { open: bool
       open={open}
       onClose={onClose}
       eyebrow="Report"
-      title={kind === "member" ? `Report ${name}` : `Report a message from ${name}`}
+      title={kind === "message" || kind === "room_message" ? `Report a message from ${name}` : `Report ${name}`}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
@@ -162,8 +162,8 @@ export function ReportDialog({ open, onClose, kind, target, name }: { open: bool
       }
     >
       <p className="text-[13px] text-faint">
-        {kind === "message" ? "The team sees only this message, never the rest of your chat. " : ""}
-        {name} isn&apos;t told who reported them.
+        {kind === "message" ? "The team sees only this message, never the rest of your chat. " : kind === "room_message" ? "The team sees only this message. " : ""}
+        {kind === "discussion" || kind === "community" ? "The owner isn't told who reported it." : `${name} isn't told who reported them.`}
       </p>
       <SelectField label="What's wrong?" value={reason} onChange={(e) => setReason(e.target.value)} options={[{ value: "", label: "Choose a reason" }, ...REPORT_REASONS]} />
       <TextArea label="Anything else we should know? (optional)" value={details} maxLength={1000} onChange={(e) => setDetails(e.target.value)} />

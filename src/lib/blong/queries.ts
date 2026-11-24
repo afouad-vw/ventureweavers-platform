@@ -2,6 +2,7 @@ import "server-only";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { CommunityPage, CommunityPerson, CommunityRow, CommunityTab } from "./communities";
+import type { DiscussionPage, DiscussionRow, DiscussionTab, RoomMessage } from "./discussions";
 import { isUuid, type DmMessage, type DmThread, type MemberCard, type MemberLite } from "./format";
 
 /** Members to follow (the database leaves out admins, suspended members, blocks and yourself). */
@@ -88,4 +89,39 @@ export async function communityPeople(id: string): Promise<CommunityPerson[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("community_people", { p_id: id });
   return (data ?? []) as CommunityPerson[];
+}
+
+// ---------------------------------------------------------------- discussions (18c)
+
+export async function listDiscussions(scope: DiscussionTab, opts: { q?: string; category?: string; community?: string } = {}): Promise<DiscussionRow[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("list_discussions", {
+    p_scope: scope,
+    p_q: opts.q?.slice(0, 80) || null,
+    p_category: opts.category || null,
+    p_community: opts.community && isUuid(opts.community) ? opts.community : null,
+  });
+  return (data ?? []) as DiscussionRow[];
+}
+
+export async function discussionPage(slug: string): Promise<DiscussionPage | null> {
+  if (!supabaseConfigured || !/^[a-z0-9-]{1,90}$/.test(slug)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("discussion_page", { p_slug: slug });
+  return (data ?? null) as DiscussionPage | null;
+}
+
+export async function discussionPeople(id: string): Promise<CommunityPerson[]> {
+  if (!supabaseConfigured || !isUuid(id)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("discussion_people", { p_id: id });
+  return (data ?? []) as CommunityPerson[];
+}
+
+export async function roomMessages(id: string): Promise<RoomMessage[]> {
+  if (!supabaseConfigured || !isUuid(id)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("room_messages", { p_id: id, p_after: null });
+  return (data ?? []) as RoomMessage[];
 }

@@ -10,7 +10,7 @@ import { REPORT_REASONS } from "@/lib/blong/format";
 import { slugOf } from "@/lib/contacts/slug";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { CommunityStatusButton, ReportActions } from "./report-actions";
+import { CommunityStatusButton, DiscussionStatusButton, ReportActions } from "./report-actions";
 import { LinkTabs } from "@/components/ui/link-tabs";
 
 export const metadata: Metadata = { title: "Community" };
@@ -28,6 +28,7 @@ export default async function AdminCommunityPage({ searchParams }: { searchParam
   const admin = await requireAdmin("community.view");
   const { show: raw, view } = await searchParams;
   if (view === "communities") return <Communities manage={can(admin, "community.manage")} base={await currentAdminBase()} />;
+  if (view === "discussions") return <Discussions manage={can(admin, "community.manage")} base={await currentAdminBase()} />;
   const show = raw === "all" || raw === "closed" ? raw : "open";
   const supabase = await createClient();
   let q = supabase.from("reports").select("id, reporter, kind, target_id, target_member, reason, details, excerpt, status, note, handled_at, created_at").order("created_at", { ascending: false }).limit(300);
@@ -88,13 +89,13 @@ export default async function AdminCommunityPage({ searchParams }: { searchParam
   );
 }
 
-function ViewTabs({ base, view }: { base: string; view: "reports" | "communities" }) {
+function ViewTabs({ base, view }: { base: string; view: "reports" | "communities" | "discussions" }) {
   return (
     <LinkTabs
       label="Community"
       value={view}
-      hrefFor={(v) => (v === "reports" ? `${base}/community` : `${base}/community?view=communities`)}
-      items={[{ value: "reports", label: "Reports" }, { value: "communities", label: "Communities" }]}
+      hrefFor={(v) => (v === "reports" ? `${base}/community` : `${base}/community?view=${v}`)}
+      items={[{ value: "reports", label: "Reports" }, { value: "communities", label: "Communities" }, { value: "discussions", label: "Discussions" }]}
     />
   );
 }
@@ -140,6 +141,55 @@ async function Communities({ manage, base }: { manage: boolean; base: string }) 
         </div>
       ) : (
         <EmptyState>No communities yet.</EmptyState>
+      )}
+    </>
+  );
+}
+
+type Room = { id: string; title: string; category: string; privacy: string; status: string; archived_by_team: boolean; owner: string; community_id: string | null; member_limit: number; last_message_at: string | null; created_at: string };
+
+/** Every discussion, with its host, community and size. Community managers archive or restore. Staff never read the messages here. */
+async function Discussions({ manage, base }: { manage: boolean; base: string }) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("discussions").select("id, title, category, privacy, status, archived_by_team, owner, community_id, member_limit, last_message_at, created_at").order("created_at", { ascending: false }).limit(500);
+  const rows = (data ?? []) as Room[];
+  const svc = createServiceClient();
+  const [{ data: people }, { data: members }, { data: comms }] = await Promise.all([
+    rows.length ? svc.from("profiles").select("id, full_name").in("id", [...new Set(rows.map((r) => r.owner))]) : Promise.resolve({ data: [] }),
+    rows.length ? svc.from("discussion_members").select("discussion_id").eq("status", "active").in("discussion_id", rows.map((r) => r.id)) : Promise.resolve({ data: [] }),
+    rows.some((r) => r.community_id) ? svc.from("communities").select("id, name").in("id", rows.flatMap((r) => (r.community_id ? [r.community_id] : []))) : Promise.resolve({ data: [] }),
+  ]);
+  const names = new Map(((people ?? []) as { id: string; full_name: string | null }[]).map((p) => [p.id, p.full_name || "Member"]));
+  const communities = new Map(((comms ?? []) as { id: string; name: string }[]).map((c) => [c.id, c.name]));
+  const counts = new Map<string, number>();
+  for (const m of (members ?? []) as { discussion_id: string }[]) counts.set(m.discussion_id, (counts.get(m.discussion_id) ?? 0) + 1);
+  const privacy: Record<string, string> = { public: "Public", request: "Request to join", invite: "Invite only" };
+  return (
+    <>
+      <PageHeader title="Community" description="Discussions members have started in BLong. Archiving hides one and stops posting; only the team can restore what the team archived." />
+      <ViewTabs base={base} view="discussions" />
+      {rows.length ? (
+        <div className="overflow-x-auto rounded-2xl border border-line">
+          <table className="w-full min-w-[820px] text-left text-[13.5px]">
+            <thead className="bg-hover text-[12px] text-faint">
+              <tr><th className="px-3 py-2.5">Discussion</th><th className="px-3 py-2.5">Host</th><th className="px-3 py-2.5">Members</th><th className="px-3 py-2.5">Who can join</th><th className="px-3 py-2.5">Status</th><th className="px-3 py-2.5" /></tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {rows.map((r) => (
+                <tr key={r.id}>
+                  <td className="px-3 py-2.5"><b>{r.title}</b><span className="block text-[12px] text-faint">{r.category}{r.community_id ? ` · in ${communities.get(r.community_id) ?? "a community"}` : ""} · {when(r.created_at)}</span></td>
+                  <td className="px-3 py-2.5"><Link href={`${base}/contacts/${slugOf(`m:${r.owner}`)}`} className="font-bold text-link">{names.get(r.owner) ?? "Member"}</Link></td>
+                  <td className="px-3 py-2.5">{counts.get(r.id) ?? 0} of {r.member_limit}</td>
+                  <td className="px-3 py-2.5">{privacy[r.privacy] ?? r.privacy}</td>
+                  <td className="px-3 py-2.5"><StatusPill tone={r.status === "open" ? "ok" : "draft"}>{r.status === "open" ? "Open" : r.status === "closed" ? "Closed" : r.archived_by_team ? "Archived by team" : "Archived"}</StatusPill></td>
+                  <td className="px-3 py-2.5 text-right">{manage ? <DiscussionStatusButton id={r.id} archived={r.status === "archived"} /> : null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState>No discussions yet.</EmptyState>
       )}
     </>
   );

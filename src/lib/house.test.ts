@@ -14,7 +14,7 @@ describe("house slides", () => {
     expect(labels("brickr")).toEqual(["Fractional services", "Mentorship"]);
     expect(labels("quidquo")).toEqual(["Progress", "Waiting list"]);
     expect(labels("blong")).toEqual(["Communities", "Discussions", "Networking"]);
-    expect(labels("me")).toEqual(["Tickets", "Learning", "My communities", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
+    expect(labels("me")).toEqual(["Tickets", "Learning", "My communities", "My discussions", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
   });
 });
 
@@ -33,6 +33,8 @@ describe("panelMeta", () => {
     expect(panelMeta("/blong/members/00000000-0000-0000-0000-000000000001").detail).toBe(true);
     expect(panelMeta("/blong/communities").space).toBe("blong");
     expect(panelMeta("/blong/networking").detail).toBe(false);
+    expect(panelMeta("/blong/discussions/raising-a-pre-seed-1a2b3c").detail).toBe(true);
+    expect(panelMeta("/blong/discussions", "?tab=joined").title).toBe("Discussions");
   });
   it("puts each page behind the right space", () => {
     expect(panelMeta("/live").space).toBe("outloud");

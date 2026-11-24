@@ -15,6 +15,16 @@ import {
   deleteCommunity, inviteToCommunity, joinCommunity, leaveCommunity, removeFromCommunity, respondToJoin, searchMembers,
   setCommunityRole, setCommunityStatus, transferCommunity,
 } from "@/app/(member)/blong/communities/actions";
+import {
+  inviteToDiscussion, removeFromDiscussion, respondToDiscussionJoin, setDiscussionRole, transferDiscussion,
+} from "@/app/(member)/blong/discussions/actions";
+
+/** The same member tools serve communities and discussions. */
+const OPS = {
+  community: { respond: respondToJoin, setRole: setCommunityRole, remove: removeFromCommunity, transfer: transferCommunity, invite: inviteToCommunity },
+  discussion: { respond: respondToDiscussionJoin, setRole: setDiscussionRole, remove: removeFromDiscussion, transfer: transferDiscussion, invite: inviteToDiscussion },
+} as const;
+type Kind = keyof typeof OPS;
 import { MemberAvatar } from "./member-avatar";
 
 /** Join / Ask to join / Accept invite / Requested / Leave, from the viewer's place in the community. */
@@ -64,7 +74,8 @@ export function JoinControls({ c }: { c: Pick<CommunityPage, "id" | "name" | "vi
 }
 
 /** The members list; owners and admins also see requests and invites and manage roles. */
-export function PeopleList({ c, people, me }: { c: Pick<CommunityPage, "id" | "name" | "my_role">; people: CommunityPerson[]; me: string }) {
+export function PeopleList({ c, people, me, kind = "community" }: { c: Pick<CommunityPage, "id" | "name" | "my_role">; people: CommunityPerson[]; me: string; kind?: Kind }) {
+  const ops = OPS[kind];
   const [pending, start] = useTransition();
   const [handOver, setHandOver] = useState<CommunityPerson | null>(null);
   const toast = useToast();
@@ -101,8 +112,8 @@ export function PeopleList({ c, people, me }: { c: Pick<CommunityPage, "id" | "n
           <ul className="divide-y divide-line">
             {requests.map((p) => row(p, (
               <span className="flex gap-1.5">
-                <Button size="sm" className="bl-follow" disabled={pending} onClick={() => act(() => respondToJoin(c.id, p.id, true), `${p.name} joined`)}><Check size={14} aria-hidden="true" />Accept</Button>
-                <Button size="sm" variant="secondary" disabled={pending} onClick={() => act(() => respondToJoin(c.id, p.id, false), "Declined")}><X size={14} aria-hidden="true" />Decline</Button>
+                <Button size="sm" className="bl-follow" disabled={pending} onClick={() => act(() => ops.respond(c.id, p.id, true), `${p.name} joined`)}><Check size={14} aria-hidden="true" />Accept</Button>
+                <Button size="sm" variant="secondary" disabled={pending} onClick={() => act(() => ops.respond(c.id, p.id, false), "Declined")}><X size={14} aria-hidden="true" />Decline</Button>
               </span>
             )))}
           </ul>
@@ -117,11 +128,11 @@ export function PeopleList({ c, people, me }: { c: Pick<CommunityPage, "id" | "n
               <span className={`bl-role ${p.role !== "member" ? "on" : ""}`}>{p.role === "owner" ? <Crown size={11} aria-hidden="true" /> : p.role === "admin" ? <Shield size={11} aria-hidden="true" /> : null}{roleLabel(p.role)}</span>
               {admin && p.role !== "owner" && p.id !== me ? (
                 <>
-                  <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(() => setCommunityRole(c.id, p.id, p.role === "admin" ? "member" : "admin"), p.role === "admin" ? `${p.name} is a member again` : `${p.name} is now an admin`)}>
+                  <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(() => ops.setRole(c.id, p.id, p.role === "admin" ? "member" : "admin"), p.role === "admin" ? `${p.name} is a member again` : `${p.name} is now an admin`)}>
                     {p.role === "admin" ? "Make member" : "Make admin"}
                   </Button>
                   {c.my_role === "owner" || p.role === "member" ? (
-                    <Button size="sm" variant="ghost" aria-label={`Remove ${p.name}`} disabled={pending} onClick={() => act(() => removeFromCommunity(c.id, p.id), `${p.name} removed`)}><UserMinus size={14} aria-hidden="true" /></Button>
+                    <Button size="sm" variant="ghost" aria-label={`Remove ${p.name}`} disabled={pending} onClick={() => act(() => ops.remove(c.id, p.id), `${p.name} removed`)}><UserMinus size={14} aria-hidden="true" /></Button>
                   ) : null}
                   {c.my_role === "owner" ? (
                     <Button size="sm" variant="ghost" aria-label={`Hand ${c.name} to ${p.name}`} title="Make owner" disabled={pending} onClick={() => setHandOver(p)}><Crown size={14} aria-hidden="true" /></Button>
@@ -138,7 +149,7 @@ export function PeopleList({ c, people, me }: { c: Pick<CommunityPage, "id" | "n
           <h3 className="bl-sec">Invited · {invited.length}</h3>
           <ul className="divide-y divide-line">
             {invited.map((p) => row(p, (
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(() => removeFromCommunity(c.id, p.id), "Invite taken back")}>Take back</Button>
+              <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(() => ops.remove(c.id, p.id), "Invite taken back")}>Take back</Button>
             )))}
           </ul>
         </section>
@@ -146,7 +157,7 @@ export function PeopleList({ c, people, me }: { c: Pick<CommunityPage, "id" | "n
 
       <Modal open={!!handOver} onClose={() => setHandOver(null)} title={`Make ${handOver?.name ?? ""} the owner?`} footer={<>
         <Button variant="secondary" onClick={() => setHandOver(null)}>Cancel</Button>
-        <Button disabled={pending} onClick={() => { const p = handOver!; setHandOver(null); act(() => transferCommunity(c.id, p.id), `${p.name} now owns ${c.name}`); }}>Make owner</Button>
+        <Button disabled={pending} onClick={() => { const p = handOver!; setHandOver(null); act(() => ops.transfer(c.id, p.id), `${p.name} now owns ${c.name}`); }}>Make owner</Button>
       </>}>
         <p className="text-[13.5px]">{handOver?.name} becomes the owner of {c.name}. You stay as an admin and can then leave if you want.</p>
       </Modal>
@@ -155,7 +166,7 @@ export function PeopleList({ c, people, me }: { c: Pick<CommunityPage, "id" | "n
 }
 
 /** Owners and admins invite members by name. */
-export function InviteBox({ id }: { id: string }) {
+export function InviteBox({ id, kind = "community" }: { id: string; kind?: Kind }) {
   const [q, setQ] = useState("");
   const [found, setFound] = useState<{ id: string; name: string; avatar_url: string | null; roles: string[] }[]>([]);
   const [sent, setSent] = useState<Record<string, string>>({});
@@ -182,7 +193,7 @@ export function InviteBox({ id }: { id: string }) {
                 <span className="text-[12.5px] font-bold text-faint">{sent[p.id]}</span>
               ) : (
                 <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => {
-                  const r = await inviteToCommunity(id, p.id);
+                  const r = await OPS[kind].invite(id, p.id);
                   if (!r.ok) return toast(r.error);
                   setSent((s) => ({ ...s, [p.id]: r.value === "active" ? "Already in" : r.value === "invited" ? "Invited" : "Invited" }));
                 })}><UserPlus size={14} aria-hidden="true" />Invite</Button>

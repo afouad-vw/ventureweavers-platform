@@ -30,3 +30,15 @@ export async function setCommunityStatusAdmin(id: string, status: "active" | "ar
   revalidatePath("/admin/community");
   return { ok: true };
 }
+
+/** Archive or restore a discussion (staff). The host is told when the team archives it. */
+export async function setDiscussionStatusAdmin(id: string, status: "open" | "archived"): Promise<Result> {
+  const admin = await requireAdmin("community.manage");
+  if (!isUuid(id) || !["open", "archived"].includes(status)) return { ok: false, error: "Unknown discussion." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_discussion_status", { p_id: id, p_status: status });
+  if (error) return { ok: false, error: "Couldn't change the discussion." };
+  await audit(admin.userId, `discussion.${status}`, "discussions", { entityId: id, after: { status } }).catch(() => null);
+  revalidatePath("/admin/community");
+  return { ok: true };
+}
