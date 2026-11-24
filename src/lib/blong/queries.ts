@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import type { CommunityPage, CommunityPerson, CommunityRow, CommunityTab } from "./communities";
+import type { CommunityPage, CommunityPerson, CommunityRow, CommunityTab, PostComment, SavedItem, WallPost } from "./communities";
 import type { DiscussionPage, DiscussionRow, DiscussionTab, RoomMessage } from "./discussions";
 import { isUuid, type Activity, type BlongSections, type DmMessage, type DmThread, type FeedItem, type MemberCard, type MemberLite } from "./format";
 
@@ -200,6 +200,8 @@ export async function blongStats(): Promise<BlongStats | null> {
 // ---------------------------------------------------------------- moderation (19b)
 
 export type HeldMessage = {
+  /** room_message, post or comment. room_slug is the item's address in the member app. */
+  kind: "room_message" | "post" | "comment";
   id: string; body: string; mod_status: "held" | "hidden"; mod_rule: string | null; author_id: string; author_name: string;
   room_title: string; room_slug: string; reports: number; created_at: string;
 };
@@ -218,11 +220,37 @@ export async function blongWatch(): Promise<{ member_id: string; name: string; c
   return (data ?? []) as { member_id: string; name: string; caught: number; last_at: string }[];
 }
 
-export type ModStats = { held_now: number; hidden_now: number; held_30: number; hidden_30: number; removed_30: number };
+export type ModStats = {
+  held_now: number; hidden_now: number; held_30: number; hidden_30: number; removed_30: number;
+  posts_30?: number; comments_30?: number; likes_30?: number; shares_30?: number; saves_30?: number;
+};
 
 export async function blongModStats(): Promise<ModStats | null> {
   if (!supabaseConfigured) return null;
   const supabase = await createClient();
   const { data } = await supabase.rpc("blong_mod_stats");
   return (data ?? null) as ModStats | null;
+}
+
+// ---------------------------------------------------------------- posts and engagement (19c)
+
+export async function communityWall(id: string, post?: string): Promise<WallPost[]> {
+  if (!supabaseConfigured || !isUuid(id)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("community_wall", { p_community: id, p_before: null, p_post: post && isUuid(post) ? post : null });
+  return (data ?? []) as WallPost[];
+}
+
+export async function postComments(id: string): Promise<PostComment[]> {
+  if (!supabaseConfigured || !isUuid(id)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("post_comments_list", { p_post: id });
+  return (data ?? []) as PostComment[];
+}
+
+export async function mySaved(): Promise<SavedItem[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("my_saved");
+  return (data ?? []) as SavedItem[];
 }

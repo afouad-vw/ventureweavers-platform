@@ -51,6 +51,8 @@ export async function Overview({ base }: { base: string }) {
         <Tile icon={MessagesSquare} label="Member messages" value={n(s.member_messages_30)} sub="last 30 days (count only)" />
         <Tile icon={UserPlus} label="Joins and follows" value={n(s.joins_30 + s.follows_30)} sub={`last 30 days · ${n(s.follows)} follows in all`} />
         <Tile icon={Flag} label="Reports open" value={n(s.reports_open)} sub={`${n(s.reports_handled_30)} handled in 30 days${s.handle_hours != null ? ` · ${s.handle_hours} h on average` : ""}`} />
+        {mod?.posts_30 !== undefined ? <Tile icon={MessagesSquare} label="Posts and comments" value={n((mod.posts_30 ?? 0) + (mod.comments_30 ?? 0))} sub={`last 30 days · ${n(mod.posts_30)} posts, ${n(mod.comments_30)} comments`} /> : null}
+        {mod?.likes_30 !== undefined ? <Tile icon={UserPlus} label="Likes, shares and saves" value={n((mod.likes_30 ?? 0) + (mod.shares_30 ?? 0) + (mod.saves_30 ?? 0))} sub={`last 30 days · ${n(mod.likes_30)} likes, ${n(mod.shares_30)} shares, ${n(mod.saves_30)} saves`} /> : null}
         {mod ? <Tile icon={ShieldCheck} label="Caught by the rules" value={n(mod.held_30)} sub={`held in 30 days · ${n(mod.hidden_30)} hidden after reports · ${n(mod.removed_30)} removed`} /> : null}
       </div>
 
@@ -199,11 +201,11 @@ export async function Held({ base, manage }: { base: string; manage: boolean }) 
             <div className="flex flex-wrap items-center gap-2">
               <StatusPill tone={m.mod_status === "held" ? "warn" : "bad"}>{m.mod_status === "held" ? "Held" : "Hidden"}</StatusPill>
               <b className="text-[14px]">{MOD_RULE_LABEL[m.mod_rule ?? ""] ?? "Review"}</b>
-              <span className="text-[13px] text-faint">· in {m.room_title} · {when(m.created_at)}{m.reports ? ` · ${m.reports} open ${m.reports === 1 ? "report" : "reports"}` : ""}</span>
+              <span className="text-[13px] text-faint">· {m.kind === "post" ? "Post" : m.kind === "comment" ? "Comment" : "Discussion message"} in {m.room_title} · {when(m.created_at)}{m.reports ? ` · ${m.reports} open ${m.reports === 1 ? "report" : "reports"}` : ""}</span>
             </div>
             <blockquote className="rounded-xl border border-line bg-hover px-3 py-2 text-[13.5px] whitespace-pre-wrap">{m.body}</blockquote>
             <p className="text-[13px]"><span className="text-faint">By </span><Link href={`${base}/contacts/${slugOf(`m:${m.author_id}`)}`} className="font-bold text-link">{m.author_name}</Link></p>
-            {manage ? <HeldButtons id={m.id} /> : null}
+            {manage ? <HeldButtons kind={m.kind} id={m.id} /> : null}
           </Card>
         )) : <EmptyState>Nothing held or hidden.</EmptyState>}
       </div>

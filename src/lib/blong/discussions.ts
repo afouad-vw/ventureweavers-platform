@@ -60,6 +60,12 @@ export type RoomMessage = {
   created_at: string;
   /** Phase 19b: held (waiting for review) and hidden (after reports) messages reach only their author. */
   mod_status?: "live" | "held" | "hidden";
+  /** Phase 19c engagement. */
+  likes?: number;
+  liked?: boolean;
+  saved?: boolean;
+  views?: number;
+  replies?: number;
 };
 
 export type DiscussionInput = { title: string; description: string; category: DiscussionCategory; tags: string[]; limit: number; privacy: RoomPrivacy; community: string | null };

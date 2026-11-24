@@ -12,31 +12,35 @@ import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
 import { ReviewBanner, SectionSoon } from "@/components/blong/review";
 import { reviewChip } from "@/lib/blong/format";
-import { communityPage, communityPeople, listDiscussions, blongSections } from "@/lib/blong/queries";
+import { communityPage, communityPeople, communityWall, listDiscussions, blongSections } from "@/lib/blong/queries";
 import { DiscussionCard } from "@/components/blong/discussion-card";
+import { PostWall } from "@/components/blong/post-wall";
 
 export const metadata: Metadata = { title: "Community" };
 
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", month: "long", year: "numeric" }).format(new Date(iso));
 
 /** A community: About, its discussions, and Members (with requests for its admins). */
-export default async function CommunityPageView({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function CommunityPageView({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ tab?: string; post?: string }> }) {
   const { slug } = await params;
-  const { tab: raw } = await searchParams;
+  const { tab: raw, post: focus } = await searchParams;
   const me = await requireMember(`/blong/communities/${slug}`);
   if (!(await blongSections()).communities) return <SectionSoon section="communities" />;
   const c = await communityPage(slug);
   if (!c) notFound();
   const admin = c.my_status === "active" && (c.my_role === "owner" || c.my_role === "admin");
   const tabs = [
+    { value: "posts", label: "Posts" },
     { value: "about", label: "About" },
     { value: "discussions", label: "Discussions" },
     { value: "members", label: "Members", count: admin && c.requests ? c.requests : null },
   ];
-  const tab = tabs.some((t) => t.value === raw) ? raw! : "about";
-  const [people, rooms] = await Promise.all([
+  const live = c.status === "active";
+  const tab = tabs.some((t) => t.value === raw) ? raw! : live && c.can_see_inside ? "posts" : "about";
+  const [people, rooms, wall] = await Promise.all([
     tab === "members" && c.can_see_inside ? communityPeople(c.id) : Promise.resolve([]),
     tab === "discussions" && c.can_see_inside ? listDiscussions("explore", { community: c.id }) : Promise.resolve([]),
+    tab === "posts" && c.can_see_inside && live ? communityWall(c.id, focus) : Promise.resolve([]),
   ]);
 
   return (
@@ -69,7 +73,26 @@ export default async function CommunityPageView({ params, searchParams }: { para
 
       <ReviewBanner kind="community" status={c.status} note={c.review_note} resubmitted={c.resubmitted} editHref={admin ? `/blong/communities/${c.slug}/edit` : null} />
 
-      <LinkTabs label="Community" value={tab} hrefFor={(v) => (v === "about" ? `/blong/communities/${c.slug}` : `/blong/communities/${c.slug}?tab=${v}`)} items={tabs} />
+      <LinkTabs label="Community" value={tab} hrefFor={(v) => `/blong/communities/${c.slug}?tab=${v}`} items={tabs} />
+
+      {tab === "posts" ? (
+        !live ? (
+          <p className="bl-note rounded-xl border px-3.5 py-2.5 text-[13px]">Posts open once the community is live.</p>
+        ) : c.can_see_inside ? (
+          <PostWall
+            c={{ id: c.id, slug: c.slug, name: c.name, posting: c.posting ?? "members", member: c.my_status === "active", admin }}
+            me={me.id}
+            initial={wall}
+            focus={focus ?? null}
+          />
+        ) : (
+          <div className="bl-lock flex flex-col items-center gap-2 rounded-[22px] border border-dashed px-5 py-9 text-center">
+            <Lock size={22} aria-hidden="true" />
+            <b className="font-display text-[19px] font-semibold">Private community</b>
+            <p className="max-w-[440px] text-[13.5px] text-faint">Posts show once an admin accepts your request.</p>
+          </div>
+        )
+      ) : null}
 
       {tab === "about" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">

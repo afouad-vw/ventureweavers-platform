@@ -76,11 +76,11 @@ export async function saveBlongSettings(patch: BlongSettingsPatch): Promise<Resu
 }
 
 /** Publish or remove a message the rules held, or that reports hid. Its open reports are closed; the author is told. */
-export async function reviewHeldMessage(id: string, publish: boolean): Promise<Result> {
+export async function reviewHeldMessage(kind: "room_message" | "post" | "comment", id: string, publish: boolean): Promise<Result> {
   await requireAdmin("community.manage");
-  if (!isUuid(id)) return { ok: false, error: "Unknown message." };
+  if (!isUuid(id) || !["room_message", "post", "comment"].includes(kind)) return { ok: false, error: "Unknown item." };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("review_held_message", { p_id: id, p_publish: publish });
+  const { error } = await supabase.rpc("review_held", { p_kind: kind, p_id: id, p_publish: publish });
   if (error) return { ok: false, error: error.message.includes("not_found") ? "Someone already reviewed this." : "Couldn't save the review." };
   revalidatePath("/admin/community");
   return { ok: true };

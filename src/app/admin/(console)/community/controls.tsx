@@ -83,13 +83,13 @@ export function SettingSwitch({ name, label, hint, value, manage, confirmOff }: 
 }
 
 /** Publish or Remove for a held or hidden message. */
-export function HeldButtons({ id }: { id: string }) {
+export function HeldButtons({ kind, id }: { kind: "room_message" | "post" | "comment"; id: string }) {
   const [pending, start] = useTransition();
   const toast = useToast();
   const router = useRouter();
   const run = (publish: boolean) =>
     start(async () => {
-      const r = await reviewHeldMessage(id, publish);
+      const r = await reviewHeldMessage(kind, id, publish);
       if (!r.ok) return toast(r.error);
       toast(publish ? "Published. The member was told." : "Removed. The member was told.");
       router.refresh();

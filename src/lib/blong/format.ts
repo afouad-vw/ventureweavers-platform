@@ -142,10 +142,10 @@ export function blongError(message: string): string {
   return "Something went wrong. Please try again.";
 }
 
-export type Activity = { kind: "events" | "programs" | "communities" | "posts"; verb: string; title: string; href: string; at: string; starts_at: string | null };
+export type Activity = { kind: "events" | "programs" | "communities" | "posts" | "post"; verb: string; title: string; href: string; at: string; starts_at: string | null };
 export type FeedItem = Activity & { member_id: string; name: string; avatar_url: string | null };
 
-export const ACTIVITY_LABEL: Record<Activity["kind"], string> = { events: "Event", programs: "Program", communities: "BLong", posts: "News" };
+export const ACTIVITY_LABEL: Record<Activity["kind"], string> = { events: "Event", programs: "Program", communities: "BLong", posts: "News", post: "Post" };
 
 /** "Today", "Yesterday", "3 Nov", in Cairo time. */
 export function activityDay(iso: string, now = new Date()): string {

@@ -34,6 +34,8 @@ export type CommunityPage = Omit<CommunityRow, "my_role" | "my_status"> & {
   /** For the people who run it and staff (Phase 19a). */
   review_note?: string | null;
   resubmitted?: boolean;
+  /** Who can post on the wall (Phase 19c). */
+  posting?: "members" | "admins";
 };
 
 export type CommunityPerson = { id: string; name: string; avatar_url: string | null; roles: string[]; role: CommunityRole; status: CommunityStatus; since: string };
@@ -97,6 +99,17 @@ export function communityCta(c: Pick<CommunityRow, "visibility" | "my_role" | "m
 export const roleLabel = (r: CommunityRole) => (r === "owner" ? "Owner" : r === "admin" ? "Admin" : "Member");
 
 export function communityError(message: string): string {
+  if (message.includes("too_many_posts")) return "You've posted 20 times today. Please try again tomorrow.";
+  if (message.includes("too_many_comments")) return "You've commented a lot in the last hour. Please wait a little.";
+  if (message.includes("too_many_likes")) return "That's a lot of likes in an hour. Please wait a little.";
+  if (message.includes("too_many_bookmarks")) return "You've saved 1,000 items. Remove some to save more.";
+  if (message.includes("admins_only")) return "Only the community's owner and admins post here.";
+  if (message.includes("comments_closed")) return "Comments are closed on this post.";
+  if (message.includes("not_in_community")) return "Join the community to post and comment.";
+  if (message.includes("bad_post")) return "Write a post (up to 3,000 characters).";
+  if (message.includes("bad_comment")) return "Write a comment (up to 1,000 characters).";
+  if (message.includes("bad_image")) return "Upload the image again.";
+  if (message.includes("link_url_check")) return "Links need a full https:// address.";
   if (message.includes("mod_blocked_word")) return "That message includes words the community doesn't allow. Please rephrase it.";
   if (message.includes("mod_blocked_link")) return "Links to that site aren't allowed.";
   if (message.includes("mod_too_many_links")) return "That's a lot of links for one message. Please share fewer.";
@@ -116,3 +129,41 @@ export function communityError(message: string): string {
   if (message.includes("_check")) return "Please check the details and try again.";
   return "Something went wrong. Please try again.";
 }
+
+// ---------------------------------------------------------------- posts (19c)
+
+export type WallPost = {
+  id: string; author: string; name: string; avatar_url: string | null; body: string; link_url: string | null; image_url: string | null;
+  pinned: boolean; comments_closed: boolean; mod_status: "live" | "held" | "hidden"; created_at: string; edited_at: string | null;
+  likes: number; comments: number; views: number; shares: number; liked: boolean; saved: boolean;
+};
+
+export type PostComment = {
+  id: string; parent_id: string | null; author: string; name: string; avatar_url: string | null; body: string;
+  mod_status: "live" | "held" | "hidden"; created_at: string; likes: number; liked: boolean;
+};
+
+export type SavedItem = { kind: "post" | "room_message"; id: string; author: string; body: string; place: string; href: string; saved_at: string };
+
+export const POST_LIMITS = { body: 3000, comment: 1000 } as const;
+
+/** Reads the post composer: text, and an optional https link (https:// added when missing). */
+export function parsePost(body: unknown, link: unknown): { ok: true; body: string; link: string | null } | { ok: false; error: string } {
+  const b = String(body ?? "").trim();
+  if (!b || b.length > POST_LIMITS.body) return { ok: false, error: "Write a post (up to 3,000 characters)." };
+  let l = String(link ?? "").trim();
+  if (!l) return { ok: true, body: b, link: null };
+  if (!/^https?:\/\//i.test(l)) l = `https://${l}`;
+  l = l.replace(/^http:\/\//i, "https://");
+  if (l.length > 500 || !/^https:\/\/[^\s<>"]+\.[^\s<>"]+$/.test(l)) return { ok: false, error: "That link doesn't look like a web address." };
+  return { ok: true, body: b, link: l };
+}
+
+/** Comments in order, replies under their comment. */
+export function threadComments(list: PostComment[]): { comment: PostComment; replies: PostComment[] }[] {
+  const top = list.filter((c) => !c.parent_id);
+  return top.map((c) => ({ comment: c, replies: list.filter((r) => r.parent_id === c.id) }));
+}
+
+/** "1.2k" for big counts. */
+export const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "")}k` : String(n));

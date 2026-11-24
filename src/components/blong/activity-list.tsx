@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { CalendarDays, GraduationCap, Megaphone, Network } from "lucide-react";
+import { CalendarDays, GraduationCap, Megaphone, MessageSquareText, Network } from "lucide-react";
 import { activityDay, type Activity, type FeedItem } from "@/lib/blong/format";
 import { MemberAvatar } from "./member-avatar";
 
-const ICON = { events: CalendarDays, programs: GraduationCap, communities: Network, posts: Megaphone } as const;
+const ICON = { events: CalendarDays, programs: GraduationCap, communities: Network, posts: Megaphone, post: MessageSquareText } as const;
 const eventDate = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "short" }).format(new Date(iso));
 
 /** One line of VW activity: what, where to, and when. */

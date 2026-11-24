@@ -14,6 +14,7 @@ import { browserClient } from "@/lib/supabase/browser";
 import {
   deleteDiscussion, fetchRoom, joinDiscussion, leaveDiscussion, pinRoomMessage, postRoomMessage, removeRoomMessage, setDiscussionStatus,
 } from "@/app/(member)/blong/discussions/actions";
+import { BookmarkButton, LikeButton, ShareButton, useViews, ViewCount } from "./engage";
 import { ReportDialog } from "./member-actions";
 import { MemberAvatar } from "./member-avatar";
 
@@ -116,6 +117,7 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
     if (r) setMessages((old) => (r.length !== old.length || r.at(-1)?.id !== old.at(-1)?.id || r.some((m, i) => m.removed !== old[i]?.removed || m.mod_status !== old[i]?.mod_status) ? r : old));
   }, [d.id]);
   useRoomLive(d.id, reload);
+  useViews("room_message", box, [messages.length]);
 
   // Open at the newest message, then follow new ones while the reader is near the bottom
   // (scrolling only the chat box, never the page around it).
@@ -164,7 +166,7 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
           lastDay = day;
           const mine = m.author === me;
           return (
-            <div key={m.id}>
+            <div key={m.id} data-view-id={live(m) && !m.removed ? m.id : undefined}>
               {showDay ? <div className="my-2 text-center text-[11.5px] font-bold text-faint">{day}</div> : null}
               <div className="group flex items-start gap-2.5">
                 <Link href={`/blong/members/${m.author}`} scroll={false} className="shrink-0"><MemberAvatar id={m.author} name={m.name} src={m.avatar_url} size={34} /></Link>
@@ -181,6 +183,15 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
                   ) : (
                     <p className="mt-0.5 text-[14px] break-words whitespace-pre-wrap">{m.body}</p>
                   )}
+                  {!m.removed && live(m) ? (
+                    <span className="mt-1 flex flex-wrap items-center gap-0.5">
+                      <LikeButton kind="room_message" id={m.id} liked={Boolean(m.liked)} likes={m.likes ?? 0} small />
+                      {m.replies ? <span className="bl-act static text-[12px]">{m.replies} {m.replies === 1 ? "reply" : "replies"}</span> : null}
+                      <ShareButton kind="room_message" id={m.id} path={`/blong/discussions/${d.slug}`} title={`Message in ${d.title}`} />
+                      {m.views ? <ViewCount views={m.views} /> : null}
+                      <BookmarkButton kind="room_message" id={m.id} saved={Boolean(m.saved)} />
+                    </span>
+                  ) : null}
                   {!m.removed ? (
                     <span className="mt-1 flex flex-wrap gap-3 text-[12px] font-bold text-faint opacity-100 desk:opacity-0 desk:group-hover:opacity-100 desk:group-focus-within:opacity-100">
                       {canPost && live(m) ? <button type="button" className="cursor-pointer hover:text-fg" onClick={() => setReplyTo(m)}>Reply</button> : null}

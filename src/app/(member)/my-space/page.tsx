@@ -29,7 +29,7 @@ import { ProfileForm, type ProfileValues } from "./profile-form";
 import { PrivacyForm } from "./privacy-form";
 import { MemberAvatar } from "@/components/blong/member-avatar";
 import { UnblockButton } from "@/components/blong/member-actions";
-import { myBlocked, myPrivacy } from "@/lib/blong/queries";
+import { myBlocked, myPrivacy, mySaved } from "@/lib/blong/queries";
 import { NEWS_STATUS } from "@/lib/news/format";
 import { myNews } from "@/lib/news/queries";
 import { FolderKanban, Megaphone } from "lucide-react";
@@ -287,9 +287,28 @@ async function Payments({ payments }: { payments: MyPayment[] }) {
 }
 
 async function Saved() {
-  const items = await mySavedEntries();
-  if (!items.length) return <EmptyState>Save posts, articles and resources to find them here.</EmptyState>;
+  const [items, blong] = await Promise.all([mySavedEntries(), mySaved().catch(() => [])]);
+  if (!items.length && !blong.length) return <EmptyState>Save posts, articles, resources and BLong posts or messages to find them here.</EmptyState>;
   return (
+    <>
+    {blong.length ? (
+      <Card>
+        <h2 className="text-[15px] font-bold">From BLong</h2>
+        <ul className="flex flex-col">
+          {blong.map((b) => (
+            <li key={`${b.kind}:${b.id}`} className="flex items-start gap-3 border-b border-line py-2.5 last:border-b-0">
+              <span className="w-[110px] shrink-0 truncate pt-0.5 text-[11px] font-extrabold tracking-[1.2px] text-faint uppercase">{b.kind === "post" ? "Post" : "Message"}</span>
+              <Link href={b.href} className="min-w-0 flex-1">
+                <span className="line-clamp-2 text-[14px] font-bold hover:underline">{b.body}</span>
+                <span className="block text-[12px] text-faint">{b.author} · {b.place}</span>
+              </Link>
+              <Link href={b.href} aria-label="Open" className="pt-0.5 text-faint hover:text-fg"><ArrowRight size={14} aria-hidden="true" /></Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    ) : null}
+    {items.length ? (
     <Card>
       <ul className="flex flex-col">
         {items.map((i) => (
@@ -302,6 +321,8 @@ async function Saved() {
         ))}
       </ul>
     </Card>
+    ) : null}
+    </>
   );
 }
 
