@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Lock, MessagesSquare, Users } from "lucide-react";
 import { activeAgo, discussionCta, privacyLabel, type DiscussionRow } from "@/lib/blong/discussions";
+import { reviewChip } from "@/lib/blong/format";
 
 /** A discussion in Explore, Joined, Owned and a community's Discussions tab. */
 export function DiscussionCard({ d, showCommunity = true }: { d: DiscussionRow; showCommunity?: boolean }) {
@@ -10,7 +11,8 @@ export function DiscussionCard({ d, showCommunity = true }: { d: DiscussionRow; 
         <span className="bl-chip soft">{d.category}</span>
         {d.privacy !== "public" ? <span className="bl-chip soft"><Lock size={11} aria-hidden="true" />{privacyLabel(d.privacy)}</span> : null}
         {showCommunity && d.community_name ? <span className="bl-chip soft"><Users size={11} aria-hidden="true" />{d.community_name}</span> : null}
-        {d.status !== "open" ? <span className="bl-chip soft">{d.status === "closed" ? "Closed" : "Archived"}</span> : null}
+        {reviewChip(d.status) ? <span className={`bl-chip review ${reviewChip(d.status)!.tone}`}>{reviewChip(d.status)!.label}</span>
+          : d.status !== "open" ? <span className="bl-chip soft">{d.status === "closed" ? "Closed" : "Archived"}</span> : null}
       </span>
       <b className="font-display text-[17px] leading-tight font-semibold">{d.title}</b>
       {d.description ? <span className="line-clamp-2 text-[13px] text-faint">{d.description}</span> : null}

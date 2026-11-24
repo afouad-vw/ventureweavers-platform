@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { audit, requireAdmin } from "@/lib/auth/guards";
 import { isUuid } from "@/lib/blong/format";
 import { createClient } from "@/lib/supabase/server";
+import { sendWaitlistEmails } from "@/lib/waitlist-server";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -40,5 +41,36 @@ export async function setDiscussionStatusAdmin(id: string, status: "open" | "arc
   if (error) return { ok: false, error: "Couldn't change the discussion." };
   await audit(admin.userId, `discussion.${status}`, "discussions", { entityId: id, after: { status } }).catch(() => null);
   revalidatePath("/admin/community");
+  return { ok: true };
+}
+
+/** Approve a community or discussion (it goes live) or decline it with a note. The creator is told in their bell. */
+export async function reviewBlongItem(kind: "community" | "discussion", id: string, approve: boolean, note: string): Promise<Result> {
+  await requireAdmin("community.manage");
+  if (!isUuid(id) || !["community", "discussion"].includes(kind)) return { ok: false, error: "Unknown item." };
+  const clean = note.trim().slice(0, 1000);
+  if (!approve && !clean) return { ok: false, error: "Add a short note so the member knows what to change." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_blong_item", { p_kind: kind, p_id: id, p_approve: approve, p_note: clean || null });
+  if (error) return { ok: false, error: error.message.includes("not_found") ? "Someone already reviewed this." : error.message.includes("not_admin") ? "You can view the queue but not approve." : "Couldn't save the review." };
+  revalidatePath("/admin/community");
+  revalidatePath("/blong", "layout");
+  return { ok: true };
+}
+
+export type BlongSettingsPatch = Partial<Record<"communities_on" | "discussions_on" | "approve_communities" | "approve_discussions", boolean>>;
+
+/** Section switches and approval settings. Turning a section on emails its Notify me list (the bell is sent by the database). */
+export async function saveBlongSettings(patch: BlongSettingsPatch): Promise<Result> {
+  await requireAdmin("community.manage");
+  const keys = ["communities_on", "discussions_on", "approve_communities", "approve_discussions"] as const;
+  const clean = Object.fromEntries(keys.filter((k) => typeof patch[k] === "boolean").map((k) => [k, patch[k]]));
+  if (!Object.keys(clean).length) return { ok: false, error: "Nothing to change." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_blong_settings", { p: clean });
+  if (error) return { ok: false, error: error.message.includes("not_admin") ? "Only staff with Community (manage) change these." : "Couldn't save the setting." };
+  if (clean.communities_on === true || clean.discussions_on === true) await sendWaitlistEmails().catch(() => 0);
+  revalidatePath("/admin/community");
+  revalidatePath("/", "layout");
   return { ok: true };
 }

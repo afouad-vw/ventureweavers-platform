@@ -9,8 +9,10 @@ import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { requireMember } from "@/lib/auth/guards";
+import { ReviewBanner, SectionSoon } from "@/components/blong/review";
+import { reviewChip } from "@/lib/blong/format";
 import { privacyLabel } from "@/lib/blong/discussions";
-import { discussionPage, discussionPeople, roomMessages } from "@/lib/blong/queries";
+import { discussionPage, discussionPeople, roomMessages, blongSections } from "@/lib/blong/queries";
 
 export const metadata: Metadata = { title: "Discussion" };
 
@@ -19,6 +21,7 @@ export default async function DiscussionRoomPage({ params, searchParams }: { par
   const { slug } = await params;
   const { tab: raw } = await searchParams;
   const me = await requireMember(`/blong/discussions/${slug}`);
+  if (!(await blongSections()).discussions) return <SectionSoon section="discussions" />;
   const d = await discussionPage(slug);
   if (!d) notFound();
   const admin = d.my_status === "active" && (d.my_role === "owner" || d.my_role === "admin");
@@ -41,7 +44,8 @@ export default async function DiscussionRoomPage({ params, searchParams }: { par
             <span className="bl-chip soft">{d.category}</span>
             <span className="bl-chip soft">{d.privacy !== "public" ? <Lock size={11} aria-hidden="true" /> : null}{privacyLabel(d.privacy)}</span>
             {d.community ? <Link href={`/blong/communities/${d.community.slug}`} scroll={false} className="bl-chip soft"><Users size={11} aria-hidden="true" />{d.community.name}</Link> : null}
-            {d.status !== "open" ? <span className="bl-chip soft">{d.status === "closed" ? "Closed" : "Archived"}</span> : null}
+            {reviewChip(d.status) ? <span className={`bl-chip review ${reviewChip(d.status)!.tone}`}>{reviewChip(d.status)!.label}</span>
+              : d.status !== "open" ? <span className="bl-chip soft">{d.status === "closed" ? "Closed" : "Archived"}</span> : null}
           </div>
           <h1 className="mt-2 font-display text-[24px] leading-tight font-semibold">{d.title}</h1>
           <p className="mt-0.5 text-[13px] text-faint">{d.members} of {d.member_limit} members{d.my_status === "active" ? ` · You're ${d.my_role === "owner" ? "the host" : d.my_role === "admin" ? "an admin" : "in"}` : ""}</p>
@@ -57,6 +61,8 @@ export default async function DiscussionRoomPage({ params, searchParams }: { par
           {d.archived_by_team ? "The VentureWeavers team archived this discussion. Message the team if you think that's a mistake." : "This discussion is archived: it's hidden from Explore and nobody can post or join."}
         </p>
       ) : null}
+
+      <ReviewBanner kind="discussion" status={d.status} note={d.review_note} resubmitted={d.resubmitted} editHref={admin ? `/blong/discussions/${d.slug}/edit` : null} />
 
       <LinkTabs label="Discussion" value={tab} hrefFor={(v) => (v === "room" ? `/blong/discussions/${d.slug}` : `/blong/discussions/${d.slug}?tab=${v}`)} items={tabs} />
 

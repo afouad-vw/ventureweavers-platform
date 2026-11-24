@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { activityDay, blongError, cleanBio, cleanLinks, followLabel, isNetworkTab, isReportReason, isUuid, memberLine } from "./format";
+import { activityDay, blongError, cleanBio, cleanLinks, followLabel, isNetworkTab, isReportReason, isUuid, memberLine, reviewChip } from "./format";
+import { communityError } from "./communities";
+import { discussionCta, discussionError } from "./discussions";
 
 describe("followLabel", () => {
   it("asks Private accounts and follows Public ones", () => {
@@ -52,5 +54,21 @@ describe("activityDay", () => {
     expect(activityDay("2026-11-24T06:00:00Z", now)).toBe("Today");
     expect(activityDay("2026-11-23T20:00:00Z", now)).toBe("Yesterday");
     expect(activityDay("2026-11-03T10:00:00Z", now)).toBe("3 Nov");
+  });
+});
+
+describe("approval and section switches (19a)", () => {
+  it("labels items waiting for review", () => {
+    expect(reviewChip("pending")).toEqual({ label: "Waiting for approval", tone: "warn" });
+    expect(reviewChip("declined")?.label).toBe("Not approved");
+    expect(reviewChip("active")).toBeNull();
+    expect(reviewChip("open")).toBeNull();
+  });
+  it("explains the new database errors", () => {
+    expect(communityError("ERROR: section_off")).toMatch(/coming soon/);
+    expect(discussionError("ERROR: pending_review")).toMatch(/approval/);
+  });
+  it("lets the creator open a pending discussion", () => {
+    expect(discussionCta({ privacy: "request", my_role: "owner", my_status: "active", members: 1, member_limit: 10, status: "pending" })).toBe("Open");
   });
 });

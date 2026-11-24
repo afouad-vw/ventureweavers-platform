@@ -3,6 +3,15 @@
 export const BLONG_COLOUR = "#7C5CE0";
 export const BLONG_TINT = "#B4A2F5";
 
+/** Communities and Discussions can be switched off by the team (Coming soon + Notify me). Ids of their Notify me lists. */
+export type BlongSection = "communities" | "discussions";
+export const BLONG_SECTION_IDS: Record<BlongSection, string> = {
+  communities: "00000000-0000-0000-0000-00000000b101",
+  discussions: "00000000-0000-0000-0000-00000000b102",
+};
+export const BLONG_SECTION_TITLE: Record<BlongSection, string> = { communities: "BLong communities", discussions: "BLong discussions" };
+export type BlongSections = Record<BlongSection, boolean>;
+
 export type Visibility = "public" | "private";
 export type FollowState = "none" | "requested" | "following";
 
@@ -138,4 +147,11 @@ export function activityDay(iso: string, now = new Date()): string {
   if (day === f(now)) return "Today";
   if (day === f(new Date(now.getTime() - 86_400_000))) return "Yesterday";
   return new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "short" }).format(new Date(iso));
+}
+
+/** The chip for an item waiting for (or refused) approval; null when it's live. */
+export function reviewChip(status: string): { label: string; tone: "warn" | "bad" } | null {
+  if (status === "pending") return { label: "Waiting for approval", tone: "warn" };
+  if (status === "declined") return { label: "Not approved", tone: "bad" };
+  return null;
 }

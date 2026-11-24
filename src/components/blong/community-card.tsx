@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Lock, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { communityCta, type CommunityRow } from "@/lib/blong/communities";
+import { reviewChip } from "@/lib/blong/format";
 
 const PRESETS = ["/images/crowd.jpg", "/images/round.jpg", "/images/room.jpg", "/images/hands.jpg"];
 
@@ -34,6 +35,7 @@ export function CommunityCard({ c }: { c: CommunityRow }) {
           {c.visibility === "private" ? <span className="bl-chip lock"><Lock size={11} aria-hidden="true" />Private</span> : null}
         </span>
         {c.status === "archived" ? <span className="absolute top-2.5 right-2.5 bl-chip">Archived</span> : null}
+        {reviewChip(c.status) ? <span className={`absolute top-2.5 right-2.5 bl-chip review ${reviewChip(c.status)!.tone}`}>{reviewChip(c.status)!.label}</span> : null}
       </span>
       <span className="flex flex-1 flex-col gap-1.5 p-3.5">
         <b className="font-display text-[17px] leading-tight font-semibold">{c.name}</b>

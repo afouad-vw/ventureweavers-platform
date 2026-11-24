@@ -364,6 +364,11 @@ h3 {
 .bl-chip { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; color: #fff; background: rgb(18 12 42 / .72); border: 1px solid rgb(255 255 255 / .16); backdrop-filter: blur(8px); }
 .bl-chip.lock { color: #f6d39a; }
 .bl-chip.soft { color: var(--fg); background: rgb(124 92 224 / .14); border-color: rgb(124 92 224 / .35); backdrop-filter: none; }
+.bl-chip.review.warn { color: #f2c27a; background: rgb(58 42 16 / .85); border-color: rgb(242 194 122 / .45); }
+.bl-chip.review.bad { color: #f2a99e; background: rgb(61 26 22 / .85); border-color: rgb(242 169 158 / .45); }
+.bl-review.warn { color: #f6dcae; background: rgb(58 42 16 / .45); border-color: rgb(242 194 122 / .35); }
+.bl-review.bad { color: #f6c8c0; background: rgb(61 26 22 / .45); border-color: rgb(242 169 158 / .35); }
+.bl-review b { color: #fff; }
 .bl-go { color: #7c5ce0; }
 :root:has(.vw-house) .bl-go, :root:has(.vw-dark) .bl-go { color: #b4a2f5; }
 .bl-role { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: var(--hover); color: var(--muted); }

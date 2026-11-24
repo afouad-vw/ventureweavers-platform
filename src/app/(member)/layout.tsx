@@ -14,7 +14,7 @@ import { getMember } from "@/lib/auth/guards";
 import { myLiveShows } from "@/lib/live/queries";
 import { myNotifications } from "@/lib/notifications/queries";
 import { myUnreadMessages } from "@/lib/messages/queries";
-import { myDmUnread } from "@/lib/blong/queries";
+import { blongSections, myDmUnread } from "@/lib/blong/queries";
 
 /** Member pages are for signed-in members only; keep them out of search engines. */
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -43,8 +43,10 @@ export default async function MemberLayout({ children }: { children: React.React
   const live = liveShows.length > 0;
   // The one-screen "house" look (the classic sidebar look only for browsers that chose it at /new-look?off=1).
   if (isHouseLook((await cookies()).get(HOUSE_COOKIE)?.value)) {
+    const sections = m ? await blongSections().catch(() => ({ communities: true, discussions: true })) : { communities: true, discussions: true };
+    const soon = (Object.keys(sections) as (keyof typeof sections)[]).filter((k) => !sections[k]).map((k) => `/blong/${k}`);
     return (
-      <HouseShell live={live} notifications={notifications} unreadMessages={unreadMessages} member={m ? { name, firstName: name.split(/[\s@]/)[0] || name, initials: initialsOf(name), avatar: sharpAvatar(m.avatar) } : null}>
+      <HouseShell live={live} soon={soon} notifications={notifications} unreadMessages={unreadMessages} member={m ? { name, firstName: name.split(/[\s@]/)[0] || name, initials: initialsOf(name), avatar: sharpAvatar(m.avatar) } : null}>
         {children}
       </HouseShell>
     );

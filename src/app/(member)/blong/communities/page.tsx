@@ -6,14 +6,16 @@ import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
+import { SectionSoon } from "@/components/blong/review";
 import { COMMUNITY_TABS, COMMUNITY_TYPES, isCommunityTab, type CommunityTab } from "@/lib/blong/communities";
-import { listCommunities } from "@/lib/blong/queries";
+import { listCommunities, blongSections } from "@/lib/blong/queries";
 
 export const metadata: Metadata = { title: "Communities" };
 
 /** BLong › Communities: explore, the ones you joined, and the ones you own or help run. */
 export default async function CommunitiesPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; type?: string }> }) {
   await requireMember("/blong/communities");
+  if (!(await blongSections()).communities) return <SectionSoon section="communities" />;
   const { tab: raw, q = "", type: rawType } = await searchParams;
   const tab: CommunityTab = isCommunityTab(raw) ? raw : "explore";
   const type = (COMMUNITY_TYPES as readonly string[]).includes(rawType ?? "") ? rawType! : "";

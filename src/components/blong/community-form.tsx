@@ -58,7 +58,7 @@ export function CommunityForm({ id, slug, initial }: { id?: string; slug?: strin
         start(async () => {
           const r = await saveCommunity(id ?? null, fd, initial?.cover ?? null);
           if (!r.ok) return setError(r.error);
-          toast(id ? "Changes saved" : "Community created. You're its owner.");
+          toast(id ? "Changes saved" : "Community created");
           router.push(`/blong/communities/${id ? slug : r.value}`, { scroll: false });
           router.refresh();
         });

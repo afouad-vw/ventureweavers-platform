@@ -3,13 +3,15 @@ import { notFound } from "next/navigation";
 import { CommunityForm } from "@/components/blong/community-form";
 import { Card } from "@/components/ui/card";
 import { requireMember } from "@/lib/auth/guards";
-import { communityPage } from "@/lib/blong/queries";
+import { SectionSoon } from "@/components/blong/review";
+import { communityPage, blongSections } from "@/lib/blong/queries";
 
 export const metadata: Metadata = { title: "Edit community" };
 
 export default async function EditCommunityPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   await requireMember(`/blong/communities/${slug}/edit`);
+  if (!(await blongSections()).communities) return <SectionSoon section="communities" />;
   const c = await communityPage(slug);
   if (!c || c.my_status !== "active" || !["owner", "admin"].includes(c.my_role ?? "")) notFound();
   return (

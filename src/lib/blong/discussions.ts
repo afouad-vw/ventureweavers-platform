@@ -27,7 +27,7 @@ export type DiscussionRow = {
   community_id: string | null;
   community_name: string | null;
   community_slug: string | null;
-  status: "open" | "closed" | "archived";
+  status: "open" | "closed" | "archived" | "pending" | "declined";
   members: number;
   last_message_at: string | null;
   my_role: RoomRole | null;
@@ -42,6 +42,9 @@ export type DiscussionPage = Omit<DiscussionRow, "community_id" | "community_nam
   owner: { id: string; name: string; avatar_url: string | null } | null;
   pinned: { id: string; body: string; name: string } | null;
   can_read: boolean;
+  /** For the people who run it and staff (Phase 19a). */
+  review_note?: string | null;
+  resubmitted?: boolean;
 };
 
 export type RoomMessage = {
@@ -85,6 +88,7 @@ export type DiscussionTab = (typeof DISCUSSION_TABS)[number]["value"];
 export const isDiscussionTab = (v: unknown): v is DiscussionTab => DISCUSSION_TABS.some((t) => t.value === v);
 
 export function discussionCta(d: Pick<DiscussionRow, "privacy" | "my_role" | "my_status" | "members" | "member_limit" | "status">): string {
+  if (d.status === "pending" || d.status === "declined") return "Open";
   if (d.my_status === "invited") return "Accept invite";
   if (d.my_status === "requested") return "Requested";
   if (d.my_status === "active") return "Open";
@@ -107,6 +111,8 @@ export function activeAgo(iso: string | null, now = new Date()): string {
 }
 
 export function discussionError(message: string): string {
+  if (message.includes("section_off")) return "Discussions are coming soon. Press Notify me and we'll tell you when they open.";
+  if (message.includes("pending_review")) return "This discussion is waiting for the team's approval.";
   if (message.includes("too_many_discussions")) return "You've started 10 discussions today. Please try again tomorrow.";
   if (message.includes("too_many_messages")) return "You've sent a lot of messages in the last hour. Please wait a little.";
   if (message.includes("too_many_invites")) return "You've sent a lot of invites in the last hour. Please wait a little.";

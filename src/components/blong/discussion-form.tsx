@@ -31,7 +31,7 @@ export function DiscussionForm({ id, slug, initial, communities = [], community 
         start(async () => {
           const r = await saveDiscussion(id ?? null, fd);
           if (!r.ok) return setError(r.error);
-          toast(id ? "Changes saved" : "Discussion started. You're its host.");
+          toast(id ? "Changes saved" : "Discussion created");
           router.push(`/blong/discussions/${id ? slug : r.value}`, { scroll: false });
           router.refresh();
         });

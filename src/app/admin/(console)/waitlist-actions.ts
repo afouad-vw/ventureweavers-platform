@@ -9,7 +9,7 @@ import { isWaitType, type WaitItemType } from "@/lib/waitlist";
 
 type Result = { ok: true; message: string } | { ok: false; error: string };
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const MANAGE: Record<WaitItemType, readonly Perm[]> = { service: ["brickr.manage"], program: ["tvs.manage"], event: ["events.manage", "tvs.manage"] };
+const MANAGE: Record<WaitItemType, readonly Perm[]> = { service: ["brickr.manage"], program: ["tvs.manage"], event: ["events.manage", "tvs.manage"], blong_section: ["community.manage"] };
 
 function refresh() {
   revalidatePath("/admin", "layout");

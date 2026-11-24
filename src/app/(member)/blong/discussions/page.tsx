@@ -6,14 +6,16 @@ import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
+import { SectionSoon } from "@/components/blong/review";
 import { DISCUSSION_CATEGORIES, DISCUSSION_TABS, isDiscussionTab, type DiscussionTab } from "@/lib/blong/discussions";
-import { listDiscussions } from "@/lib/blong/queries";
+import { listDiscussions, blongSections } from "@/lib/blong/queries";
 
 export const metadata: Metadata = { title: "Discussions" };
 
 /** BLong › Discussions: open rooms to join, the ones you're in, and the ones you host. */
 export default async function DiscussionsPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; category?: string }> }) {
   await requireMember("/blong/discussions");
+  if (!(await blongSections()).discussions) return <SectionSoon section="discussions" />;
   const { tab: raw, q = "", category: rawCat } = await searchParams;
   const tab: DiscussionTab = isDiscussionTab(raw) ? raw : "explore";
   const category = (DISCUSSION_CATEGORIES as readonly string[]).includes(rawCat ?? "") ? rawCat! : "";

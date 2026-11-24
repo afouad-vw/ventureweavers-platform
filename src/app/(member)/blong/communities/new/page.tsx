@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { CommunityForm } from "@/components/blong/community-form";
 import { Card } from "@/components/ui/card";
 import { requireMember } from "@/lib/auth/guards";
+import { SectionSoon } from "@/components/blong/review";
+import { blongSections } from "@/lib/blong/queries";
 
 export const metadata: Metadata = { title: "Create a community" };
 
 export default async function NewCommunityPage() {
   await requireMember("/blong/communities/new");
+  if (!(await blongSections()).communities) return <SectionSoon section="communities" />;
   return (
     <div className="bl flex flex-col gap-4">
       <div>

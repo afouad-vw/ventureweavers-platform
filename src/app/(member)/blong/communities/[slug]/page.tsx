@@ -10,7 +10,9 @@ import { Card } from "@/components/ui/card";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
-import { communityPage, communityPeople, listDiscussions } from "@/lib/blong/queries";
+import { ReviewBanner, SectionSoon } from "@/components/blong/review";
+import { reviewChip } from "@/lib/blong/format";
+import { communityPage, communityPeople, listDiscussions, blongSections } from "@/lib/blong/queries";
 import { DiscussionCard } from "@/components/blong/discussion-card";
 
 export const metadata: Metadata = { title: "Community" };
@@ -22,6 +24,7 @@ export default async function CommunityPageView({ params, searchParams }: { para
   const { slug } = await params;
   const { tab: raw } = await searchParams;
   const me = await requireMember(`/blong/communities/${slug}`);
+  if (!(await blongSections()).communities) return <SectionSoon section="communities" />;
   const c = await communityPage(slug);
   if (!c) notFound();
   const admin = c.my_status === "active" && (c.my_role === "owner" || c.my_role === "admin");
@@ -46,6 +49,7 @@ export default async function CommunityPageView({ params, searchParams }: { para
               <span className="bl-chip soft">{c.type}</span>
               <span className="bl-chip soft">{c.visibility === "private" ? <><Lock size={11} aria-hidden="true" />Private</> : <><Globe size={11} aria-hidden="true" />Public</>}</span>
               {c.status === "archived" ? <span className="bl-chip soft">Archived</span> : null}
+              {reviewChip(c.status) ? <span className={`bl-chip review ${reviewChip(c.status)!.tone}`}>{reviewChip(c.status)!.label}</span> : null}
             </div>
             <h1 className="mt-2 font-display text-[26px] leading-tight font-semibold">{c.name}</h1>
             <p className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] text-faint"><Users size={14} aria-hidden="true" />{c.members} {c.members === 1 ? "member" : "members"}{c.my_status === "active" ? ` · You're ${c.my_role === "owner" ? "the owner" : c.my_role === "admin" ? "an admin" : "a member"}` : ""}</p>
@@ -62,6 +66,8 @@ export default async function CommunityPageView({ params, searchParams }: { para
           {c.archived_by_team ? "The VentureWeavers team archived this community. Message the team if you think that's a mistake." : "This community is archived: it's hidden from Explore and nobody can join. Restore it below."}
         </p>
       ) : null}
+
+      <ReviewBanner kind="community" status={c.status} note={c.review_note} resubmitted={c.resubmitted} editHref={admin ? `/blong/communities/${c.slug}/edit` : null} />
 
       <LinkTabs label="Community" value={tab} hrefFor={(v) => (v === "about" ? `/blong/communities/${c.slug}` : `/blong/communities/${c.slug}?tab=${v}`)} items={tabs} />
 

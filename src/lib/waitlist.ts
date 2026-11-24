@@ -1,8 +1,8 @@
 /** Coming soon, waitlists and how members meet us: pure helpers shared by member and admin screens. */
 import { cleanCalendlyUrl } from "@/lib/calendly-url";
 
-export type WaitItemType = "service" | "program" | "event";
-export const WAIT_TYPES: readonly WaitItemType[] = ["service", "program", "event"];
+export type WaitItemType = "service" | "program" | "event" | "blong_section";
+export const WAIT_TYPES: readonly WaitItemType[] = ["service", "program", "event", "blong_section"];
 export const isWaitType = (v: unknown): v is WaitItemType => typeof v === "string" && (WAIT_TYPES as readonly string[]).includes(v);
 export const waitKey = (type: WaitItemType, id: string) => `${type}:${id}`;
 
@@ -55,6 +55,7 @@ export function meetingButtons(s: { status: string; booking?: BookingMode | null
 /** Where a member opens an item that just went live. */
 export function waitItemHref(type: WaitItemType, x: { slug: string; space?: string | null; type?: string | null }): string {
   if (type === "program") return `/tvs/programs/${x.slug}`;
+  if (type === "blong_section") return `/blong/${x.slug}`;
   if (type === "event") return x.type === "masterclass" ? `/tvs/masterclasses/${x.slug}` : `/outloud/events/${x.slug}`;
   return x.space === "TVS" ? "/tvs" : x.space === "Outloud" ? "/outloud" : `/brickr/services/${x.slug}`;
 }

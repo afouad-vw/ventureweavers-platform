@@ -34,8 +34,8 @@ const still = () => typeof window !== "undefined" && window.matchMedia("(prefers
  * The member app as one screen: the animated house in the middle with a slide per space, round icons for
  * each space's sections, and every member page opening in a pop-up panel over the house.
  */
-export function HouseShell({ member, live = false, notifications = [], unreadMessages = 0, children }: {
-  member: HouseMember; live?: boolean; notifications?: Notice[]; unreadMessages?: number; children: React.ReactNode;
+export function HouseShell({ member, live = false, notifications = [], unreadMessages = 0, soon = [], children }: {
+  member: HouseMember; live?: boolean; notifications?: Notice[]; unreadMessages?: number; soon?: string[]; children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const params = useSearchParams();
@@ -203,7 +203,7 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
                 )}
                 <p className="hs-line">{s.line}</p>
               </div>
-              {s.dock.length ? <Dock items={s.dock} onSpace={toSpace} /> : null}
+              {s.dock.length ? <Dock items={s.dock} onSpace={toSpace} soon={soon} /> : null}
             </section>
           ))}
         </div>
@@ -311,7 +311,7 @@ function MeHero({ member }: { member: HouseMember }) {
   );
 }
 
-function Dock({ items, onSpace }: { items: DockItem[]; onSpace: (k: SpaceKey) => void }) {
+function Dock({ items, onSpace, soon }: { items: DockItem[]; onSpace: (k: SpaceKey) => void; soon: string[] }) {
   const row = useRef<HTMLDivElement>(null);
   const more = items.length > 5;
   // Arrows like the space arrows: left once scrolled, right until the end.
@@ -337,7 +337,7 @@ function Dock({ items, onSpace }: { items: DockItem[]; onSpace: (k: SpaceKey) =>
           const Icon = ICONS[d.icon] ?? House;
           const inner = (
             <>
-              <span className="hs-o-c"><Icon size={22} strokeWidth={1.7} aria-hidden="true" /></span>
+              <span className="hs-o-c"><Icon size={22} strokeWidth={1.7} aria-hidden="true" />{soon.some((p) => d.href.startsWith(p)) ? <span className="hs-o-soon">Soon</span> : null}</span>
               <span className="hs-o-l">{d.label}</span>
             </>
           );

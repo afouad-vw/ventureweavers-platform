@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getMember } from "@/lib/auth/guards";
 import { communityError, parseCommunity, type CommunityStatus } from "@/lib/blong/communities";
 import { isUuid } from "@/lib/blong/format";
+import { alertIfPending, reviewState } from "@/lib/blong/review-alert";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { checkUpload, contentMatches, extOf, sniff, UPLOAD_RULES } from "@/lib/uploads";
@@ -64,11 +65,14 @@ export async function saveCommunity(id: string | null, form: FormData, keepCover
   const args = { p_name: v.name, p_description: v.description, p_type: v.type, p_topics: v.topics, p_audience: v.audience, p_visibility: v.visibility, p_cover: v.cover };
   if (id) {
     if (!isUuid(id)) return { ok: false, error: "This community isn't available." };
+    const before = (await reviewState("community", { id }))?.status ?? null;
     const r = await rpc("update_community", { p_id: id, ...args });
+    if (r.ok) await alertIfPending("community", { id }, before);
     refresh();
     return r;
   }
   const r = await rpc<string>("create_community", args);
+  if (r.ok && r.value) await alertIfPending("community", { slug: r.value });
   refresh();
   return r;
 }

@@ -17,7 +17,7 @@ export type CommunityRow = {
   audience: string[];
   visibility: "public" | "private";
   cover_url: string | null;
-  status: "active" | "archived";
+  status: "active" | "archived" | "pending" | "declined";
   members: number;
   my_role: CommunityRole | null;
   my_status: CommunityStatus | null;
@@ -31,6 +31,9 @@ export type CommunityPage = Omit<CommunityRow, "my_role" | "my_status"> & {
   my_role: CommunityRole | null;
   my_status: CommunityStatus | null;
   can_see_inside: boolean;
+  /** For the people who run it and staff (Phase 19a). */
+  review_note?: string | null;
+  resubmitted?: boolean;
 };
 
 export type CommunityPerson = { id: string; name: string; avatar_url: string | null; roles: string[]; role: CommunityRole; status: CommunityStatus; since: string };
@@ -94,6 +97,8 @@ export function communityCta(c: Pick<CommunityRow, "visibility" | "my_role" | "m
 export const roleLabel = (r: CommunityRole) => (r === "owner" ? "Owner" : r === "admin" ? "Admin" : "Member");
 
 export function communityError(message: string): string {
+  if (message.includes("section_off")) return "Communities are coming soon. Press Notify me and we'll tell you when they open.";
+  if (message.includes("pending_review")) return "This community is waiting for the team's approval.";
   if (message.includes("too_many_communities")) return "You've created 3 communities today. Please try again tomorrow.";
   if (message.includes("too_many_invites")) return "You've sent a lot of invites in the last hour. Please wait a little.";
   if (message.includes("owner_must_transfer")) return "Hand the community to another member before leaving, or delete it.";

@@ -1,6 +1,8 @@
 -- BLong activity and feed (Phase 18d): who sees what someone did. Run with: npm run test:db
 \set ON_ERROR_STOP on
 begin;
+-- Phase 19a: approval is tested in blong_controls.sql; these tests create live items.
+update public.blong_settings set approve_communities = false, approve_discussions = false;
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000e101', 'doer@test', '{"name":"Dina Doer"}'),

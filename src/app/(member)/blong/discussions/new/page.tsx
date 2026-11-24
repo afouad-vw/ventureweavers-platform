@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { DiscussionForm } from "@/components/blong/discussion-form";
 import { Card } from "@/components/ui/card";
 import { requireMember } from "@/lib/auth/guards";
-import { listCommunities } from "@/lib/blong/queries";
+import { SectionSoon } from "@/components/blong/review";
+import { listCommunities, blongSections } from "@/lib/blong/queries";
 
 export const metadata: Metadata = { title: "Start a discussion" };
 
 export default async function NewDiscussionPage({ searchParams }: { searchParams: Promise<{ community?: string }> }) {
   await requireMember("/blong/discussions/new");
+  if (!(await blongSections()).discussions) return <SectionSoon section="discussions" />;
   const { community } = await searchParams;
   const mine = (await listCommunities("joined")).filter((c) => c.my_status === "active" && c.status === "active");
   return (

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getMember } from "@/lib/auth/guards";
 import { discussionError, parseDiscussion, type RoomMemberStatus, type RoomMessage } from "@/lib/blong/discussions";
 import { isUuid } from "@/lib/blong/format";
+import { alertIfPending, reviewState } from "@/lib/blong/review-alert";
 import { cleanMessage } from "@/lib/messages/format";
 import { roomMessages } from "@/lib/blong/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +32,9 @@ export async function saveDiscussion(id: string | null, form: FormData): Promise
   const v = parsed.value;
   if (id) {
     if (!isUuid(id)) return bad;
+    const before = (await reviewState("discussion", { id }))?.status ?? null;
     const r = await rpc("update_discussion", { p_id: id, p_title: v.title, p_description: v.description, p_category: v.category, p_tags: v.tags, p_limit: v.limit, p_privacy: v.privacy });
+    if (r.ok) await alertIfPending("discussion", { id }, before);
     refresh();
     return r;
   }
@@ -39,6 +42,7 @@ export async function saveDiscussion(id: string | null, form: FormData): Promise
   const r = await rpc<string>("create_discussion", {
     p_title: v.title, p_description: v.description, p_category: v.category, p_tags: v.tags, p_limit: v.limit, p_privacy: v.privacy, p_community: v.community,
   });
+  if (r.ok && r.value) await alertIfPending("discussion", { slug: r.value });
   refresh();
   return r;
 }

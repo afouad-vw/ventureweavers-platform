@@ -3,7 +3,7 @@ import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { CommunityPage, CommunityPerson, CommunityRow, CommunityTab } from "./communities";
 import type { DiscussionPage, DiscussionRow, DiscussionTab, RoomMessage } from "./discussions";
-import { isUuid, type Activity, type DmMessage, type DmThread, type FeedItem, type MemberCard, type MemberLite } from "./format";
+import { isUuid, type Activity, type BlongSections, type DmMessage, type DmThread, type FeedItem, type MemberCard, type MemberLite } from "./format";
 
 /** Members to follow (the database leaves out admins, suspended members, blocks and yourself). */
 export async function memberDirectory(q?: string, role?: string): Promise<MemberLite[]> {
@@ -142,4 +142,53 @@ export async function blongFeed(): Promise<FeedItem[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("blong_feed", { p_limit: 60 });
   return (data ?? []) as FeedItem[];
+}
+
+// ---------------------------------------------------------------- admin controls (19a)
+
+/** Which BLong sections are open (both, when the database can't say). */
+export async function blongSections(): Promise<BlongSections> {
+  const open: BlongSections = { communities: true, discussions: true };
+  if (!supabaseConfigured) return open;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_sections");
+  return { ...open, ...((data ?? {}) as Partial<BlongSections>) };
+}
+
+export type BlongSettings = { communities_on: boolean; discussions_on: boolean; approve_communities: boolean; approve_discussions: boolean; updated_at: string; updated_by: string | null };
+
+export async function blongAdminSettings(): Promise<BlongSettings | null> {
+  if (!supabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_admin_settings");
+  return (data ?? null) as BlongSettings | null;
+}
+
+export type PendingItem = {
+  kind: "community" | "discussion"; id: string; slug: string; name: string; description: string; label: string; privacy: string;
+  cover_url: string | null; community: string | null; owner_id: string; owner_name: string; resubmitted: boolean; created_at: string;
+};
+
+export async function blongPending(): Promise<PendingItem[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_pending");
+  return (data ?? []) as PendingItem[];
+}
+
+export type BlongStats = {
+  members: number; public: number; follows: number; follows_30: number;
+  communities: Record<string, number> | null; discussions: Record<string, number> | null;
+  communities_30: number; discussions_30: number; room_messages: number; room_messages_30: number; member_messages_30: number; joins_30: number;
+  active_7: number; active_30: number; reports_open: number; reports_handled_30: number; handle_hours: number | null; pending: number;
+  daily: { day: string; messages: number; joins: number; active: number }[];
+  top_communities: { name: string; slug: string; status: string; members: number; score: number }[];
+  top_discussions: { name: string; slug: string; status: string; members: number; score: number }[];
+};
+
+export async function blongStats(): Promise<BlongStats | null> {
+  if (!supabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_stats");
+  return (data ?? null) as BlongStats | null;
 }

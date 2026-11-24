@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { peopleById } from "@/lib/tvs/queries";
 import { waitItemHref, waitKey, type WaitItemType, type WaitPerson } from "@/lib/waitlist";
+import { BLONG_SECTION_IDS, BLONG_SECTION_TITLE, type BlongSection } from "@/lib/blong/format";
 
 const APP = `https://${process.env.APP_HOST ?? "app.ventureweavers.com"}`;
 
@@ -58,6 +59,7 @@ export async function sendWaitlistEmails(): Promise<number> {
   for (const x of (sv.data ?? []) as { id: string; slug: string; name: string; space: string }[]) items.set(waitKey("service", x.id), { title: x.name, href: waitItemHref("service", x), program: false });
   for (const x of (pr.data ?? []) as { id: string; slug: string; name: string }[]) items.set(waitKey("program", x.id), { title: x.name, href: waitItemHref("program", x), program: true });
   for (const x of (ev.data ?? []) as { id: string; slug: string; title: string; type: string }[]) items.set(waitKey("event", x.id), { title: x.title, href: waitItemHref("event", x), program: false });
+  for (const k of Object.keys(BLONG_SECTION_IDS) as BlongSection[]) items.set(waitKey("blong_section", BLONG_SECTION_IDS[k]), { title: BLONG_SECTION_TITLE[k], href: waitItemHref("blong_section", { slug: k }), program: false });
 
   const people = await peopleById(rows.map((r) => r.member_id));
   const emails: BatchEmail[] = [];
@@ -67,7 +69,7 @@ export async function sendWaitlistEmails(): Promise<number> {
     const p = people.get(r.member_id);
     if (!item || !p?.email) { done.push(r.id); continue; }
     const first = p.name && p.name !== "Member" ? `Hi ${esc(p.name.split(" ")[0])}, ` : "";
-    const verb = item.program ? "is now open for applications" : r.item_type === "event" ? "is now open for booking" : "is now open";
+    const verb = item.program ? "is now open for applications" : r.item_type === "event" ? "is now open for booking" : r.item_type === "blong_section" ? "are now open" : "is now open";
     emails.push({
       to: p.email,
       subject: `${item.title} ${verb}`,

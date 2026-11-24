@@ -229,7 +229,8 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
         </div>
       ) : (
         <p className="border-t border-line px-4 py-3 text-[12.5px] text-faint">
-          {d.status === "closed" ? "This discussion is closed. You can still read it." : d.status === "archived" ? "This discussion is archived." : "Join the discussion to post."}
+          {d.status === "closed" ? "This discussion is closed. You can still read it." : d.status === "archived" ? "This discussion is archived."
+            : d.status === "pending" ? "Posting opens once the team approves this discussion." : d.status === "declined" ? "This discussion wasn't approved." : "Join the discussion to post."}
         </p>
       )}
       {report ? <ReportDialog open onClose={() => setReport(null)} kind="room_message" target={report.id} name={report.name} /> : null}
@@ -258,10 +259,10 @@ export function RoomManage({ d }: { d: Pick<DiscussionPage, "id" | "title" | "st
     <span className="flex flex-wrap gap-2">
       {admin && d.status === "open" ? <Button size="sm" variant="secondary" disabled={pending} onClick={() => run("closed", "Discussion closed")}>Close discussion</Button> : null}
       {admin && d.status === "closed" ? <Button size="sm" variant="secondary" disabled={pending} onClick={() => run("open", "Discussion reopened")}>Reopen</Button> : null}
-      {owner && d.status !== "archived" ? <Button size="sm" variant="secondary" disabled={pending} onClick={() => setConfirm("archive")}>Archive</Button> : null}
+      {owner && (d.status === "open" || d.status === "closed") ? <Button size="sm" variant="secondary" disabled={pending} onClick={() => setConfirm("archive")}>Archive</Button> : null}
       {owner && d.status === "archived" && !d.archived_by_team ? <Button size="sm" variant="secondary" disabled={pending} onClick={() => run("open", "Discussion restored")}>Restore</Button> : null}
       {owner ? <Button size="sm" variant="danger" disabled={pending} onClick={() => setConfirm("delete")}><Trash2 size={14} aria-hidden="true" />Delete</Button> : null}
-      {!owner && d.status !== "archived" ? <Button size="sm" variant="ghost" onClick={() => setReport(true)}><Flag size={14} aria-hidden="true" />Report</Button> : null}
+      {!owner && (d.status === "open" || d.status === "closed") ? <Button size="sm" variant="ghost" onClick={() => setReport(true)}><Flag size={14} aria-hidden="true" />Report</Button> : null}
       <ReportDialog open={report} onClose={() => setReport(false)} kind="discussion" target={d.id} name={d.title} />
       <Modal open={confirm !== null} onClose={() => setConfirm(null)} title={confirm === "delete" ? `Delete ${d.title}?` : `Archive ${d.title}?`} footer={<>
         <Button variant="secondary" onClick={() => setConfirm(null)}>Cancel</Button>

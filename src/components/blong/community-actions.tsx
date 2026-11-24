@@ -223,7 +223,7 @@ export function CommunityOwnerZone({ c }: { c: Pick<CommunityPage, "id" | "name"
     });
   return (
     <div className="flex flex-wrap gap-2">
-      {c.status === "active" ? (
+      {c.status === "pending" || c.status === "declined" ? null : c.status === "active" ? (
         <Button variant="secondary" size="sm" disabled={pending} onClick={() => setConfirm("archive")}><Archive size={14} aria-hidden="true" />Archive</Button>
       ) : c.archived_by_team ? null : (
         <Button variant="secondary" size="sm" disabled={pending} onClick={() => run(() => setCommunityStatus(c.id, "active"), "Community restored")}>Restore</Button>
