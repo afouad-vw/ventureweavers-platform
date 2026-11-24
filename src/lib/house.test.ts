@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { isHouseLook, isMentorship, panelMeta, SLIDES, slideIndex } from "./house";
 
 describe("house slides", () => {
-  it("has the house, four spaces and My space in order", () => {
-    expect(SLIDES.map((s) => s.key)).toEqual(["house", "outloud", "tvs", "brickr", "quidquo", "me"]);
+  it("has the house, five spaces and My space in order", () => {
+    expect(SLIDES.map((s) => s.key)).toEqual(["house", "outloud", "tvs", "brickr", "quidquo", "blong", "me"]);
     expect(SLIDES[0].dock).toEqual([]);
-    expect(slideIndex("me")).toBe(5);
+    expect(slideIndex("me")).toBe(6);
   });
   it("lists the sections asked for under each space", () => {
     const labels = (k: string) => SLIDES.find((s) => s.key === k)!.dock.map((d) => d.label);
@@ -13,6 +13,7 @@ describe("house slides", () => {
     expect(labels("tvs")).toEqual(["Programs", "Masterclasses", "Private programs"]);
     expect(labels("brickr")).toEqual(["Fractional services", "Mentorship"]);
     expect(labels("quidquo")).toEqual(["Progress", "Waiting list"]);
+    expect(labels("blong")).toEqual(["Communities", "Discussions", "Networking"]);
     expect(labels("me")).toEqual(["Tickets", "Learning", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
   });
 });
@@ -27,6 +28,11 @@ describe("panelMeta", () => {
     expect(panelMeta("/quidquo", "?tab=waitlist").title).toBe("Waiting list");
     expect(panelMeta("/my-space", "?tab=profile").title).toBe("Profile settings");
     expect(panelMeta("/my-space", "").title).toBe("Tickets");
+    expect(panelMeta("/my-space", "?tab=privacy").title).toBe("Profile settings");
+    expect(panelMeta("/blong/networking", "?tab=requests").title).toBe("Networking");
+    expect(panelMeta("/blong/members/00000000-0000-0000-0000-000000000001").detail).toBe(true);
+    expect(panelMeta("/blong/communities").space).toBe("blong");
+    expect(panelMeta("/blong/networking").detail).toBe(false);
   });
   it("puts each page behind the right space", () => {
     expect(panelMeta("/live").space).toBe("outloud");

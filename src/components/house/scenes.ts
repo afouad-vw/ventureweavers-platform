@@ -18,12 +18,11 @@ export type Scene = {
 
 export const SCENES: Partial<Record<SpaceKey, Scene>> = {
   house: {
-    src: "/landing/house.webp", width: 2000, height: 1618, plain: true,
-    alt: "The VentureWeavers house: a show stage, a classroom, a workshop and an AI lab joined by glowing teal threads",
+    src: "/landing/house-blong.webp", width: 2000, height: 1618, plain: true,
+    alt: "The VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, with members networking in the middle, joined by glowing teal threads",
     flows: [
       [[31.8, 45.3], [42, 39.5], [46, 35.6], [47.7, 33.6]],
       [[64.8, 45.5], [56, 40.2], [51.6, 35.6], [50.2, 34.4]],
-      [[40.5, 45], [44, 47], [46, 50], [46.2, 53], [44.8, 57]],
       [[29.3, 86.2], [33, 87.9], [35.5, 87.6], [46, 79.5], [48.4, 78.2]],
       [[70.5, 83.9], [66, 87.4], [64, 87.6], [51, 79.3], [48.4, 78.2]],
       [[37.9, 71], [48.4, 78.2], [58.6, 84.8]],
@@ -35,6 +34,7 @@ export const SCENES: Partial<Record<SpaceKey, Scene>> = {
       { label: "The Venture School", x: 79.9, y: 6, colour: COLOURS.tvs, to: "tvs" },
       { label: "QuidQuo", x: 13.3, y: 53.5, colour: COLOURS.quidquo, to: "quidquo" },
       { label: "BRICKR", x: 82.7, y: 53.5, colour: COLOURS.brickr, to: "brickr" },
+      { label: "BLong", x: 48, y: 47, colour: COLOURS.blong, to: "blong" },
     ],
   },
   outloud: {
@@ -56,6 +56,11 @@ export const SCENES: Partial<Record<SpaceKey, Scene>> = {
     src: "/landing/lab.webp", width: 1800, height: 1442, alt: "QuidQuo: an AI lab with glowing screens",
     flows: [[[0, 94.6], [36, 70], [37.6, 68.4], [48, 61.6]]],
     labels: [{ label: "Waitlist open", x: 72, y: 22 }],
+  },
+  blong: {
+    src: "/landing/blong.webp", width: 2000, height: 1611, alt: "BLong: members networking in a lounge under a violet light, linked by teal threads",
+    flows: [],
+    labels: [{ label: "Meet", x: 20, y: 30 }, { label: "Talk", x: 50, y: 14 }, { label: "Connect", x: 82, y: 32 }],
   },
 };
 

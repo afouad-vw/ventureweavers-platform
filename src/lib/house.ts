@@ -9,7 +9,7 @@ export const HOUSE_COOKIE = "vw_ui";
 export const CLASSIC_VALUE = "classic";
 export const isHouseLook = (cookie: string | undefined) => cookie !== CLASSIC_VALUE;
 
-export type SpaceKey = "house" | "outloud" | "tvs" | "brickr" | "quidquo" | "me";
+export type SpaceKey = "house" | "outloud" | "tvs" | "brickr" | "quidquo" | "blong" | "me";
 
 export type DockItem = { label: string; href: string; icon: string; colour: string; signOut?: boolean };
 
@@ -25,12 +25,12 @@ export type Slide = {
   dock: DockItem[];
 };
 
-export const COLOURS = { teal: "#29BE9C", outloud: "#E39B2D", tvs: "#1F4FA3", brickr: "#B5532F", quidquo: "#8DBF2E" } as const;
-export const TINTS = { teal: "#5fe0c0", outloud: "#F2B65A", tvs: "#8AAEF0", brickr: "#E8896A", quidquo: "#B4DD5E" } as const;
+export const COLOURS = { teal: "#29BE9C", outloud: "#E39B2D", tvs: "#1F4FA3", brickr: "#B5532F", quidquo: "#8DBF2E", blong: "#7C5CE0" } as const;
+export const TINTS = { teal: "#5fe0c0", outloud: "#F2B65A", tvs: "#8AAEF0", brickr: "#E8896A", quidquo: "#B4DD5E", blong: "#B4A2F5" } as const;
 
 export const SLIDES: Slide[] = [
   {
-    key: "house", short: "House", name: "VentureWeavers", kicker: "One house · four spaces",
+    key: "house", short: "House", name: "VentureWeavers", kicker: "One house · five spaces",
     line: "Tap a space on the house, or use the arrow to walk through it.", colour: COLOURS.teal, tint: TINTS.teal,
     // No icons on the house itself: the top row and the house lead to each space.
     dock: [],
@@ -67,6 +67,15 @@ export const SLIDES: Slide[] = [
     dock: [
       { label: "Progress", href: "/quidquo", icon: "activity", colour: COLOURS.quidquo },
       { label: "Waiting list", href: "/quidquo?tab=waitlist", icon: "list", colour: COLOURS.quidquo },
+    ],
+  },
+  {
+    key: "blong", short: "BLong", name: "BLong", kicker: "Community · Engage and connect", line: "Where members meet, talk and grow together.",
+    colour: COLOURS.blong, tint: TINTS.blong,
+    dock: [
+      { label: "Communities", href: "/blong/communities", icon: "users", colour: COLOURS.blong },
+      { label: "Discussions", href: "/blong/discussions", icon: "chat", colour: COLOURS.blong },
+      { label: "Networking", href: "/blong/networking", icon: "net", colour: COLOURS.blong },
     ],
   },
   {
@@ -112,13 +121,16 @@ const SUBS: Record<string, string> = {
   Saved: "Shows, programs, services and posts you saved for later.",
   "Profile settings": "How you appear to the team, and how we reach you.",
   Library: "Guides, templates and resources from the team.",
-  Messages: "You and the VentureWeavers team.",
+  Messages: "Your conversations with the VentureWeavers team and with other members.",
   "Updates & Notifications": "What's new for you across the house, and everything that needs your attention.",
   Search: "Find shows, programs, services and posts.",
   "Share your news": "Tell us what happened at your business.",
+  Communities: "Groups around a topic, an industry, a role or a place. Join one or start your own.",
+  Discussions: "Rooms to talk one topic through. Join an open room, ask to join, or start one.",
+  Networking: "Find members, follow them, and answer follow requests.",
 };
 
-const SPACE_NAMES: Record<SpaceKey, string> = { house: "VentureWeavers", outloud: "Outloud", tvs: "The Venture School", brickr: "BRICKR", quidquo: "QuidQuo", me: "My space" };
+const SPACE_NAMES: Record<SpaceKey, string> = { house: "VentureWeavers", outloud: "Outloud", tvs: "The Venture School", brickr: "BRICKR", quidquo: "QuidQuo", blong: "BLong", me: "My space" };
 
 /** Which space and section a member page belongs to, for the panel header and the slide behind it. */
 export function panelMeta(pathname: string, search: string | URLSearchParams = ""): PanelMeta {
@@ -151,8 +163,14 @@ export function panelMeta(pathname: string, search: string | URLSearchParams = "
       return make("brickr", seg[1] ? "Project" : "My projects", "brief");
     case "quidquo":
       return tab === "waitlist" ? make("quidquo", "Waiting list", "list") : make("quidquo", "Progress", "activity");
+    case "blong":
+      if (seg[1] === "members") return make("blong", "Member", "user");
+      if (seg[1] === "communities") return make("blong", "Communities", "users", seg.length > 2);
+      if (seg[1] === "discussions") return make("blong", "Discussions", "chat", seg.length > 2);
+      return make("blong", "Networking", "net", false);
     case "my-space": {
-      const item = SLIDES[5].dock.find((d) => d.href === `/my-space?tab=${tab}`);
+      if (tab === "privacy") return make("me", "Profile settings", "sliders");
+      const item = SLIDES[slideIndex("me")].dock.find((d) => d.href === `/my-space?tab=${tab}`);
       return item ? make("me", item.label, item.icon) : make("me", "Tickets", "ticket");
     }
     case "share-news":

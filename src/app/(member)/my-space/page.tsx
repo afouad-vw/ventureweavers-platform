@@ -26,6 +26,10 @@ import { WithdrawButton } from "@/components/brickr/brickr-client";
 import { CancelReservation } from "./cancel-button";
 import { businessesOf } from "@/lib/profile/businesses";
 import { ProfileForm, type ProfileValues } from "./profile-form";
+import { PrivacyForm } from "./privacy-form";
+import { MemberAvatar } from "@/components/blong/member-avatar";
+import { UnblockButton } from "@/components/blong/member-actions";
+import { myBlocked, myPrivacy } from "@/lib/blong/queries";
 import { NEWS_STATUS } from "@/lib/news/format";
 import { myNews } from "@/lib/news/queries";
 import { FolderKanban, Megaphone } from "lucide-react";
@@ -55,6 +59,7 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
     { value: "news", label: "My news" },
     { value: "saved", label: "Saved", count: savedCount ?? 0 },
     { value: "profile", label: "Profile & settings" },
+    { value: "privacy", label: "Privacy" },
   ];
   const tab = tabs.some((t) => t.value === raw) ? raw! : "tickets";
   const name = p?.full_name || member.email || "Member";
@@ -90,6 +95,10 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
       {tab === "payments" ? <Payments payments={payments} /> : null}
       {tab === "news" ? <News /> : null}
       {tab === "saved" ? <Saved /> : null}
+      {tab === "profile" || tab === "privacy" ? (
+        <LinkTabs label="Profile settings" items={[{ value: "profile", label: "About you" }, { value: "privacy", label: "Privacy" }]} value={tab} hrefFor={(v) => `/my-space?tab=${v}`} />
+      ) : null}
+      {tab === "privacy" ? <Privacy memberId={member.id} /> : null}
       {tab === "profile" ? (
         <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
           <Card>
@@ -129,6 +138,34 @@ export default async function MySpacePage({ searchParams }: { searchParams: Prom
         </div>
       ) : null}
     </>
+  );
+}
+
+async function Privacy({ memberId }: { memberId: string }) {
+  const [p, blocked] = await Promise.all([myPrivacy(memberId), myBlocked()]);
+  return (
+    <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
+      <Card>
+        <CardHeader title="Privacy in BLong" action={<Link href={`/blong/members/${memberId}`} scroll={false} className="text-link">See your card</Link>} />
+        <PrivacyForm initial={{ visibility: p.visibility, bio: p.bio ?? "", links: p.links ?? [], activity: p.show_activity ?? [] }} />
+      </Card>
+      <Card>
+        <CardHeader title="Blocked members" />
+        {blocked.length ? (
+          <ul className="flex flex-col gap-2">
+            {blocked.map((b) => (
+              <li key={b.id} className="flex items-center gap-2.5">
+                <MemberAvatar id={b.id} name={b.name} src={b.avatar_url} size={32} />
+                <b className="min-w-0 flex-1 truncate text-[13.5px]">{b.name}</b>
+                <UnblockButton id={b.id} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-[13px] text-faint">Nobody blocked. You can block someone from their page.</p>
+        )}
+      </Card>
+    </div>
   );
 }
 

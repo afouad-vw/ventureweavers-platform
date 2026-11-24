@@ -14,6 +14,7 @@ import { getMember } from "@/lib/auth/guards";
 import { myLiveShows } from "@/lib/live/queries";
 import { myNotifications } from "@/lib/notifications/queries";
 import { myUnreadMessages } from "@/lib/messages/queries";
+import { myDmUnread } from "@/lib/blong/queries";
 
 /** Member pages are for signed-in members only; keep them out of search engines. */
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -33,7 +34,11 @@ export default async function MemberLayout({ children }: { children: React.React
   }
   const name = m?.name || m?.email || "Member";
   const [liveShows, notifications, unreadMessages] = m
-    ? await Promise.all([myLiveShows().catch(() => []), myNotifications().catch(() => []), myUnreadMessages().catch(() => 0)])
+    ? await Promise.all([
+        myLiveShows().catch(() => []),
+        myNotifications().catch(() => []),
+        Promise.all([myUnreadMessages().catch(() => 0), myDmUnread().catch(() => 0)]).then(([a, b]) => a + b),
+      ])
     : [[], [], 0];
   const live = liveShows.length > 0;
   // The one-screen "house" look (the classic sidebar look only for browsers that chose it at /new-look?off=1).

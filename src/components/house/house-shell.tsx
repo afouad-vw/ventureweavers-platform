@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Activity, ArrowLeft, Bell, BookMarked, BookOpen, Bookmark, BrickWall, Briefcase, ChevronLeft, ChevronRight, ClipboardList, Compass, Cpu, CreditCard,
-  GraduationCap, House, Inbox, LogOut, Megaphone, MessageSquare, Mic, MonitorPlay, Presentation, Radio, Search, SlidersHorizontal, Ticket, User, Users, X,
+  GraduationCap, House, Inbox, LogOut, Megaphone, MessageSquare, MessagesSquare, Mic, Network, MonitorPlay, Presentation, Radio, Search, SlidersHorizontal, Ticket, User, Users, X,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
@@ -22,7 +22,7 @@ import "./house.css";
 const ICONS: Record<string, LucideIcon> = {
   mic: Mic, cap: GraduationCap, bricks: BrickWall, cpu: Cpu, user: User, radio: Radio, play: MonitorPlay, book: BookOpen, board: Presentation,
   users: Users, brief: Briefcase, compass: Compass, activity: Activity, list: ClipboardList, ticket: Ticket, learn: BookMarked, inbox: Inbox,
-  card: CreditCard, mega: Megaphone, mark: Bookmark, sliders: SlidersHorizontal, out: LogOut, msg: MessageSquare, search: Search, house: House, bell: Bell,
+  card: CreditCard, mega: Megaphone, mark: Bookmark, sliders: SlidersHorizontal, out: LogOut, msg: MessageSquare, search: Search, house: House, bell: Bell, chat: MessagesSquare, net: Network,
 };
 
 export type HouseMember = { name: string; firstName: string; initials: string; avatar?: string | null } | null;
@@ -133,7 +133,7 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
             <>
               <span className="hs-tip" data-tip="Updates & Notifications"><UpdatesButton initial={notifications} /></span>
               <span className="hs-tip" data-tip="Messages"><MessagesButton initial={unreadMessages} /></span>
-              <button type="button" className={`hs-me ${slide === 5 && !panelOpen ? "on" : ""}`} aria-label="My space" onClick={() => toSpace("me")}>
+              <button type="button" className={`hs-me ${slide === slideIndex("me") && !panelOpen ? "on" : ""}`} aria-label="My space" onClick={() => toSpace("me")}>
                 {member.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
                   <img src={member.avatar} alt="" referrerPolicy="no-referrer" />
@@ -246,6 +246,7 @@ function MeHero({ member }: { member: HouseMember }) {
           <i style={{ "--c": "#1F4FA3", right: -6, top: "50%" } as React.CSSProperties} />
           <i style={{ "--c": "#B5532F", left: "50%", bottom: -6 } as React.CSSProperties} />
           <i style={{ "--c": "#8DBF2E", left: -6, top: "50%" } as React.CSSProperties} />
+          <i style={{ "--c": "#7C5CE0", left: "14%", top: "14%" } as React.CSSProperties} />
         </div>
         {member?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle

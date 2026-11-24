@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Briefcase, Building2, Cpu, CreditCard, FolderKanban, GraduationCap, House, Inbox, Megaphone, MessageSquare, Mic, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Briefcase, Building2, Cpu, CreditCard, Flag, FolderKanban, GraduationCap, House, Inbox, Megaphone, MessageSquare, Mic, Network, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
 
 export type Thread = "Outloud" | "TVS" | "BRICKR" | "QuidQuo";
 
@@ -18,6 +18,7 @@ export const memberSpaces: NavItem[] = [
   { href: "/tvs", label: "TVS", icon: GraduationCap, thread: "TVS", kind: "Education" },
   { href: "/brickr", label: "BRICKR", icon: Briefcase, thread: "BRICKR", kind: "Services" },
   { href: "/quidquo", label: "QuidQuo", icon: Cpu, thread: "QuidQuo", kind: "Technology" },
+  { href: "/blong/networking", label: "BLong", icon: Network, kind: "Community" },
   { href: "/library", label: "Library", icon: BookOpen, kind: "Resources" },
 ];
 
@@ -33,6 +34,7 @@ export const adminMain: NavItem[] = [
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/requests", label: "Requests", icon: Inbox },
   { href: "/admin/messages", label: "Messages", icon: MessageSquare },
+  { href: "/admin/community", label: "Community", icon: Flag },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
 ];
 

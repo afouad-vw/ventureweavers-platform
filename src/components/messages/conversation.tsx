@@ -19,6 +19,8 @@ export function Conversation({
   emptyText,
   placeholder = "Write a message",
   className,
+  theirName,
+  onReport,
 }: {
   messages: Message[];
   viewer: "member" | "team";
@@ -27,6 +29,10 @@ export function Conversation({
   emptyText: React.ReactNode;
   placeholder?: string;
   className?: string;
+  /** Member-to-member chats: the other person's name in place of "VentureWeavers". */
+  theirName?: string;
+  /** Member-to-member chats: a Report link on the other person's messages. */
+  onReport?: (id: string) => void;
 }) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +77,10 @@ export function Conversation({
               {g.items.map((m) => (
                 <div key={m.id} className={cn("flex max-w-[85%] flex-col gap-0.5 desk:max-w-[70%]", mine(m) ? "items-end self-end" : "items-start self-start")}>
                   <span className="px-1 text-[11.5px] font-bold text-faint">
-                    {m.from_team ? (viewer === "member" ? "VentureWeavers" : m.author || "Team") : viewer === "member" ? "You" : "Member"} · {messageTime(m.created_at)}
+                    {m.from_team ? (viewer === "member" ? theirName || "VentureWeavers" : m.author || "Team") : viewer === "member" ? "You" : "Member"} · {messageTime(m.created_at)}
+                    {onReport && !mine(m) ? (
+                      <button type="button" className="ml-2 cursor-pointer font-bold text-faint underline-offset-2 hover:text-fg hover:underline" onClick={() => onReport(m.id)}>Report</button>
+                    ) : null}
                   </span>
                   <p
                     className={cn(

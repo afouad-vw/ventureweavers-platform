@@ -1,6 +1,6 @@
-/** Privacy policy and terms of use, approved by Ahmed on 2026-11-16. Edit here; the pages render this Markdown. */
+/** Privacy policy and terms of use, approved by Ahmed on 2026-11-16; BLong sections added with Phase 18 (2026-11-24). Edit here; the pages render this Markdown. */
 
-export const LEGAL_UPDATED = "16 November 2026";
+export const LEGAL_UPDATED = "24 November 2026";
 export const LEGAL_CONTACT = "info@ventureweavers.com";
 
 export const PRIVACY = `This policy explains what personal data VentureWeavers collects when you use our website and member app (app.ventureweavers.com), how we use it and the choices you have.
@@ -31,7 +31,9 @@ We do not sell your personal data, and we do not use it for third-party advertis
 
 ## Who can see your data
 
-Ahmed and Karim, and team members they give access to, can see member details in our admin console. Team members only see the areas they need for their role. Everything else stays private between you and VentureWeavers.
+Ahmed and Karim, and team members they give access to, can see member details in our admin console. Team members only see the areas they need for their role.
+
+**Other members, in BLong (our community space):** your account is Private unless you make it Public. Any signed-in member can see your name, photo and Ecosystem Roles. If your account is Public, or for members whose follow request you accept, they can also see your bio, country, businesses, LinkedIn and the links you add, and the kinds of VW activity you choose to show (such as shows you attend or programs you join). Your email, phone, payments and requests to the team are never shown to other members. Messages between members are private to the two of you: the team does not read them, except a single message one of you reports.
 
 We use these service providers to run the platform. Each only processes data to provide its service to us:
 
@@ -114,6 +116,18 @@ Do not:
 - copy our content or use the platform to sell or advertise without our permission
 
 At shows and private sessions, follow the hosts' and venue's instructions.
+
+## Community guidelines (BLong)
+
+BLong is where members meet, follow each other, message and talk in communities and discussions. In BLong:
+
+- be respectful, even when you disagree
+- no spam, and no selling or pitching to people who haven't asked
+- don't share other members' private details, messages or stories without their consent
+- only create communities and discussions you are willing to look after
+- report anything that breaks these guidelines from the member's page or the message; reports go to the VentureWeavers team, and the person isn't told who reported them
+
+You can block any member at any time. We may remove content, close communities or discussions, and suspend accounts that break these guidelines.
 
 ## Bookings, programs and payments
 

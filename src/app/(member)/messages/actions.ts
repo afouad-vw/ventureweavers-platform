@@ -5,6 +5,7 @@ import { getMember } from "@/lib/auth/guards";
 import { sendMessageAlert } from "@/lib/email/messages";
 import { cleanMessage, type Message } from "@/lib/messages/format";
 import { myConversation, myUnreadMessages } from "@/lib/messages/queries";
+import { myDmUnread } from "@/lib/blong/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export type SendResult = { ok: true } | { ok: false; error: string };
@@ -42,7 +43,9 @@ export async function markMyMessagesRead(): Promise<void> {
   await supabase.rpc("mark_my_messages_read");
 }
 
+/** Unread team replies plus unread member chats, for the top bar. */
 export async function fetchUnreadMessages(): Promise<number | null> {
   if (!(await getMember())) return null;
-  return myUnreadMessages();
+  const [team, members] = await Promise.all([myUnreadMessages(), myDmUnread().catch(() => 0)]);
+  return team + members;
 }
