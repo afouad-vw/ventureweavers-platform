@@ -1,6 +1,6 @@
 # Phase 19 plan: BLong controls, moderation, posts and filters
 
-Status: **waiting for approval** (2026-11-24). Asked by Ahmed. Touches the database and access rules, so nothing here is built until approved.
+Status: **approved** (2026-11-24). 19a live (migration `20261124000005_blong_controls.sql`); 19b, 19c and 19d to build. Asked by Ahmed. Touches the database and access rules, so nothing here is built until approved.
 
 Answers already given: engagement goes on **discussion messages** and a **new post wall in each community**; the admin switch turns **whole sections** (Communities, Discussions) off into Coming soon; moderation covers **blocked words, links and spam, new member limits and auto-hide after reports**.
 
