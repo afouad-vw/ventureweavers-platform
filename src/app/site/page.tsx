@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import {
   ArrowRight, ArrowUpRight, BellRing, BookOpen, Briefcase, Building2, CalendarCheck, Compass, Cpu, GraduationCap, Handshake, Landmark, Library,
   Lightbulb, Linkedin, Mail, Megaphone, MessageCircleQuestion, MessageSquare, Mic, Instagram, QrCode, Rocket, Route, Shuffle, Sparkles,
-  UserPlus, Users, MessagesSquare, Youtube, type LucideIcon,
+  UserPlus, Users, MessagesSquare, Network, Youtube, type LucideIcon,
 } from "lucide-react";
 import { HScroll, LitStatement, RevealOnScroll, Magnetic, NavScroll, ScrollProgress, StackDeck, Tilt } from "@/components/landing/fx";
 import { LogoWeave, OpenFloorStage, TvacRoom } from "@/components/landing/open-floor";
@@ -17,7 +17,7 @@ import "./landing.css";
 const SITE_URL = `https://${hostConfig().site}`;
 const TITLE = "VentureWeavers | One house for MENA's venture ecosystem";
 const DESCRIPTION =
-  "Shows, venture education, fractional leadership and AI for capital formation from Ahmed Fouad and Karim Hemdan. Based in Cairo, working across MENA.";
+  "Shows, venture education, fractional leadership, AI for capital formation and a member community from Ahmed Fouad and Karim Hemdan, in Cairo, across MENA.";
 const SHARE_IMAGE = { url: "/images/og-logo.png", width: 1200, height: 630, alt: "VentureWeavers", type: "image/png" };
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   category: "Business",
   keywords: [
     "VentureWeavers", "MENA venture ecosystem", "Cairo startups", "Egypt venture capital", "venture building", "fractional leadership",
-    "startup mentorship", "venture education", "The Venture School", "Open Floor", "Outloud", "BRICKR", "QuidQuo", "capital formation", "angel investing",
+    "startup mentorship", "venture education", "The Venture School", "Open Floor", "Outloud", "BRICKR", "QuidQuo", "BLong", "founder community", "capital formation", "angel investing",
   ],
   alternates: { canonical: "/" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
@@ -144,6 +144,23 @@ const SPACES: Space[] = [
     flows: [[[0, 94.6], [36, 70], [37.6, 68.4], [48, 61.6]]],
     icon: Cpu,
   },
+  {
+    key: "blong",
+    name: "BLong",
+    colour: "#7C5CE0",
+    tint: "#B4A2F5",
+    kicker: "Community · Engage and connect",
+    line: "Where members meet, talk and grow together.",
+    body: "The community space, run by the members themselves. Find people across the ecosystem and follow them, start or join communities around a topic, an industry, a role or a place, and talk things through in live discussions. Every member chooses who can follow them, message them and see what they do.",
+    points: ["Member networking", "Follow and message members", "Communities", "Live discussions", "A feed from people you follow", "Public or private profile"],
+    cta: "Meet the community",
+    href: "/blong/networking",
+    photo: "/landing/blong.webp",
+    size: [2000, 1611],
+    labels: [{ label: "Meet", x: 20, y: 30 }, { label: "Talk", x: 50, y: 14 }, { label: "Connect", x: 82, y: 32 }],
+    flows: [],
+    icon: Network,
+  },
 ];
 
 const AUDIENCES: { icon: LucideIcon; name: string; body: string }[] = [
@@ -159,7 +176,7 @@ const AUDIENCES: { icon: LucideIcon; name: string; body: string }[] = [
 
 const STEPS = [
   { n: "01", icon: UserPlus, title: "Create your account", body: "Sign up with Google, LinkedIn or email, then tell us your role in the ecosystem and what you're building. It takes about two minutes." },
-  { n: "02", icon: Sparkles, title: "Step into every space", body: "Book Outloud shows, apply to TVS programs, request a BRICKR meeting and join the QuidQuo waitlist, all from one place." },
+  { n: "02", icon: Sparkles, title: "Step into every space", body: "Book Outloud shows, apply to TVS programs, request a BRICKR meeting, join the QuidQuo waitlist and meet members in BLong, all from one place." },
   { n: "03", icon: MessageSquare, title: "Stay close to the house", body: "Message the team, read VW Notes, open the library and share your own business news with the community." },
 ];
 
@@ -168,6 +185,7 @@ const FEATURES: { icon: LucideIcon; label: string }[] = [
   { icon: GraduationCap, label: "Apply to programs" },
   { icon: Users, label: "Meet the partners" },
   { icon: Cpu, label: "QuidQuo waitlist" },
+  { icon: Network, label: "Communities and discussions" },
   { icon: BookOpen, label: "VW Notes" },
   { icon: Library, label: "Library" },
   { icon: MessageSquare, label: "Message the team" },
@@ -179,13 +197,13 @@ const HOUSE_SPOTS: Hotspot[] = [
   { label: "The Venture School", x: 79.9, y: 4, colour: "#1F4FA3", href: "#space-tvs" },
   { label: "QuidQuo", x: 13.3, y: 53.5, colour: "#8DBF2E", href: "#space-quidquo" },
   { label: "BRICKR", x: 82.7, y: 53.5, colour: "#B5532F", href: "#space-brickr" },
+  { label: "BLong", x: 48, y: 47, colour: "#7C5CE0", href: "#space-blong" },
 ];
 
 // The teal threads on the house floors, traced from the image (in % of it).
 const HOUSE_FLOWS: FlowPath[] = [
   { colour: "#29BE9C", points: [[31.8, 45.3], [42, 39.5], [46, 35.6], [47.7, 33.6]] },
   { colour: "#29BE9C", points: [[64.8, 45.5], [56, 40.2], [51.6, 35.6], [50.2, 34.4]] },
-  { colour: "#29BE9C", points: [[40.5, 45], [44, 47], [46, 50], [46.2, 53], [44.8, 57]] },
   { colour: "#29BE9C", points: [[29.3, 86.2], [33, 87.9], [35.5, 87.6], [46, 79.5], [48.4, 78.2]] },
   { colour: "#29BE9C", points: [[70.5, 83.9], [66, 87.4], [64, 87.6], [51, 79.3], [48.4, 78.2]] },
   { colour: "#29BE9C", points: [[37.9, 71], [48.4, 78.2], [58.6, 84.8]] },
@@ -318,8 +336,8 @@ export default async function SitePage() {
             </div>
             <div className="lp-fade-in relative -mx-5 sm:mx-0 sm:px-6 desk:-mr-16 desk:px-0" style={{ "--delay": ".3s" } as React.CSSProperties}>
               <FloatingScene
-                src="/landing/house.webp"
-                alt="A 3D cutaway of the VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, joined by glowing teal threads"
+                src="/landing/house-blong.webp"
+                alt="A 3D cutaway of the VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, with members networking in the middle, joined by glowing teal threads"
                 width={2000}
                 height={1618}
                 priority
@@ -343,7 +361,7 @@ export default async function SitePage() {
                 {["Founders", "Angel investors", "Institutional investors", "Venture studios", "Corporates", "Hubs and accelerators", "Experts and mentors", "Career professionals", "Ecosystem newcomers"].map((a, i) => (
                   <li key={a} className="flex items-center gap-10 whitespace-nowrap">
                     {a}
-                    <span className="h-2 w-2 rounded-full" style={{ background: SPACES[i % 4].colour }} />
+                    <span className="h-2 w-2 rounded-full" style={{ background: SPACES[i % SPACES.length].colour }} />
                   </li>
                 ))}
               </ul>
@@ -355,20 +373,20 @@ export default async function SitePage() {
         <section className="mx-auto max-w-[1100px] px-5 py-24 desk:px-8 desk:py-36" aria-label="What we do">
           <LitStatement
             className="font-display text-[30px] leading-[1.18] font-semibold sm:text-[40px] desk:text-[56px]"
-            text="Shows on stage, a school for venture, partners who build with you and AI for raising capital. Four spaces, woven into one house."
+            text="Shows on stage, a school for venture, partners who build with you, AI for raising capital and a community to meet in. Five spaces, woven into one house."
             teal={["woven", "house"]}
           />
         </section>
 
         {/* ---------------------------------------------------------------- the journey (pinned) */}
         <div id="journey" className="scroll-mt-0">
-          <Journey src="/landing/journey.webp" width={5504} height={3072} steps={JOURNEY(app, join)} eyebrow="Walk through the house" title="Four spaces, one path through them." />
+          <Journey src="/landing/journey.webp" width={5504} height={3072} steps={JOURNEY(app, join)} eyebrow="Walk through the house" title="Five spaces, one path through them." />
         </div>
 
         {/* ---------------------------------------------------------------- each space, in depth */}
         <section id="spaces" className="relative mx-auto max-w-[1240px] scroll-mt-24 px-5 py-24 desk:px-8 desk:py-32">
           <div className="max-w-[720px]">
-            <p className="lp-eyebrow" data-reveal>Four spaces, worked in depth</p>
+            <p className="lp-eyebrow" data-reveal>Five spaces, worked in depth</p>
             <h2 className="mt-4 font-display text-[36px] leading-[1.05] font-semibold desk:text-[52px]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
               Every way in to venture, built from real practice.
             </h2>
@@ -441,7 +459,7 @@ export default async function SitePage() {
                 <div className="grid grid-cols-[150px_1fr] sm:grid-cols-[190px_1fr]">
                   <div className="flex flex-col gap-1 border-r border-[var(--lp-line)] bg-black/25 p-3 text-[12px]">
                     <span className="mb-2 flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-teal" /><b className="text-[12.5px]">Home</b></span>
-                    {[["Content", "Outloud", "#E39B2D"], ["Education", "TVS", "#1F4FA3"], ["Services", "BRICKR", "#B5532F"], ["Capital", "QuidQuo", "#8DBF2E"], ["Resources", "Library", "#29BE9C"]].map(([type, name, c]) => (
+                    {[["Content", "Outloud", "#E39B2D"], ["Education", "TVS", "#1F4FA3"], ["Services", "BRICKR", "#B5532F"], ["Capital", "QuidQuo", "#8DBF2E"], ["Community", "BLong", "#7C5CE0"], ["Resources", "Library", "#29BE9C"]].map(([type, name, c]) => (
                       <span key={name} className="flex flex-col rounded-lg px-2 py-1.5 hover:bg-white/5">
                         <span className="text-[9.5px] font-bold tracking-wider text-white/35 uppercase">{type}</span>
                         <span className="flex items-center gap-2 font-semibold text-[var(--lp-fg)]"><span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{name}</span>
@@ -712,7 +730,7 @@ export default async function SitePage() {
               Step inside <span className="lp-grad">the house.</span>
             </h2>
             <p className="mt-6 max-w-[560px] text-[16px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-              Join founders, investors and builders across MENA. One account opens Outloud shows, TVS programs, meetings with the partners, the QuidQuo waitlist, VW Notes and the library.
+              Join founders, investors and builders across MENA. One account opens Outloud shows, TVS programs, meetings with the partners, the QuidQuo waitlist, the BLong community, VW Notes and the library.
             </p>
             <div className="mt-9 flex flex-wrap justify-center gap-3" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
               <Primary href={join} big>Join the community</Primary>
@@ -730,7 +748,7 @@ export default async function SitePage() {
         <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-14 sm:grid-cols-2 desk:grid-cols-[1.4fr_1fr_1fr_1fr] desk:px-8">
           <div className="flex flex-col gap-4">
             <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={170} height={12} />
-            <p className="max-w-[300px] text-[13.5px] leading-relaxed">Experience, knowledge and access to MENA&apos;s venture ecosystem. Four spaces, one member platform.</p>
+            <p className="max-w-[300px] text-[13.5px] leading-relaxed">Experience, knowledge and access to MENA&apos;s venture ecosystem. Five spaces, one member platform.</p>
             <span className="text-[13px]">Cairo · working across MENA</span>
           </div>
           <nav aria-label="Spaces" className="flex flex-col gap-2.5 text-[13.5px]">
