@@ -1,6 +1,6 @@
 # Phase 19 plan: BLong controls, moderation, posts and filters
 
-Status: **approved** (2026-11-24). 19a live (`20261124000005_blong_controls.sql`), 19b live (`20261124000006_blong_moderation.sql`), 19c live (`20261124000007_blong_posts.sql`); 19d to build. Asked by Ahmed. Hosts approving held items in their own space (optional) is not built.
+Status: **approved** (2026-11-24). 19a live (`20261124000005_blong_controls.sql`), 19b live (`20261124000006_blong_moderation.sql`), 19c live (`20261124000007_blong_posts.sql`), 19d live (`20261124000008_blong_filters.sql`). Phase complete. Asked by Ahmed. Hosts approving held items in their own space (optional) is not built.
 
 Answers already given: engagement goes on **discussion messages** and a **new post wall in each community**; the admin switch turns **whole sections** (Communities, Discussions) off into Coming soon; moderation covers **blocked words, links and spam, new member limits and auto-hide after reports**.
 
