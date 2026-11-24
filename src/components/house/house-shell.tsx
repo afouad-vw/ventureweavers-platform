@@ -17,6 +17,7 @@ import { fetchNotifications } from "@/app/(member)/notification-actions";
 import { badgeText, unreadCount } from "@/lib/notifications/format";
 import { SCENES } from "./scenes";
 import { SceneView } from "./scene-view";
+import { VwLogo } from "./vw-logo";
 import "./house.css";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -75,19 +76,51 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
     if (row && btn && row.scrollWidth > row.clientWidth) row.scrollTo({ left: btn.offsetLeft - (row.clientWidth - btn.offsetWidth) / 2, behavior: still() ? "auto" : "smooth" });
   }, [slide]);
 
+  // Morph: each slide knows how far it is from the centre (--p, -1 to 1) and the CSS bends, shrinks and blurs it.
+  const frame = useRef(0);
+  const morph = useCallback(() => {
+    const el = track.current;
+    if (!el || !el.clientWidth) return;
+    const w = el.clientWidth, x = el.scrollLeft;
+    Array.from(el.children).forEach((c, i) => {
+      const p = Math.max(-1, Math.min(1, (i * w - x) / w));
+      (c as HTMLElement).style.setProperty("--p", p.toFixed(3));
+      (c as HTMLElement).style.setProperty("--a", Math.abs(p).toFixed(3));
+    });
+  }, []);
+  useEffect(() => { morph(); }, [morph]);
+
   const onScroll = () => {
     const el = track.current;
     if (!el || !el.clientWidth) return;
     const i = Math.round(el.scrollLeft / el.clientWidth);
     if (i !== slide) setSlide(i);
+    if (!still()) {
+      cancelAnimationFrame(frame.current);
+      frame.current = requestAnimationFrame(morph);
+    }
   };
+
+  // Desktop: the Left and Right arrow keys move between spaces while no page is open.
+  useEffect(() => {
+    if (panelOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+      const t = e.target as HTMLElement | null;
+      if (t?.closest("input, textarea, select, [contenteditable=true], .hs-dock-row") || document.querySelector("[role=dialog][aria-modal=true]")) return;
+      e.preventDefault();
+      go(slide + (e.key === "ArrowRight" ? 1 : -1));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panelOpen, slide, go]);
 
   // Keep the current slide in place when the window resizes.
   useEffect(() => {
-    const on = () => track.current?.scrollTo({ left: slide * (track.current?.clientWidth ?? 0) });
+    const on = () => { track.current?.scrollTo({ left: slide * (track.current?.clientWidth ?? 0) }); morph(); };
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
-  }, [slide]);
+  }, [slide, morph]);
 
   const close = useCallback(() => router.push(`/?s=${SLIDES[slide].key}`, { scroll: false }), [router, slide]);
   const back = () => (window.history.length > 1 ? router.back() : close());
@@ -118,7 +151,7 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
 
       <header className="hs-top">
         <Link href="/?s=house" className="hs-logo" aria-label="VentureWeavers home" onClick={() => go(0)}>
-          <Image src="/brand/logo-on-dark.svg" alt="VentureWeavers" width={176} height={12} priority />
+          <VwLogo />
         </Link>
         <nav className="hs-pager" aria-label="Spaces" ref={pager}>
           {SLIDES.map((s, i) => (
@@ -131,16 +164,17 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
           {live ? <Link href="/live" className="hs-live">Live</Link> : null}
           {member ? (
             <>
-              <span className="hs-tip" data-tip="Updates & Notifications"><UpdatesButton initial={notifications} /></span>
+              <span className="hs-tip" data-tip="Home"><HomeButton /></span>
+              <span className="hs-tip" data-tip="Notifications"><NotificationsButton initial={notifications} /></span>
               <span className="hs-tip" data-tip="Messages"><MessagesButton initial={unreadMessages} /></span>
-              <button type="button" className={`hs-me ${slide === slideIndex("me") && !panelOpen ? "on" : ""}`} aria-label="My space" onClick={() => toSpace("me")}>
+              <span className="hs-tip" data-tip="My space"><button type="button" className={`hs-me ${slide === slideIndex("me") && !panelOpen ? "on" : ""}`} aria-label="My space" onClick={() => toSpace("me")}>
                 {member.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
                   <img src={member.avatar} alt="" referrerPolicy="no-referrer" />
                 ) : (
                   <span className="hs-initials">{member.initials}</span>
                 )}
-              </button>
+              </button></span>
             </>
           ) : (
             <>
@@ -215,11 +249,24 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
   );
 }
 
-/** Opens Updates & Notifications; shows unread notifications. Refreshes every 60 seconds. */
-function UpdatesButton({ initial }: { initial: Notice[] }) {
+/** Home: the member's dashboard (greeting, what's next, feed). */
+function HomeButton() {
+  const path = usePathname();
+  const tab = useSearchParams().get("tab");
+  const on = path === "/updates" && tab !== "notifications";
+  return (
+    <Link href="/updates" scroll={false} className="hs-ib" aria-label="Home" aria-current={on ? "page" : undefined}>
+      <House size={18} aria-hidden="true" />
+    </Link>
+  );
+}
+
+/** Opens Notifications; shows how many are unread. Refreshes every 60 seconds. */
+function NotificationsButton({ initial }: { initial: Notice[] }) {
   const [unread, setUnread] = useState(unreadCount(initial));
   const path = usePathname();
-  const onPage = path === "/updates";
+  const tab = useSearchParams().get("tab");
+  const onPage = path === "/updates" && tab === "notifications";
   useEffect(() => {
     const refresh = async () => {
       const next = await fetchNotifications().catch(() => null);
@@ -230,7 +277,7 @@ function UpdatesButton({ initial }: { initial: Notice[] }) {
     return () => clearInterval(t);
   }, [onPage]);
   return (
-    <Link href={unread ? "/updates?tab=notifications" : "/updates"} scroll={false} className="hs-ib" aria-label={unread ? `Updates & Notifications, ${unread} unread` : "Updates & Notifications"} aria-current={onPage ? "page" : undefined}>
+    <Link href="/updates?tab=notifications" scroll={false} className="hs-ib" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} aria-current={onPage ? "page" : undefined}>
       <Bell size={18} aria-hidden="true" />
       {unread ? <span className="hs-badge">{badgeText(unread)}</span> : null}
     </Link>
@@ -240,7 +287,7 @@ function UpdatesButton({ initial }: { initial: Notice[] }) {
 function MeHero({ member }: { member: HouseMember }) {
   return (
     <div className="hs-me-hero">
-      <div className="hs-ring">
+      <Link href="/my-space?tab=profile" scroll={false} className="hs-ring" aria-label="Profile settings">
         <div className="hs-orbit" aria-hidden="true">
           <i style={{ "--c": "#E39B2D", left: "50%", top: -6 } as React.CSSProperties} />
           <i style={{ "--c": "#1F4FA3", right: -6, top: "50%" } as React.CSSProperties} />
@@ -250,15 +297,16 @@ function MeHero({ member }: { member: HouseMember }) {
         </div>
         {member?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
-          <img src={member.avatar} alt={member.name} referrerPolicy="no-referrer" />
+          <img src={member.avatar} alt="" referrerPolicy="no-referrer" />
         ) : (
-          <span className="hs-ring-initials" aria-label={member?.name ?? "Member"}>{member?.initials ?? "VW"}</span>
+          <span className="hs-ring-initials">{member?.initials ?? "VW"}</span>
         )}
-      </div>
+        <span className="hs-ring-tip">Profile settings</span>
+      </Link>
       <Link href="/my-space?tab=tickets" className="hs-float" style={{ "--c": "#F2B65A", left: "8%", top: "14%" } as React.CSSProperties}><small>Tickets</small><b>Your seats</b></Link>
       <Link href="/my-space?tab=learning" className="hs-float" style={{ "--c": "#8AAEF0", right: "6%", top: "20%", animationDelay: "-2s" } as React.CSSProperties}><small>Learning</small><b>Your programs</b></Link>
       <Link href="/my-space?tab=requests" className="hs-float" style={{ "--c": "#E8896A", left: "12%", bottom: "14%", animationDelay: "-4s" } as React.CSSProperties}><small>Requests</small><b>Your meetings</b></Link>
-      <Link href="/my-space?tab=profile" className="hs-float" style={{ "--c": "#5fe0c0", right: "10%", bottom: "12%", animationDelay: "-6s" } as React.CSSProperties}><small>Profile settings</small><b>About you</b></Link>
+      <Link href="/blong/communities?tab=joined" className="hs-float" style={{ "--c": "#B4A2F5", right: "10%", bottom: "12%", animationDelay: "-6s" } as React.CSSProperties}><small>My communities</small><b>Your groups</b></Link>
     </div>
   );
 }
