@@ -361,3 +361,12 @@ h3 {
 .bl-tile { transition: transform .25s, border-color .25s; }
 .bl-tile:hover { transform: translateY(-3px); border-color: rgb(124 92 224 / .5); }
 @media (prefers-reduced-motion: reduce) { .bl-tile, .bl-switch, .bl-switch::after { transition: none; } .bl-tile:hover { transform: none; } }
+.bl-chip { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; color: #fff; background: rgb(18 12 42 / .72); border: 1px solid rgb(255 255 255 / .16); backdrop-filter: blur(8px); }
+.bl-chip.lock { color: #f6d39a; }
+.bl-chip.soft { color: var(--fg); background: rgb(124 92 224 / .14); border-color: rgb(124 92 224 / .35); backdrop-filter: none; }
+.bl-go { color: #7c5ce0; }
+:root:has(.vw-house) .bl-go, :root:has(.vw-dark) .bl-go { color: #b4a2f5; }
+.bl-role { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: var(--hover); color: var(--muted); }
+.bl-role.on { background: rgb(124 92 224 / .18); color: #7c5ce0; }
+:root:has(.vw-house) .bl-role.on, :root:has(.vw-dark) .bl-role.on { color: #b4a2f5; }
+button.bl-pill { font-family: inherit; }

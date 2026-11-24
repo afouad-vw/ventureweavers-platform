@@ -18,3 +18,15 @@ export async function handleReport(id: string, status: "open" | "handled" | "dis
   revalidatePath("/admin/community");
   return { ok: true };
 }
+
+/** Archive or restore a community (staff). The owner is told when the team archives it. */
+export async function setCommunityStatusAdmin(id: string, status: "active" | "archived"): Promise<Result> {
+  const admin = await requireAdmin("community.manage");
+  if (!isUuid(id) || !["active", "archived"].includes(status)) return { ok: false, error: "Unknown community." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_community_status", { p_id: id, p_status: status });
+  if (error) return { ok: false, error: "Couldn't change the community." };
+  await audit(admin.userId, `community.${status}`, "communities", { entityId: id, after: { status } }).catch(() => null);
+  revalidatePath("/admin/community");
+  return { ok: true };
+}

@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import type { CommunityPage, CommunityPerson, CommunityRow, CommunityTab } from "./communities";
 import { isUuid, type DmMessage, type DmThread, type MemberCard, type MemberLite } from "./format";
 
 /** Members to follow (the database leaves out admins, suspended members, blocks and yourself). */
@@ -63,4 +64,28 @@ export async function myPrivacy(memberId: string): Promise<MyPrivacy> {
   const supabase = await createClient();
   const { data } = await supabase.from("profiles").select("visibility, bio, links, show_activity").eq("id", memberId).maybeSingle();
   return (data as MyPrivacy | null) ?? fallback;
+}
+
+// ---------------------------------------------------------------- communities (18b)
+
+
+export async function listCommunities(scope: CommunityTab, q?: string, type?: string): Promise<CommunityRow[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("list_communities", { p_scope: scope, p_q: q?.slice(0, 80) || null, p_type: type || null });
+  return (data ?? []) as CommunityRow[];
+}
+
+export async function communityPage(slug: string): Promise<CommunityPage | null> {
+  if (!supabaseConfigured || !/^[a-z0-9-]{1,90}$/.test(slug)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("community_page", { p_slug: slug });
+  return (data ?? null) as CommunityPage | null;
+}
+
+export async function communityPeople(id: string): Promise<CommunityPerson[]> {
+  if (!supabaseConfigured || !isUuid(id)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("community_people", { p_id: id });
+  return (data ?? []) as CommunityPerson[];
 }

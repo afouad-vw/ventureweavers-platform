@@ -14,7 +14,7 @@ describe("house slides", () => {
     expect(labels("brickr")).toEqual(["Fractional services", "Mentorship"]);
     expect(labels("quidquo")).toEqual(["Progress", "Waiting list"]);
     expect(labels("blong")).toEqual(["Communities", "Discussions", "Networking"]);
-    expect(labels("me")).toEqual(["Tickets", "Learning", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
+    expect(labels("me")).toEqual(["Tickets", "Learning", "My communities", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
   });
 });
 

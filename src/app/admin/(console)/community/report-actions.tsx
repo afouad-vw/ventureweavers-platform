@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { handleReport } from "./actions";
+import { handleReport, setCommunityStatusAdmin } from "./actions";
 
 export function ReportActions({ id, status }: { id: string; status: "open" | "handled" | "dismissed" }) {
   const [note, setNote] = useState("");
@@ -22,5 +22,16 @@ export function ReportActions({ id, status }: { id: string; status: "open" | "ha
       <Button size="sm" disabled={pending} onClick={() => act("handled")}>Mark handled</Button>
       <Button size="sm" variant="secondary" disabled={pending} onClick={() => act("dismissed")}>Dismiss</Button>
     </div>
+  );
+}
+
+export function CommunityStatusButton({ id, status }: { id: string; status: "active" | "archived" }) {
+  const [pending, start] = useTransition();
+  const toast = useToast();
+  return (
+    <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => {
+      const r = await setCommunityStatusAdmin(id, status === "active" ? "archived" : "active");
+      toast(r.ok ? (status === "active" ? "Archived" : "Restored") : r.error);
+    })}>{status === "active" ? "Archive" : "Restore"}</Button>
   );
 }

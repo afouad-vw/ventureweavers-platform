@@ -10,7 +10,8 @@ import { REPORT_REASONS } from "@/lib/blong/format";
 import { slugOf } from "@/lib/contacts/slug";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { ReportActions } from "./report-actions";
+import { CommunityStatusButton, ReportActions } from "./report-actions";
+import { LinkTabs } from "@/components/ui/link-tabs";
 
 export const metadata: Metadata = { title: "Community" };
 
@@ -23,9 +24,10 @@ const KIND: Record<string, string> = { member: "Member", message: "Member messag
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 /** BLong reports. Staff see the reported member or message only, never the rest of a chat. */
-export default async function AdminCommunityPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
+export default async function AdminCommunityPage({ searchParams }: { searchParams: Promise<{ show?: string; view?: string }> }) {
   const admin = await requireAdmin("community.view");
-  const { show: raw } = await searchParams;
+  const { show: raw, view } = await searchParams;
+  if (view === "communities") return <Communities manage={can(admin, "community.manage")} base={await currentAdminBase()} />;
   const show = raw === "all" || raw === "closed" ? raw : "open";
   const supabase = await createClient();
   let q = supabase.from("reports").select("id, reporter, kind, target_id, target_member, reason, details, excerpt, status, note, handled_at, created_at").order("created_at", { ascending: false }).limit(300);
@@ -45,6 +47,7 @@ export default async function AdminCommunityPage({ searchParams }: { searchParam
   return (
     <>
       <PageHeader title="Community" description="Reports from BLong. You see the reported member or message only, never the rest of a chat. Suspend a member from their contact page." />
+      <ViewTabs base={base} view="reports" />
       <ChipLinks
         label="Show"
         items={[
@@ -80,6 +83,63 @@ export default async function AdminCommunityPage({ searchParams }: { searchParam
         </div>
       ) : (
         <EmptyState>{show === "open" ? "No open reports." : "No reports here."}</EmptyState>
+      )}
+    </>
+  );
+}
+
+function ViewTabs({ base, view }: { base: string; view: "reports" | "communities" }) {
+  return (
+    <LinkTabs
+      label="Community"
+      value={view}
+      hrefFor={(v) => (v === "reports" ? `${base}/community` : `${base}/community?view=communities`)}
+      items={[{ value: "reports", label: "Reports" }, { value: "communities", label: "Communities" }]}
+    />
+  );
+}
+
+type Row = { id: string; slug: string; name: string; type: string; visibility: string; status: string; archived_by_team: boolean; owner: string; created_at: string };
+
+/** Every community, with its owner and size. Community managers archive or restore. */
+async function Communities({ manage, base }: { manage: boolean; base: string }) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("communities").select("id, slug, name, type, visibility, status, archived_by_team, owner, created_at").order("created_at", { ascending: false }).limit(500);
+  const rows = (data ?? []) as Row[];
+  const svc = createServiceClient();
+  const [{ data: people }, { data: members }] = await Promise.all([
+    rows.length ? svc.from("profiles").select("id, full_name").in("id", [...new Set(rows.map((r) => r.owner))]) : Promise.resolve({ data: [] }),
+    rows.length ? svc.from("community_members").select("community_id").eq("status", "active").in("community_id", rows.map((r) => r.id)) : Promise.resolve({ data: [] }),
+  ]);
+  const names = new Map(((people ?? []) as { id: string; full_name: string | null }[]).map((p) => [p.id, p.full_name || "Member"]));
+  const counts = new Map<string, number>();
+  for (const m of (members ?? []) as { community_id: string }[]) counts.set(m.community_id, (counts.get(m.community_id) ?? 0) + 1);
+  return (
+    <>
+      <PageHeader title="Community" description="Communities members have created in BLong. Archiving hides one from Explore and stops new members; only the team can restore what the team archived." />
+      <ViewTabs base={base} view="communities" />
+      {rows.length ? (
+        <div className="overflow-x-auto rounded-2xl border border-line">
+          <table className="w-full min-w-[720px] text-left text-[13.5px]">
+            <thead className="bg-hover text-[12px] text-faint">
+              <tr><th className="px-3 py-2.5">Community</th><th className="px-3 py-2.5">Owner</th><th className="px-3 py-2.5">Members</th><th className="px-3 py-2.5">Privacy</th><th className="px-3 py-2.5">Status</th><th className="px-3 py-2.5" /></tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {rows.map((r) => (
+                <tr key={r.id}>
+                  <td className="px-3 py-2.5"><b>{r.name}</b><span className="block text-[12px] text-faint">{r.type} · {when(r.created_at)}</span></td>
+                  <td className="px-3 py-2.5"><Link href={`${base}/contacts/${slugOf(`m:${r.owner}`)}`} className="font-bold text-link">{names.get(r.owner) ?? "Member"}</Link></td>
+                  <td className="px-3 py-2.5">{counts.get(r.id) ?? 0}</td>
+                  <td className="px-3 py-2.5">{r.visibility === "private" ? "Private" : "Public"}</td>
+                  <td className="px-3 py-2.5"><StatusPill tone={r.status === "active" ? "ok" : "draft"}>{r.status === "active" ? "Active" : r.archived_by_team ? "Archived by team" : "Archived"}</StatusPill></td>
+                  <td className="px-3 py-2.5 text-right">{manage ? <CommunityStatusButton id={r.id} status={r.status as "active" | "archived"} /> : null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState>No communities yet.</EmptyState>
       )}
     </>
   );

@@ -66,8 +66,8 @@ export async function unblockMember(id: string): Promise<Result> {
   return r;
 }
 
-export async function reportContent(kind: "member" | "message", target: string, reason: string, details: string): Promise<Result> {
-  if (!isUuid(target) || !["member", "message"].includes(kind) || !isReportReason(reason)) return { ok: false, error: "Please pick a reason." };
+export async function reportContent(kind: "member" | "message" | "community", target: string, reason: string, details: string): Promise<Result> {
+  if (!isUuid(target) || !["member", "message", "community"].includes(kind) || !isReportReason(reason)) return { ok: false, error: "Please pick a reason." };
   return rpc("report_content", { p_kind: kind, p_target: target, p_reason: reason, p_details: details.trim().slice(0, 1000) || null });
 }
 
