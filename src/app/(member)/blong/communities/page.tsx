@@ -6,6 +6,9 @@ import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
+import { FilterBar } from "@/components/blong/filter-bar";
+import { COMMUNITY_SIZES, COMMUNITY_SORTS, filterCommunities, opts, pick, pickText, topTopics, VISIBILITY_OPTS } from "@/lib/blong/filters";
+import { ROLES } from "@/lib/profile/options";
 import { SectionSoon } from "@/components/blong/review";
 import { COMMUNITY_TABS, COMMUNITY_TYPES, isCommunityTab, type CommunityTab } from "@/lib/blong/communities";
 import { listCommunities, blongSections } from "@/lib/blong/queries";
@@ -13,14 +16,25 @@ import { listCommunities, blongSections } from "@/lib/blong/queries";
 export const metadata: Metadata = { title: "Communities" };
 
 /** BLong › Communities: explore, the ones you joined, and the ones you own or help run. */
-export default async function CommunitiesPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; type?: string }> }) {
+export default async function CommunitiesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireMember("/blong/communities");
   if (!(await blongSections()).communities) return <SectionSoon section="communities" />;
-  const { tab: raw, q = "", type: rawType } = await searchParams;
+  const sp = await searchParams;
+  const { tab: raw, q = "", type: rawType } = sp;
   const tab: CommunityTab = isCommunityTab(raw) ? raw : "explore";
   const type = (COMMUNITY_TYPES as readonly string[]).includes(rawType ?? "") ? rawType! : "";
   const [list, joined] = await Promise.all([listCommunities(tab, tab === "explore" ? q : "", tab === "explore" ? type : ""), tab === "joined" ? Promise.resolve([]) : listCommunities("joined")]);
   const invites = (tab === "joined" ? list : joined).filter((c) => c.my_status === "invited").length;
+  const topics = topTopics(list);
+  const f = {
+    topic: pickText(sp, "topic"),
+    audience: pick(sp, "audience", ROLES),
+    visibility: pick(sp, "visibility", ["public", "private"]),
+    size: pick(sp, "size", COMMUNITY_SIZES.map((o) => o.value)),
+    sort: pick(sp, "sort", COMMUNITY_SORTS.map((o) => o.value)),
+  };
+  const shown = filterCommunities(list, f);
+  const base = `/blong/communities${tab === "explore" ? "" : `?tab=${tab}`}`;
   const href = (t: string) => (t === "explore" ? "/blong/communities" : `/blong/communities?tab=${t}`);
   const typeHref = (t: string) => `/blong/communities?${new URLSearchParams({ ...(q ? { q } : {}), ...(t ? { type: t } : {}) })}`;
 
@@ -48,14 +62,28 @@ export default async function CommunitiesPage({ searchParams }: { searchParams: 
         </>
       ) : null}
 
-      {list.length ? (
+      <FilterBar
+        action="/blong/communities"
+        keep={{ tab: tab === "explore" ? "" : tab, q: tab === "explore" ? q : "", type: tab === "explore" ? type : "" }}
+        clearHref={tab === "explore" ? typeHref(type) : base}
+        selects={[
+          { name: "topic", label: "Topic", options: opts(topics.map((t) => t.toLowerCase())).map((o, i) => ({ ...o, label: topics[i] })), value: f.topic },
+          { name: "audience", label: "For", options: opts(ROLES), value: f.audience, any: "Everyone" },
+          { name: "visibility", label: "Public or Private", options: VISIBILITY_OPTS, value: f.visibility },
+          { name: "size", label: "Size", options: COMMUNITY_SIZES, value: f.size },
+        ]}
+        sort={{ name: "sort", label: "Sort", options: COMMUNITY_SORTS, value: f.sort, any: "Suggested" }}
+      />
+
+      {shown.length ? (
         <div className="grid gap-3 sm:grid-cols-2 desk:grid-cols-3">
-          {list.map((c) => <CommunityCard key={c.id} c={c} />)}
+          {shown.map((c) => <CommunityCard key={c.id} c={c} />)}
         </div>
       ) : (
         <EmptyState>
           {tab === "explore"
-            ? q || type ? "No communities match. Try another word or type." : <>No communities yet. <Link href="/blong/communities/new" className="font-bold text-link">Start the first one</Link>.</>
+            ? q || type || list.length ? "No communities match. Try another word or fewer filters." : <>No communities yet. <Link href="/blong/communities/new" className="font-bold text-link">Start the first one</Link>.</>
+            : list.length ? "None match these filters."
             : tab === "joined" ? <>You haven&apos;t joined a community yet. <Link href="/blong/communities" className="font-bold text-link">Explore communities</Link>.</>
             : <>You don&apos;t run a community yet. <Link href="/blong/communities/new" className="font-bold text-link">Create one</Link>.</>}
         </EmptyState>

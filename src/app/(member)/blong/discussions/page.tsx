@@ -6,6 +6,8 @@ import { LinkButton } from "@/components/ui/button";
 import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
+import { FilterBar } from "@/components/blong/filter-bar";
+import { DISCUSSION_SORTS, filterDiscussions, opts, pick, pickText, ROOM_JOIN_OPTS, ROOM_STATUS_OPTS, roomCommunities } from "@/lib/blong/filters";
 import { SectionSoon } from "@/components/blong/review";
 import { DISCUSSION_CATEGORIES, DISCUSSION_TABS, isDiscussionTab, type DiscussionTab } from "@/lib/blong/discussions";
 import { listDiscussions, blongSections } from "@/lib/blong/queries";
@@ -13,10 +15,11 @@ import { listDiscussions, blongSections } from "@/lib/blong/queries";
 export const metadata: Metadata = { title: "Discussions" };
 
 /** BLong › Discussions: open rooms to join, the ones you're in, and the ones you host. */
-export default async function DiscussionsPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; category?: string }> }) {
+export default async function DiscussionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireMember("/blong/discussions");
   if (!(await blongSections()).discussions) return <SectionSoon section="discussions" />;
-  const { tab: raw, q = "", category: rawCat } = await searchParams;
+  const sp = await searchParams;
+  const { tab: raw, q = "", category: rawCat } = sp;
   const tab: DiscussionTab = isDiscussionTab(raw) ? raw : "explore";
   const category = (DISCUSSION_CATEGORIES as readonly string[]).includes(rawCat ?? "") ? rawCat! : "";
   const [list, joined] = await Promise.all([
@@ -24,6 +27,17 @@ export default async function DiscussionsPage({ searchParams }: { searchParams: 
     tab === "joined" ? Promise.resolve([]) : listDiscussions("joined"),
   ]);
   const invites = (tab === "joined" ? list : joined).filter((d) => d.my_status === "invited").length;
+  const communities = roomCommunities(list);
+  const f = {
+    community: pick(sp, "community", ["none", ...communities.map((c) => c.value)]),
+    privacy: pick(sp, "privacy", ROOM_JOIN_OPTS.map((o) => o.value)),
+    status: pick(sp, "status", ROOM_STATUS_OPTS.map((o) => o.value)),
+    room: sp.room === "1",
+    tag: pickText(sp, "tag"),
+    sort: pick(sp, "sort", DISCUSSION_SORTS.map((o) => o.value)),
+  };
+  const shown = filterDiscussions(list, f);
+  const tags = [...new Set(list.flatMap((d) => d.tags.map((t) => t.toLowerCase())))].sort().slice(0, 40);
   const href = (t: string) => (t === "explore" ? "/blong/discussions" : `/blong/discussions?tab=${t}`);
   const catHref = (c: string) => `/blong/discussions?${new URLSearchParams({ ...(q ? { q } : {}), ...(c ? { category: c } : {}) })}`;
 
@@ -51,13 +65,28 @@ export default async function DiscussionsPage({ searchParams }: { searchParams: 
         </>
       ) : null}
 
-      {list.length ? (
+      <FilterBar
+        action="/blong/discussions"
+        keep={{ tab: tab === "explore" ? "" : tab, q: tab === "explore" ? q : "", category: tab === "explore" ? category : "" }}
+        clearHref={tab === "explore" ? catHref(category) : href(tab)}
+        selects={[
+          { name: "community", label: "Community", options: [{ value: "none", label: "Not in a community" }, ...communities], value: f.community },
+          { name: "privacy", label: "Who can join", options: ROOM_JOIN_OPTS, value: f.privacy },
+          { name: "status", label: "Open or closed", options: ROOM_STATUS_OPTS, value: f.status },
+          { name: "tag", label: "Tag", options: opts(tags), value: f.tag },
+        ]}
+        checks={[{ name: "room", label: "Has room to join", checked: f.room }]}
+        sort={{ name: "sort", label: "Sort", options: DISCUSSION_SORTS, value: f.sort, any: "Suggested" }}
+      />
+
+      {shown.length ? (
         <div className="grid gap-3 sm:grid-cols-2">
-          {list.map((d) => <DiscussionCard key={d.id} d={d} />)}
+          {shown.map((d) => <DiscussionCard key={d.id} d={d} />)}
         </div>
       ) : (
         <EmptyState>
-          {tab === "explore"
+          {list.length ? "None match these filters. Try fewer."
+            : tab === "explore"
             ? q || category ? "No discussions match. Try another word or category." : <>No open discussions yet. <Link href="/blong/discussions/new" className="font-bold text-link">Start the first one</Link>.</>
             : tab === "joined" ? <>You haven&apos;t joined a discussion yet. <Link href="/blong/discussions" className="font-bold text-link">Explore discussions</Link>.</>
             : <>You don&apos;t host a discussion yet. <Link href="/blong/discussions/new" className="font-bold text-link">Start one</Link>.</>}

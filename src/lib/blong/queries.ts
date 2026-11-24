@@ -13,6 +13,26 @@ export async function memberDirectory(q?: string, role?: string): Promise<Member
   return (data ?? []) as MemberLite[];
 }
 
+export type MemberFilters = { q?: string; role?: string; country?: string; businessType?: string; stage?: string; visibility?: string; followsMe?: boolean; sort?: string };
+
+/** Members with filters (Phase 19d). */
+export async function memberSearch(f: MemberFilters): Promise<MemberLite[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("member_search", {
+    p_q: f.q?.slice(0, 80) || null, p_role: f.role || null, p_country: f.country || null, p_business_type: f.businessType || null,
+    p_stage: f.stage || null, p_visibility: f.visibility || null, p_follows_me: Boolean(f.followsMe), p_sort: f.sort || "name", p_limit: 90, p_offset: 0,
+  });
+  return (data ?? []) as MemberLite[];
+}
+
+export async function memberCountries(): Promise<string[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("member_countries");
+  return (data ?? []) as string[];
+}
+
 /** One member's card, as much as their privacy allows; null when blocked or not available. */
 export async function memberCard(id: string): Promise<MemberCard | null> {
   if (!supabaseConfigured || !isUuid(id)) return null;

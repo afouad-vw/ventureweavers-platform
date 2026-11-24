@@ -32,6 +32,7 @@ export type DiscussionRow = {
   last_message_at: string | null;
   my_role: RoomRole | null;
   my_status: RoomMemberStatus | null;
+  created_at?: string;
 };
 
 export type DiscussionPage = Omit<DiscussionRow, "community_id" | "community_name" | "community_slug" | "last_message_at"> & {

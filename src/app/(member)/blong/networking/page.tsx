@@ -6,7 +6,10 @@ import { LinkTabs } from "@/components/ui/link-tabs";
 import { EmptyState } from "@/components/ui/misc";
 import { requireMember } from "@/lib/auth/guards";
 import { isNetworkTab, NETWORK_TABS, type MemberLite, type NetworkTab } from "@/lib/blong/format";
-import { blongFeed, memberDirectory, myNetwork, myPrivacy } from "@/lib/blong/queries";
+import { blongFeed, memberCountries, memberSearch, myNetwork, myPrivacy } from "@/lib/blong/queries";
+import { FilterBar } from "@/components/blong/filter-bar";
+import { FEED_KINDS, filterFeed, MEMBER_SORTS, opts, pick, VISIBILITY_OPTS } from "@/lib/blong/filters";
+import { BUSINESS_STAGES, BUSINESS_TYPES } from "@/lib/profile/about";
 import { FeedList } from "@/components/blong/activity-list";
 import { ROLES } from "@/lib/profile/options";
 
@@ -15,16 +18,26 @@ export const metadata: Metadata = { title: "Networking" };
 const ROLE_FILTERS = ["Founder", "Angel Investor", "Institutional investor", "Corporate", "Venture Studio", "Mentor", "Expert"] as const;
 
 /** BLong › Networking: find members, see what the people you follow are up to, and answer follow requests. */
-export default async function NetworkingPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; role?: string }> }) {
+export default async function NetworkingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const me = await requireMember("/blong/networking");
-  const { tab: rawTab, q = "", role: rawRole } = await searchParams;
+  const sp = await searchParams;
+  const { tab: rawTab, q = "", role: rawRole } = sp;
   const tab: NetworkTab = isNetworkTab(rawTab) ? rawTab : "members";
   const role = (ROLES as readonly string[]).includes(rawRole ?? "") ? rawRole! : "";
-  const [requests, privacy] = await Promise.all([myNetwork("requests"), myPrivacy(me.id)]);
+  const [requests, privacy, countries] = await Promise.all([myNetwork("requests"), myPrivacy(me.id), tab === "members" ? memberCountries() : Promise.resolve([])]);
+  const mf = {
+    country: pick(sp, "country", countries),
+    businessType: pick(sp, "btype", BUSINESS_TYPES),
+    stage: pick(sp, "stage", BUSINESS_STAGES),
+    visibility: pick(sp, "visibility", ["public", "private"]),
+    followsMe: sp.follows === "1",
+    sort: pick(sp, "sort", MEMBER_SORTS.map((o) => o.value)),
+  };
+  const kind = pick(sp, "kind", FEED_KINDS.map((o) => o.value));
   let list: MemberLite[] = [];
   let sent: MemberLite[] = [];
-  const feed = tab === "feed" ? await blongFeed() : [];
-  if (tab === "members") list = await memberDirectory(q, role);
+  const feed = tab === "feed" ? filterFeed(await blongFeed(), kind) : [];
+  if (tab === "members") list = await memberSearch({ q, role, ...mf });
   else if (tab === "feed") list = [];
   else if (tab === "following") list = await myNetwork("following");
   else if (tab === "followers") list = await myNetwork("followers");
@@ -66,13 +79,31 @@ export default async function NetworkingPage({ searchParams }: { searchParams: P
               <Link key={r} href={filterHref(r)} scroll={false} aria-current={role === r ? "true" : undefined} className="bl-pill">{r}</Link>
             ))}
           </nav>
+          <FilterBar
+            action="/blong/networking"
+            keep={{ q, role }}
+            clearHref={filterHref(role)}
+            selects={[
+              { name: "country", label: "Country", options: opts(countries), value: mf.country },
+              { name: "btype", label: "Business type", options: opts(BUSINESS_TYPES), value: mf.businessType },
+              { name: "stage", label: "Venture stage", options: opts(BUSINESS_STAGES), value: mf.stage },
+              { name: "visibility", label: "Public or Private", options: VISIBILITY_OPTS, value: mf.visibility },
+            ]}
+            checks={[{ name: "follows", label: "Follows you", checked: mf.followsMe }]}
+            sort={{ name: "sort", label: "Sort", options: MEMBER_SORTS, value: mf.sort === "name" ? "" : mf.sort, any: "Name A to Z" }}
+          />
         </>
+      ) : tab === "feed" ? (
+        <nav aria-label="Filter the feed" className="no-scrollbar -mt-1 flex gap-1.5 overflow-x-auto pb-1">
+          <Link href="/blong/networking?tab=feed" scroll={false} aria-current={!kind ? "true" : undefined} className="bl-pill">Everything</Link>
+          {FEED_KINDS.map((k) => <Link key={k.value} href={`/blong/networking?tab=feed&kind=${k.value}`} scroll={false} aria-current={kind === k.value ? "true" : undefined} className="bl-pill">{k.label}</Link>)}
+        </nav>
       ) : null}
 
       {tab === "feed" ? (
         feed.length ? <FeedList items={feed} /> : (
           <EmptyState>
-            Nothing new from the people you follow. <Link href="/blong/networking" className="font-bold text-link">Find members to follow</Link>; what they share (shows, programs, communities, news) shows up here.
+            {kind ? <>Nothing of this kind yet. <Link href="/blong/networking?tab=feed" className="font-bold text-link">See everything</Link>.</> : <>Nothing new from the people you follow. <Link href="/blong/networking" className="font-bold text-link">Find members to follow</Link>; what they share (shows, programs, communities, news and posts) shows up here.</>}
           </EmptyState>
         )
       ) : list.length ? (
@@ -82,7 +113,7 @@ export default async function NetworkingPage({ searchParams }: { searchParams: P
       ) : (
         <EmptyState>
           {tab === "members"
-            ? q || role ? "No members match. Try another name or role." : "No other members yet."
+            ? q || role || mf.country || mf.businessType || mf.stage || mf.visibility || mf.followsMe ? "No members match. Try another name or fewer filters." : "No other members yet."
             : tab === "following" ? <>You don&apos;t follow anyone yet. <Link href="/blong/networking" className="font-bold text-link">Find members</Link></>
             : tab === "followers" ? "Nobody follows you yet."
             : "No follow requests waiting."}

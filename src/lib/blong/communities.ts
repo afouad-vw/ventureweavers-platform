@@ -18,6 +18,7 @@ export type CommunityRow = {
   visibility: "public" | "private";
   cover_url: string | null;
   status: "active" | "archived" | "pending" | "declined";
+  created_at?: string;
   members: number;
   my_role: CommunityRole | null;
   my_status: CommunityStatus | null;

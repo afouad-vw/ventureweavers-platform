@@ -87,3 +87,34 @@ describe("parseRules (19b)", () => {
     expect(parseRules(form({ ...base, per_minute: "x" })).ok).toBe(false);
   });
 });
+
+describe("filters (19d)", async () => {
+  const { filterCommunities, filterDiscussions, pick, pickText, topTopics, roomCommunities, filterFeed } = await import("./filters");
+  const c = (o: Partial<import("./communities").CommunityRow>) => ({ id: "x", slug: "x", name: "B", description: "", type: "Interest", topics: [], audience: [], visibility: "public", cover_url: null, status: "active", members: 10, my_role: null, my_status: null, created_at: "2026-11-01", ...o }) as import("./communities").CommunityRow;
+  const none = { topic: "", audience: "", visibility: "", size: "", sort: "" };
+  it("filters and sorts communities", () => {
+    const list = [c({ id: "1", name: "B", topics: ["Fintech"], members: 300, created_at: "2026-11-02" }), c({ id: "2", name: "A", visibility: "private", audience: ["Founder"], members: 5 })];
+    expect(filterCommunities(list, { ...none, topic: "fin" }).map((x) => x.id)).toEqual(["1"]);
+    expect(filterCommunities(list, { ...none, size: "large" }).map((x) => x.id)).toEqual(["1"]);
+    expect(filterCommunities(list, { ...none, visibility: "private" }).map((x) => x.id)).toEqual(["2"]);
+    expect(filterCommunities(list, { ...none, audience: "Mentor" }).map((x) => x.id)).toEqual(["1"]);
+    expect(filterCommunities(list, { ...none, sort: "name" }).map((x) => x.id)).toEqual(["2", "1"]);
+    expect(topTopics(list)).toEqual(["Fintech"]);
+  });
+  it("filters discussions", () => {
+    const d = (o: Partial<import("./discussions").DiscussionRow>) => ({ id: "x", slug: "x", title: "T", description: "", category: "Other", tags: [], member_limit: 10, privacy: "public", community_id: null, community_name: null, community_slug: null, status: "open", members: 2, last_message_at: null, my_role: null, my_status: null, ...o }) as import("./discussions").DiscussionRow;
+    const list = [d({ id: "1", members: 10, tags: ["Hiring"] }), d({ id: "2", community_id: "c", community_name: "Club", last_message_at: "2026-11-24" })];
+    const f = { community: "", privacy: "", status: "", room: false, tag: "", sort: "" };
+    expect(filterDiscussions(list, { ...f, room: true }).map((x) => x.id)).toEqual(["2"]);
+    expect(filterDiscussions(list, { ...f, community: "none" }).map((x) => x.id)).toEqual(["1"]);
+    expect(filterDiscussions(list, { ...f, tag: "hir" }).map((x) => x.id)).toEqual(["1"]);
+    expect(filterDiscussions(list, { ...f, sort: "active" }).map((x) => x.id)).toEqual(["2", "1"]);
+    expect(roomCommunities(list)).toEqual([{ value: "c", label: "Club" }]);
+  });
+  it("reads only allowed values", () => {
+    expect(pick({ sort: "newest" }, "sort", ["newest"])).toBe("newest");
+    expect(pick({ sort: "drop table" }, "sort", ["newest"])).toBe("");
+    expect(pickText({ tag: "  HiRing " }, "tag")).toBe("hiring");
+    expect(filterFeed([{ kind: "post" }, { kind: "events" }] as never[], "post")).toHaveLength(1);
+  });
+});
