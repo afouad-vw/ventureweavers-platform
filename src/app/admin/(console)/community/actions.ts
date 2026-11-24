@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { audit, requireAdmin } from "@/lib/auth/guards";
-import { isUuid } from "@/lib/blong/format";
+import { isUuid, parseRules } from "@/lib/blong/format";
 import { createClient } from "@/lib/supabase/server";
 import { sendWaitlistEmails } from "@/lib/waitlist-server";
 
@@ -72,5 +72,28 @@ export async function saveBlongSettings(patch: BlongSettingsPatch): Promise<Resu
   if (clean.communities_on === true || clean.discussions_on === true) await sendWaitlistEmails().catch(() => 0);
   revalidatePath("/admin/community");
   revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Publish or remove a message the rules held, or that reports hid. Its open reports are closed; the author is told. */
+export async function reviewHeldMessage(id: string, publish: boolean): Promise<Result> {
+  await requireAdmin("community.manage");
+  if (!isUuid(id)) return { ok: false, error: "Unknown message." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_held_message", { p_id: id, p_publish: publish });
+  if (error) return { ok: false, error: error.message.includes("not_found") ? "Someone already reviewed this." : "Couldn't save the review." };
+  revalidatePath("/admin/community");
+  return { ok: true };
+}
+
+/** The automatic moderation rules. */
+export async function saveModerationRules(form: FormData): Promise<Result> {
+  await requireAdmin("community.manage");
+  const parsed = parseRules(form);
+  if (!parsed.ok) return parsed;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_blong_settings", { p: parsed.value });
+  if (error) return { ok: false, error: error.message.includes("not_admin") ? "Only staff with Community (manage) change these." : "Couldn't save the rules." };
+  revalidatePath("/admin/community");
   return { ok: true };
 }

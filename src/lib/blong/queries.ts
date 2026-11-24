@@ -155,7 +155,11 @@ export async function blongSections(): Promise<BlongSections> {
   return { ...open, ...((data ?? {}) as Partial<BlongSections>) };
 }
 
-export type BlongSettings = { communities_on: boolean; discussions_on: boolean; approve_communities: boolean; approve_discussions: boolean; updated_at: string; updated_by: string | null };
+export type BlongSettings = {
+  communities_on: boolean; discussions_on: boolean; approve_communities: boolean; approve_discussions: boolean; updated_at: string; updated_by: string | null;
+  blocked_words: string[]; blocked_action: "hold" | "reject"; blocked_domains: string[]; max_links: number; link_new_days: number; per_minute: number;
+  new_member_days: number; new_member_hold: number; auto_hide_reports: number;
+};
 
 export async function blongAdminSettings(): Promise<BlongSettings | null> {
   if (!supabaseConfigured) return null;
@@ -191,4 +195,34 @@ export async function blongStats(): Promise<BlongStats | null> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("blong_stats");
   return (data ?? null) as BlongStats | null;
+}
+
+// ---------------------------------------------------------------- moderation (19b)
+
+export type HeldMessage = {
+  id: string; body: string; mod_status: "held" | "hidden"; mod_rule: string | null; author_id: string; author_name: string;
+  room_title: string; room_slug: string; reports: number; created_at: string;
+};
+
+export async function blongHeld(): Promise<HeldMessage[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_held");
+  return (data ?? []) as HeldMessage[];
+}
+
+export async function blongWatch(): Promise<{ member_id: string; name: string; caught: number; last_at: string }[]> {
+  if (!supabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_watch");
+  return (data ?? []) as { member_id: string; name: string; caught: number; last_at: string }[];
+}
+
+export type ModStats = { held_now: number; hidden_now: number; held_30: number; hidden_30: number; removed_30: number };
+
+export async function blongModStats(): Promise<ModStats | null> {
+  if (!supabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("blong_mod_stats");
+  return (data ?? null) as ModStats | null;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activityDay, blongError, cleanBio, cleanLinks, followLabel, isNetworkTab, isReportReason, isUuid, memberLine, reviewChip } from "./format";
+import { activityDay, blongError, cleanBio, cleanLinks, followLabel, isNetworkTab, isReportReason, isUuid, memberLine, parseRules, reviewChip } from "./format";
 import { communityError } from "./communities";
 import { discussionCta, discussionError } from "./discussions";
 
@@ -70,5 +70,20 @@ describe("approval and section switches (19a)", () => {
   });
   it("lets the creator open a pending discussion", () => {
     expect(discussionCta({ privacy: "request", my_role: "owner", my_status: "active", members: 1, member_limit: 10, status: "pending" })).toBe("Open");
+  });
+});
+
+describe("parseRules (19b)", () => {
+  const form = (o: Record<string, string>) => { const f = new FormData(); for (const [k, v] of Object.entries(o)) f.set(k, v); return f; };
+  const base = { max_links: "2", link_new_days: "7", per_minute: "6", new_member_days: "3", new_member_hold: "2", auto_hide_reports: "3" };
+  it("cleans lists and keeps Arabic commas", () => {
+    const r = parseRules(form({ ...base, blocked_words: "Scam, scam\nget rich quick،احتيال", blocked_domains: "https://www.Spam.example/path", blocked_action: "reject" }));
+    expect(r.ok && r.value.blocked_words).toEqual(["scam", "get rich quick", "احتيال"]);
+    expect(r.ok && r.value.blocked_domains).toEqual(["spam.example"]);
+    expect(r.ok && r.value.blocked_action).toBe("reject");
+  });
+  it("refuses numbers out of range", () => {
+    expect(parseRules(form({ ...base, auto_hide_reports: "0" })).ok).toBe(false);
+    expect(parseRules(form({ ...base, per_minute: "x" })).ok).toBe(false);
   });
 });

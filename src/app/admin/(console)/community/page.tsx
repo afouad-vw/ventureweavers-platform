@@ -12,8 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { CommunityStatusButton, DiscussionStatusButton, ReportActions } from "./report-actions";
 import { LinkTabs } from "@/components/ui/link-tabs";
-import { blongPending } from "@/lib/blong/queries";
-import { Approvals, Overview, Settings } from "./views";
+import { blongHeld, blongPending } from "@/lib/blong/queries";
+import { Approvals, Held, Overview, Settings } from "./views";
 
 export const metadata: Metadata = { title: "Community" };
 
@@ -25,14 +25,15 @@ type Report = {
 const KIND: Record<string, string> = { member: "Member", message: "Member message", community: "Community", discussion: "Discussion", room_message: "Room message" };
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
-type View = "overview" | "approvals" | "reports" | "communities" | "discussions" | "settings";
+type View = "overview" | "approvals" | "held" | "reports" | "communities" | "discussions" | "settings";
 const VIEWS: { value: View; label: string; line: string }[] = [
   { value: "overview", label: "Overview", line: "How BLong is doing: members, activity, communities, discussions and reports. Numbers only; staff never read chats." },
   { value: "approvals", label: "Approvals", line: "New communities and discussions wait here until the team approves them. Members are told either way." },
+  { value: "held", label: "Held", line: "Messages the automatic rules held for review, or that reports hid. Only these are readable by the team; publish or remove each one." },
   { value: "reports", label: "Reports", line: "Reports from BLong. You see the reported member or message only, never the rest of a chat. Suspend a member from their contact page." },
   { value: "communities", label: "Communities", line: "Communities members have created. Archiving hides one from Explore and stops new members; only the team can restore what the team archived." },
   { value: "discussions", label: "Discussions", line: "Discussions members have started. Archiving hides one and stops posting; only the team can restore what the team archived." },
-  { value: "settings", label: "Settings", line: "Switch Communities and Discussions on or off (Coming soon) and choose what needs approval." },
+  { value: "settings", label: "Settings", line: "Switch Communities and Discussions on or off (Coming soon), choose what needs approval and set the automatic moderation rules." },
 ];
 
 /** Admin › Community: overview, approvals, reports, communities, discussions and settings. */
@@ -42,15 +43,18 @@ export default async function AdminCommunityPage({ searchParams }: { searchParam
   const view: View = VIEWS.some((v) => v.value === sp.view) ? (sp.view as View) : sp.show ? "reports" : "overview";
   const base = await currentAdminBase();
   const manage = can(admin, "community.manage");
-  const waiting = (await blongPending()).length;
+  const [pendingItems, heldItems] = await Promise.all([blongPending(), blongHeld()]);
+  const waiting = pendingItems.length;
+  const held = heldItems.length;
   const head = (
     <>
       <PageHeader title="Community" description={VIEWS.find((v) => v.value === view)!.line} />
-      <ViewTabs base={base} view={view} waiting={waiting} />
+      <ViewTabs base={base} view={view} waiting={waiting} held={held} />
     </>
   );
   if (view === "overview") return <>{head}<Overview base={base} /></>;
   if (view === "approvals") return <>{head}<Approvals base={base} manage={manage} /></>;
+  if (view === "held") return <>{head}<Held base={base} manage={manage} /></>;
   if (view === "settings") return <>{head}<Settings manage={manage} /></>;
   if (view === "communities") return <>{head}<Communities manage={manage} base={base} status={sp.status} q={sp.q} /></>;
   if (view === "discussions") return <>{head}<Discussions manage={manage} base={base} status={sp.status} q={sp.q} /></>;
@@ -115,13 +119,13 @@ async function Reports({ raw, base, manage }: { raw?: string; base: string; mana
   );
 }
 
-function ViewTabs({ base, view, waiting }: { base: string; view: View; waiting: number }) {
+function ViewTabs({ base, view, waiting, held }: { base: string; view: View; waiting: number; held: number }) {
   return (
     <LinkTabs
       label="Community"
       value={view}
       hrefFor={(v) => (v === "overview" ? `${base}/community` : `${base}/community?view=${v}`)}
-      items={VIEWS.map((v) => ({ value: v.value, label: v.label, count: v.value === "approvals" && waiting ? waiting : null }))}
+      items={VIEWS.map((v) => ({ value: v.value, label: v.label, count: v.value === "approvals" && waiting ? waiting : v.value === "held" && held ? held : null }))}
     />
   );
 }

@@ -1,4 +1,4 @@
-/** Privacy policy and terms of use, approved by Ahmed on 2026-11-16; BLong sections added with Phase 18 (2026-11-24). Edit here; the pages render this Markdown. */
+/** Privacy policy and terms of use, approved by Ahmed on 2026-11-16; BLong sections added with Phase 18 (2026-11-24), review and automatic moderation with Phase 19 (2026-11-24). Edit here; the pages render this Markdown. */
 
 export const LEGAL_UPDATED = "24 November 2026";
 export const LEGAL_CONTACT = "info@ventureweavers.com";
@@ -126,6 +126,8 @@ BLong is where members meet, follow each other, message and talk in communities 
 - don't share other members' private details, messages or stories without their consent
 - only create communities and discussions you are willing to look after
 - report anything that breaks these guidelines from the member's page or the message; reports go to the VentureWeavers team, and the person isn't told who reported them
+
+New communities and discussions are reviewed by the team before other members can find them. Automatic rules set by the team may hold a post for review or refuse it (for example blocked words, too many links, or posting very quickly), new members have some limits for their first days, and content reported by several members may be hidden until the team reviews it. In private messages between members, the rules refuse a message rather than show it to anyone.
 
 You can block any member at any time. We may remove content, close communities or discussions, and suspend accounts that break these guidelines.
 

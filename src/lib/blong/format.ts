@@ -125,6 +125,13 @@ export function memberLine(m: Pick<MemberLite, "roles" | "business" | "country">
 
 /** Friendly errors for the database's codes. */
 export function blongError(message: string): string {
+  if (message.includes("mod_blocked_word")) return "That message includes words the community doesn't allow. Please rephrase it.";
+  if (message.includes("mod_blocked_link")) return "Links to that site aren't allowed.";
+  if (message.includes("mod_too_many_links")) return "That's a lot of links for one message. Please share fewer.";
+  if (message.includes("mod_new_member_links")) return "New members can share links after their first week.";
+  if (message.includes("mod_new_member")) return "New members can do this after their first few days. Meanwhile, join discussions and follow people.";
+  if (message.includes("mod_duplicate")) return "You just sent that. Try saying something new.";
+  if (message.includes("mod_slow_down")) return "You're sending messages quickly. Please wait a moment.";
   if (message.includes("too_many_follows")) return "You've followed a lot of people in the last hour. Please try again later.";
   if (message.includes("too_many_messages")) return "You've sent a lot of messages in the last hour. Please wait a little.";
   if (message.includes("too_many_reports")) return "You've sent several reports today. The team will look at them soon.";
@@ -154,4 +161,37 @@ export function reviewChip(status: string): { label: string; tone: "warn" | "bad
   if (status === "pending") return { label: "Waiting for approval", tone: "warn" };
   if (status === "declined") return { label: "Not approved", tone: "bad" };
   return null;
+}
+
+/** Why the rules held something, for the team's Held queue. */
+export const MOD_RULE_LABEL: Record<string, string> = {
+  blocked_word: "Blocked word",
+  new_member_link: "Link from a new member",
+  new_member: "New member's first messages",
+  reports: "Hidden after reports",
+};
+
+export type ModerationRules = {
+  blocked_words: string[]; blocked_action: "hold" | "reject"; blocked_domains: string[]; max_links: number; link_new_days: number;
+  per_minute: number; new_member_days: number; new_member_hold: number; auto_hide_reports: number;
+};
+
+const LIMITS: Record<Exclude<keyof ModerationRules, "blocked_words" | "blocked_action" | "blocked_domains">, [number, number]> = {
+  max_links: [0, 20], link_new_days: [0, 90], per_minute: [1, 60], new_member_days: [0, 90], new_member_hold: [0, 20], auto_hide_reports: [1, 50],
+};
+
+/** Reads the moderation form: lists one per line or comma-separated, numbers within their ranges. */
+export function parseRules(f: FormData): { ok: true; value: ModerationRules } | { ok: false; error: string } {
+  const list = (k: string, max: number, len: number) =>
+    [...new Set(String(f.get(k) ?? "").split(/[\n,،]/).map((x) => x.trim().toLowerCase()).filter(Boolean))].slice(0, max).map((x) => x.slice(0, len));
+  const blocked_words = list("blocked_words", 500, 40);
+  const blocked_domains = list("blocked_domains", 200, 100).map((d) => d.replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/.*$/, ""));
+  const blocked_action = f.get("blocked_action") === "reject" ? "reject" : "hold";
+  const nums = {} as Record<keyof typeof LIMITS, number>;
+  for (const [k, [lo, hi]] of Object.entries(LIMITS) as [keyof typeof LIMITS, [number, number]][]) {
+    const v = Number(f.get(k));
+    if (!Number.isInteger(v) || v < lo || v > hi) return { ok: false, error: `Check the numbers: ${k.replace(/_/g, " ")} is ${lo} to ${hi}.` };
+    nums[k] = v;
+  }
+  return { ok: true, value: { blocked_words, blocked_action, blocked_domains, ...nums } };
 }

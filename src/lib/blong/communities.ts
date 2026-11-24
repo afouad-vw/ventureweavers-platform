@@ -97,6 +97,13 @@ export function communityCta(c: Pick<CommunityRow, "visibility" | "my_role" | "m
 export const roleLabel = (r: CommunityRole) => (r === "owner" ? "Owner" : r === "admin" ? "Admin" : "Member");
 
 export function communityError(message: string): string {
+  if (message.includes("mod_blocked_word")) return "That message includes words the community doesn't allow. Please rephrase it.";
+  if (message.includes("mod_blocked_link")) return "Links to that site aren't allowed.";
+  if (message.includes("mod_too_many_links")) return "That's a lot of links for one message. Please share fewer.";
+  if (message.includes("mod_new_member_links")) return "New members can share links after their first week.";
+  if (message.includes("mod_new_member")) return "New members can do this after their first few days. Meanwhile, join discussions and follow people.";
+  if (message.includes("mod_duplicate")) return "You just sent that. Try saying something new.";
+  if (message.includes("mod_slow_down")) return "You're sending messages quickly. Please wait a moment.";
   if (message.includes("section_off")) return "Communities are coming soon. Press Notify me and we'll tell you when they open.";
   if (message.includes("pending_review")) return "This community is waiting for the team's approval.";
   if (message.includes("too_many_communities")) return "You've created 3 communities today. Please try again tomorrow.";

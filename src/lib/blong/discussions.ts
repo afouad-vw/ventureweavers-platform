@@ -58,6 +58,8 @@ export type RoomMessage = {
   reply_name: string | null;
   reply_body: string | null;
   created_at: string;
+  /** Phase 19b: held (waiting for review) and hidden (after reports) messages reach only their author. */
+  mod_status?: "live" | "held" | "hidden";
 };
 
 export type DiscussionInput = { title: string; description: string; category: DiscussionCategory; tags: string[]; limit: number; privacy: RoomPrivacy; community: string | null };
@@ -111,6 +113,13 @@ export function activeAgo(iso: string | null, now = new Date()): string {
 }
 
 export function discussionError(message: string): string {
+  if (message.includes("mod_blocked_word")) return "That message includes words the community doesn't allow. Please rephrase it.";
+  if (message.includes("mod_blocked_link")) return "Links to that site aren't allowed.";
+  if (message.includes("mod_too_many_links")) return "That's a lot of links for one message. Please share fewer.";
+  if (message.includes("mod_new_member_links")) return "New members can share links after their first week.";
+  if (message.includes("mod_new_member")) return "New members can do this after their first few days. Meanwhile, join discussions and follow people.";
+  if (message.includes("mod_duplicate")) return "You just sent that. Try saying something new.";
+  if (message.includes("mod_slow_down")) return "You're sending messages quickly. Please wait a moment.";
   if (message.includes("section_off")) return "Discussions are coming soon. Press Notify me and we'll tell you when they open.";
   if (message.includes("pending_review")) return "This discussion is waiting for the team's approval.";
   if (message.includes("too_many_discussions")) return "You've started 10 discussions today. Please try again tomorrow.";

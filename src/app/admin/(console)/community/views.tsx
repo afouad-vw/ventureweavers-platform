@@ -5,10 +5,10 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/misc";
 import { StatusPill } from "@/components/ui/tag";
 import { slugOf } from "@/lib/contacts/slug";
-import { BLONG_SECTION_IDS, BLONG_SECTION_TITLE, type BlongSection } from "@/lib/blong/format";
-import { blongAdminSettings, blongPending, blongStats } from "@/lib/blong/queries";
+import { BLONG_SECTION_IDS, BLONG_SECTION_TITLE, MOD_RULE_LABEL, type BlongSection } from "@/lib/blong/format";
+import { blongAdminSettings, blongHeld, blongModStats, blongPending, blongStats, blongWatch } from "@/lib/blong/queries";
 import { adminWaitlists } from "@/lib/waitlist-server";
-import { ReviewButtons, SettingSwitch } from "./controls";
+import { HeldButtons, ReviewButtons, RulesForm, SettingSwitch } from "./controls";
 
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 const n = (x: number | null | undefined) => new Intl.NumberFormat("en-GB").format(x ?? 0);
@@ -26,7 +26,7 @@ function Tile({ icon: Icon, label, value, sub }: { icon: typeof Users; label: st
 
 /** Admin › Community › Overview: counts only. Staff never read chats here. */
 export async function Overview({ base }: { base: string }) {
-  const s = await blongStats();
+  const [s, mod] = await Promise.all([blongStats(), blongModStats()]);
   if (!s) return <EmptyState>Numbers show here once BLong is connected.</EmptyState>;
   const max = Math.max(1, ...s.daily.map((d) => d.messages + d.joins));
   const maxActive = Math.max(1, ...s.daily.map((d) => d.active));
@@ -35,6 +35,11 @@ export async function Overview({ base }: { base: string }) {
       {s.pending ? (
         <Link href={`${base}/community?view=approvals`} className="bl-review warn flex items-center gap-2 rounded-2xl border px-4 py-3 text-[13.5px] font-bold">
           <Clock size={16} aria-hidden="true" />{s.pending} waiting for approval. Review them
+        </Link>
+      ) : null}
+      {mod && mod.held_now + mod.hidden_now ? (
+        <Link href={`${base}/community?view=held`} className="bl-review warn flex items-center gap-2 rounded-2xl border px-4 py-3 text-[13.5px] font-bold">
+          <ShieldCheck size={16} aria-hidden="true" />{mod.held_now + mod.hidden_now} {mod.held_now + mod.hidden_now === 1 ? "message is" : "messages are"} held or hidden. Review them
         </Link>
       ) : null}
       <div className="grid grid-cols-2 gap-3 desk:grid-cols-4">
@@ -46,6 +51,7 @@ export async function Overview({ base }: { base: string }) {
         <Tile icon={MessagesSquare} label="Member messages" value={n(s.member_messages_30)} sub="last 30 days (count only)" />
         <Tile icon={UserPlus} label="Joins and follows" value={n(s.joins_30 + s.follows_30)} sub={`last 30 days · ${n(s.follows)} follows in all`} />
         <Tile icon={Flag} label="Reports open" value={n(s.reports_open)} sub={`${n(s.reports_handled_30)} handled in 30 days${s.handle_hours != null ? ` · ${s.handle_hours} h on average` : ""}`} />
+        {mod ? <Tile icon={ShieldCheck} label="Caught by the rules" value={n(mod.held_30)} sub={`held in 30 days · ${n(mod.hidden_30)} hidden after reports · ${n(mod.removed_30)} removed`} /> : null}
       </div>
 
       <Card>
@@ -172,6 +178,48 @@ export async function Settings({ manage }: { manage: boolean }) {
         <SettingSwitch name="approve_communities" label="New communities need approval" hint="Turning this off doesn't publish the ones already waiting." value={s.approve_communities} manage={manage} />
         <SettingSwitch name="approve_discussions" label="New discussions need approval" hint="Turning this off doesn't publish the ones already waiting." value={s.approve_discussions} manage={manage} />
         <p className="mt-2 text-[12px] text-faint">Last changed {when(s.updated_at)}.</p>
+      </Card>
+      <Card className="desk:col-span-2">
+        <h2 className="inline-flex items-center gap-1.5 text-[15px] font-bold"><ShieldCheck size={16} aria-hidden="true" />Automatic moderation</h2>
+        <p className="-mt-1 text-[12.5px] text-faint">Checked every time a member posts in a discussion, sends a message or names a community or discussion. Held messages wait in the Held tab and only their author sees them.</p>
+        <RulesForm rules={s} manage={manage} />
+      </Card>
+    </div>
+  );
+}
+
+/** Messages the rules held, or that reports hid: only these are readable by staff. Plus members caught often. */
+export async function Held({ base, manage }: { base: string; manage: boolean }) {
+  const [items, watch] = await Promise.all([blongHeld(), blongWatch()]);
+  return (
+    <div className="grid gap-4 desk:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="flex flex-col gap-3">
+        {items.length ? items.map((m) => (
+          <Card key={m.id}>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusPill tone={m.mod_status === "held" ? "warn" : "bad"}>{m.mod_status === "held" ? "Held" : "Hidden"}</StatusPill>
+              <b className="text-[14px]">{MOD_RULE_LABEL[m.mod_rule ?? ""] ?? "Review"}</b>
+              <span className="text-[13px] text-faint">· in {m.room_title} · {when(m.created_at)}{m.reports ? ` · ${m.reports} open ${m.reports === 1 ? "report" : "reports"}` : ""}</span>
+            </div>
+            <blockquote className="rounded-xl border border-line bg-hover px-3 py-2 text-[13.5px] whitespace-pre-wrap">{m.body}</blockquote>
+            <p className="text-[13px]"><span className="text-faint">By </span><Link href={`${base}/contacts/${slugOf(`m:${m.author_id}`)}`} className="font-bold text-link">{m.author_name}</Link></p>
+            {manage ? <HeldButtons id={m.id} /> : null}
+          </Card>
+        )) : <EmptyState>Nothing held or hidden.</EmptyState>}
+      </div>
+      <Card>
+        <h2 className="text-[15px] font-bold">Watch list</h2>
+        <p className="-mt-1 text-[12px] text-faint">Members caught by the rules five or more times in the last 7 days. Nothing happens automatically: warn them, or suspend from their contact page.</p>
+        {watch.length ? (
+          <ul className="flex flex-col divide-y divide-line">
+            {watch.map((w) => (
+              <li key={w.member_id} className="flex items-center justify-between gap-2 py-2 text-[13.5px]">
+                <Link href={`${base}/contacts/${slugOf(`m:${w.member_id}`)}`} className="font-bold text-link">{w.name}</Link>
+                <span className="text-[12px] text-faint">{w.caught} times</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="text-[13px] text-faint">Nobody right now.</p>}
       </Card>
     </div>
   );

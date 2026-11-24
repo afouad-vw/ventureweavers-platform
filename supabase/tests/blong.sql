@@ -1,6 +1,8 @@
 -- BLong networking (Phase 18a): privacy, cards, follows, blocks, member messages and reports. Run with: npm run test:db
 \set ON_ERROR_STOP on
 begin;
+-- Phase 19b: new-member limits are tested in blong_moderation.sql.
+update public.blong_settings set new_member_days = 0, link_new_days = 0, per_minute = 60;
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000b001', 'pub@test', '{"name":"Pia Public"}'),

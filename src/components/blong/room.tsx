@@ -91,6 +91,8 @@ export function RoomJoin({ d }: { d: Pick<DiscussionPage, "id" | "title" | "priv
 }
 
 /** The room: live messages with replies, pins and removal, and the box to write in. */
+const live = (m: RoomMessage) => !m.mod_status || m.mod_status === "live";
+
 export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initial: RoomMessage[] }) {
   const [messages, setMessages] = useState(initial);
   const [pinned, setPinned] = useState(d.pinned);
@@ -111,7 +113,7 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
 
   const reload = useCallback(async () => {
     const r = await fetchRoom(d.id).catch(() => null);
-    if (r) setMessages((old) => (r.length !== old.length || r.at(-1)?.id !== old.at(-1)?.id || r.some((m, i) => m.removed !== old[i]?.removed) ? r : old));
+    if (r) setMessages((old) => (r.length !== old.length || r.at(-1)?.id !== old.at(-1)?.id || r.some((m, i) => m.removed !== old[i]?.removed || m.mod_status !== old[i]?.mod_status) ? r : old));
   }, [d.id]);
   useRoomLive(d.id, reload);
 
@@ -133,7 +135,9 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
       if (!r.ok) return toast(r.error);
       setDraft("");
       setReplyTo(null);
-      await reload();
+      const list = await fetchRoom(d.id).catch(() => null);
+      if (list) setMessages(list);
+      if (list?.find((x) => x.id === r.value)?.mod_status === "held") toast("Your message is waiting for the team's review. Only you can see it for now.");
       requestAnimationFrame(toBottom);
     });
   };
@@ -166,6 +170,9 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
                 <Link href={`/blong/members/${m.author}`} scroll={false} className="shrink-0"><MemberAvatar id={m.author} name={m.name} src={m.avatar_url} size={34} /></Link>
                 <div className="min-w-0 flex-1">
                   <p className="text-[12px] text-faint"><b className="text-fg">{mine ? "You" : m.name}</b> · {messageTime(m.created_at)}</p>
+                  {m.mod_status && m.mod_status !== "live" && !m.removed ? (
+                    <p className={`bl-chip review ${m.mod_status === "held" ? "warn" : "bad"} mt-1`}>{m.mod_status === "held" ? "Waiting for review · only you can see this" : "Hidden after reports · the team will review it"}</p>
+                  ) : null}
                   {m.reply_to ? (
                     <p className="mt-1 line-clamp-1 border-l-2 border-[#7c5ce0] pl-2 text-[12px] text-faint"><CornerUpLeft size={11} className="mr-1 inline" aria-hidden="true" />{m.reply_name}: {m.reply_body || "removed message"}</p>
                   ) : null}
@@ -176,8 +183,8 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
                   )}
                   {!m.removed ? (
                     <span className="mt-1 flex flex-wrap gap-3 text-[12px] font-bold text-faint opacity-100 desk:opacity-0 desk:group-hover:opacity-100 desk:group-focus-within:opacity-100">
-                      {canPost ? <button type="button" className="cursor-pointer hover:text-fg" onClick={() => setReplyTo(m)}>Reply</button> : null}
-                      {admin ? (
+                      {canPost && live(m) ? <button type="button" className="cursor-pointer hover:text-fg" onClick={() => setReplyTo(m)}>Reply</button> : null}
+                      {admin && live(m) ? (
                         <button type="button" className="cursor-pointer hover:text-fg" onClick={() => startAct(async () => {
                           const r = await pinRoomMessage(d.id, m.id);
                           if (!r.ok) return toast(r.error);
@@ -191,7 +198,7 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
                           await reload();
                         })}><Trash2 size={11} className="mr-0.5 inline" aria-hidden="true" />Remove</button>
                       ) : null}
-                      {!mine ? <button type="button" className="cursor-pointer hover:text-fg" onClick={() => setReport(m)}><Flag size={11} className="mr-0.5 inline" aria-hidden="true" />Report</button> : null}
+                      {!mine && live(m) ? <button type="button" className="cursor-pointer hover:text-fg" onClick={() => setReport(m)}><Flag size={11} className="mr-0.5 inline" aria-hidden="true" />Report</button> : null}
                     </span>
                   ) : null}
                 </div>

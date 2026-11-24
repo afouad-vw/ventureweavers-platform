@@ -2,7 +2,7 @@
 \set ON_ERROR_STOP on
 begin;
 -- Phase 19a: approval is tested in blong_controls.sql; these tests create live items.
-update public.blong_settings set approve_communities = false, approve_discussions = false;
+update public.blong_settings set approve_communities = false, approve_discussions = false, new_member_days = 0, link_new_days = 0, per_minute = 60;
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000d101', 'host@test', '{"name":"Hana Host"}'),

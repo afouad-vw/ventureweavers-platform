@@ -1,6 +1,7 @@
 -- BLong admin controls (Phase 19a): section switches, approval, settings, stats. Run with: npm run test:db
 \set ON_ERROR_STOP on
 begin;
+update public.blong_settings set new_member_days = 0, link_new_days = 0, per_minute = 60;
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000e101', 'maker@test', '{"name":"Mia Maker"}'),
