@@ -306,7 +306,7 @@ function MeHero({ member }: { member: HouseMember }) {
       <Link href="/my-space?tab=tickets" className="hs-float" style={{ "--c": "#F2B65A", left: "8%", top: "14%" } as React.CSSProperties}><small>Tickets</small><b>Your seats</b></Link>
       <Link href="/my-space?tab=learning" className="hs-float" style={{ "--c": "#8AAEF0", right: "6%", top: "20%", animationDelay: "-2s" } as React.CSSProperties}><small>Learning</small><b>Your programs</b></Link>
       <Link href="/my-space?tab=requests" className="hs-float" style={{ "--c": "#E8896A", left: "12%", bottom: "14%", animationDelay: "-4s" } as React.CSSProperties}><small>Requests</small><b>Your meetings</b></Link>
-      <Link href="/blong/communities?tab=joined" className="hs-float" style={{ "--c": "#B4A2F5", right: "10%", bottom: "12%", animationDelay: "-6s" } as React.CSSProperties}><small>My communities</small><b>Your groups</b></Link>
+      <Link href="/my-space?tab=saved" className="hs-float" style={{ "--c": "#5fe0c0", right: "10%", bottom: "12%", animationDelay: "-6s" } as React.CSSProperties}><small>Saved</small><b>Kept for later</b></Link>
     </div>
   );
 }

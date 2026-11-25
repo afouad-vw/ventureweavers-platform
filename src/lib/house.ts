@@ -79,13 +79,11 @@ export const SLIDES: Slide[] = [
     ],
   },
   {
-    key: "me", short: "My space", name: "My space", kicker: "Your corner of the house", line: "Your tickets, learning, communities, discussions, requests and everything you have saved.",
+    key: "me", short: "My space", name: "My space", kicker: "Your corner of the house", line: "Your tickets, learning, requests, payments and everything you have saved.",
     colour: COLOURS.teal, tint: TINTS.teal,
     dock: [
       { label: "Tickets", href: "/my-space?tab=tickets", icon: "ticket", colour: COLOURS.outloud },
       { label: "Learning", href: "/my-space?tab=learning", icon: "learn", colour: COLOURS.tvs },
-      { label: "My communities", href: "/blong/communities?tab=joined", icon: "users", colour: COLOURS.blong },
-      { label: "My discussions", href: "/blong/discussions?tab=joined", icon: "chat", colour: COLOURS.blong },
       { label: "Requests", href: "/my-space?tab=requests", icon: "inbox", colour: COLOURS.brickr },
       { label: "Payments", href: "/my-space?tab=payments", icon: "card", colour: COLOURS.teal },
       { label: "My news", href: "/my-space?tab=news", icon: "mega", colour: COLOURS.outloud },

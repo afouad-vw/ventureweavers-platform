@@ -96,10 +96,9 @@
 .hs-slide { position: relative; flex: 0 0 100%; min-width: 0; max-width: 100%; overflow: hidden; height: 100%; scroll-snap-align: center; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; padding: 6px 96px calc(26px + env(safe-area-inset-bottom)); }
 .hs-scene-wrap { flex: 1 1 auto; min-height: 0; width: 100%; container-type: size; display: grid; place-items: center; }
 .hs-scene { position: relative; width: min(100cqw, calc(100cqh * var(--ar))); aspect-ratio: var(--ar); }
-/* Morph between spaces: as a slide leaves the centre (--p -1..1, --a its size) its scene turns away, shrinks into a soft
-   rounded blob, blurs and fades, while the next one grows out of its own blob; captions drift the other way. */
-.hs-slide { perspective: 1400px; }
-.hs-scene-wrap { transform-origin: calc(50% + var(--p, 0) * 50%) 50%; transform: translateX(calc(var(--p, 0) * -64%)) rotateY(calc(var(--p, 0) * -40deg)) scale(calc(1 - var(--a, 0) * .42)); filter: blur(calc(var(--a, 0) * 9px)) saturate(calc(1 - var(--a, 0) * .6)); opacity: calc(1 - var(--a, 0) * .75); clip-path: inset(calc(var(--a, 0) * 22% - 80px) round calc(var(--a, 0) * 46%)); will-change: transform, filter, clip-path; }
+/* Between spaces: as a slide leaves the centre (--p -1..1, --a its size) its scene lags behind a little, settles back
+   and fades while the next one eases in; captions drift the other way. Transform and opacity only, so it stays smooth. */
+.hs-scene-wrap { transform: translate3d(calc(var(--p, 0) * -16%), 0, 0) scale(calc(1 - var(--a, 0) * .1)); opacity: calc(1 - var(--a, 0) * .85); will-change: transform, opacity; backface-visibility: hidden; }
 .hs-cap { translate: calc(var(--p, 0) * 46%) 0; }
 .hs-scene-in { position: absolute; inset: 0; animation: hs-bob 7s ease-in-out infinite; filter: drop-shadow(0 40px 50px rgb(0 0 0 / .55)); }
 .hs-scene-in img { object-fit: cover; user-select: none; -webkit-user-drag: none; -webkit-mask-image: radial-gradient(ellipse 74% 74% at 50% 50%, #000 60%, transparent 100%); mask-image: radial-gradient(ellipse 74% 74% at 50% 50%, #000 60%, transparent 100%); }
@@ -250,7 +249,7 @@
 @media (prefers-reduced-motion: reduce) {
   .hs *, .hs *::before, .hs *::after { animation: none !important; transition: none !important; }
   .hs-spot, .hs-tag, .hs-scene, .hs-cap, .hs-dock { opacity: 1 !important; transform: none; }
-  .hs-scene-wrap { transform: none !important; filter: none !important; opacity: 1 !important; clip-path: none !important; }
+  .hs-scene-wrap { transform: none !important; opacity: 1 !important; }
   .hs-cap, .hs-dock { translate: none !important; }
   .hs-spot, .hs-tag { transform: translate(-50%, -50%); }
 }
