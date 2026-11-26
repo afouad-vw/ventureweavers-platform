@@ -13,7 +13,7 @@ const perks = [
   "Book Open Floor seats and private sessions",
   "Apply to TVS programs and masterclasses",
   "Request a meeting with BRICKR",
-  "Join the QuidQuo waitlist",
+  "Join the Eureka waitlists: QuidQuo and Handlr",
 ];
 
 export default async function JoinPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {

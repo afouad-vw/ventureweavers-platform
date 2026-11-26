@@ -24,7 +24,7 @@ export function ThreadTag({ thread, label, className }: { thread: TagTone; label
   return (
     <span className={cn("inline-flex h-[22px] shrink-0 items-center gap-1.5 self-start rounded-md px-2 text-[11.5px] font-bold whitespace-nowrap", tone[thread].box, className)}>
       <i className={cn("h-[7px] w-[7px] rounded-full", tone[thread].dot)} aria-hidden="true" />
-      {label ?? (thread === "House" ? "VentureWeavers" : thread)}
+      {label ?? (thread === "House" ? "VentureWeavers" : thread === "QuidQuo" ? "Eureka" : thread)}
     </span>
   );
 }

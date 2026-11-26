@@ -12,7 +12,7 @@ describe("house slides", () => {
     expect(labels("outloud")).toEqual(["Live content", "Digital content", "Blogs"]);
     expect(labels("tvs")).toEqual(["Programs", "Masterclasses", "Private programs"]);
     expect(labels("brickr")).toEqual(["Fractional services", "Mentorship"]);
-    expect(labels("quidquo")).toEqual(["Progress", "Waiting list"]);
+    expect(labels("quidquo")).toEqual(["All products", "QuidQuo", "Handlr"]);
     expect(labels("blong")).toEqual(["Communities", "Discussions", "Networking"]);
     expect(labels("me")).toEqual(["Tickets", "Learning", "Requests", "Payments", "My news", "Saved", "Profile settings", "Sign out"]);
   });
@@ -25,7 +25,9 @@ describe("panelMeta", () => {
     expect(panelMeta("/outloud", "tab=blog").title).toBe("Blogs");
     expect(panelMeta("/tvs", "?tab=private").title).toBe("Private programs");
     expect(panelMeta("/brickr", "?kind=mentorship").title).toBe("Mentorship");
-    expect(panelMeta("/quidquo", "?tab=waitlist").title).toBe("Waiting list");
+    expect(panelMeta("/eureka").title).toBe("All products");
+    expect(panelMeta("/eureka/handlr", "?tab=waitlist").title).toBe("Handlr");
+    expect(panelMeta("/eureka/quidquo").spaceName).toBe("Eureka");
     expect(panelMeta("/my-space", "?tab=profile").title).toBe("Profile settings");
     expect(panelMeta("/my-space", "").title).toBe("Tickets");
     expect(panelMeta("/my-space", "?tab=privacy").title).toBe("Profile settings");

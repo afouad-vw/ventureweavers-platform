@@ -8,6 +8,7 @@ import type { LedgerRow } from "@/lib/payments/format";
 import { applicationLabel } from "@/lib/tvs/format";
 import { loadPeople, type Contact, type Space } from "./queries";
 import { auditItem, sortTimeline, type TimelineItem } from "./timeline";
+import { productName } from "@/lib/eureka";
 
 /**
  * One person for the contact page. Read with the service key, so callers must pass requireAdmin() first.
@@ -90,7 +91,7 @@ export async function loadPerson(slug: string): Promise<Person | null> {
     svc.from("enrolments").select("id, status, amount_piasters, offered_at, confirmed_at, cohorts(label, programs(name))").eq("member_id", id),
     svc.from("requests").select("id, status, space, created_at, preferred_at, meeting_at, meeting_url, calendly_invitee, company, note, owner, services(name)").eq("member_id", id).order("created_at", { ascending: false }),
     svc.from("payment_requests").select("id, item, space, amount_piasters, status, created_at, paid_at").eq("member_id", id),
-    svc.from("waitlist").select("id, role, joined_at").eq("member_id", id),
+    svc.from("waitlist").select("id, role, joined_at, product").eq("member_id", id),
     svc.from("live_questions").select("id, text, status, picked_at, created_at, events(title)").eq("member_id", id).order("created_at", { ascending: false }).limit(50),
     svc.from("topic_suggestions").select("id, text, created_at").eq("member_id", id).limit(50),
     svc.from("submissions").select("id, status, submitted_at, assignments(title)").eq("member_id", id).limit(100),
@@ -124,8 +125,8 @@ export async function loadPerson(slug: string): Promise<Person | null> {
     timeline.push({ key: `pq${q.id}`, at: q.created_at, space: q.space, title: `Payment request: ${q.item}`, detail: egp(q.amount_piasters), status: q.status });
     if (q.paid_at) timeline.push({ key: `pp${q.id}`, at: q.paid_at, space: q.space, title: `Paid: ${q.item}`, detail: egp(q.amount_piasters) });
   }
-  for (const w of (waitlist.data ?? []) as { id: string; role: string; joined_at: string }[]) {
-    timeline.push({ key: `w${w.id}`, at: w.joined_at, space: "QuidQuo", title: "Joined the QuidQuo waitlist", detail: w.role });
+  for (const w of (waitlist.data ?? []) as { id: string; role: string; joined_at: string; product: string }[]) {
+    timeline.push({ key: `w${w.id}`, at: w.joined_at, space: "QuidQuo", title: `Joined the ${productName(w.product)} waitlist`, detail: w.role });
   }
   for (const q of (questions.data ?? []) as unknown as { id: string; text: string; status: string; picked_at: string | null; created_at: string; events: { title: string } | null }[]) {
     timeline.push({ key: `q${q.id}`, at: q.created_at, space: "Outloud", title: `Asked in Live mode${q.events ? ` · ${q.events.title}` : ""}`, detail: `“${q.text}”`, status: q.picked_at ? "Picked" : q.status === "hidden" ? "Hidden" : undefined });

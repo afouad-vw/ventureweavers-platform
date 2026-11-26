@@ -20,7 +20,7 @@ export const AREAS = [
   { key: "tvs", label: "TVS programs & applications", levels: ["view", "manage"], hint: "Manage: programs, cohorts, masterclasses, applications" },
   { key: "classroom", label: "TVS classroom", levels: ["view", "manage"], hint: "Manage: modules, sessions, review hand-ins" },
   { key: "brickr", label: "BRICKR services", levels: ["view", "manage"], hint: "Manage: create and edit services" },
-  { key: "quidquo", label: "QuidQuo", levels: ["view", "manage"], hint: "Manage: stages, build log, waitlist" },
+  { key: "quidquo", label: "Eureka products", levels: ["view", "manage"], hint: "Manage: each product's stages, build log and waitlist" },
   { key: "library", label: "Library", levels: ["view", "manage"], hint: "Manage: upload and edit resources" },
   { key: "publishing", label: "Publishing", levels: ["manage"], hint: "Send updates to the feed and by email" },
 ] as const;
@@ -88,6 +88,7 @@ export const PAGE_PERMS: Record<string, Perm[]> = {
   "/admin/tvs": ["tvs.view", "classroom.view"],
   "/admin/brickr": ["brickr.view"],
   "/admin/quidquo": ["quidquo.view"],
+  "/admin/eureka": ["quidquo.view"],
   "/admin/library": ["library.view"],
   "/admin/publishing": ["publishing.manage"],
 };

@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Briefcase, Building2, Cpu, CreditCard, Flag, FolderKanban, GraduationCap, House, Inbox, Megaphone, MessageSquare, Mic, Network, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Briefcase, Building2, CreditCard, Flag, FlaskConical, FolderKanban, GraduationCap, House, Inbox, Megaphone, MessageSquare, Mic, Network, Radio, ScanLine, ShieldCheck, User, Users, type LucideIcon } from "lucide-react";
 
 export type Thread = "Outloud" | "TVS" | "BRICKR" | "QuidQuo";
 
@@ -17,7 +17,7 @@ export const memberSpaces: NavItem[] = [
   { href: "/outloud", label: "Outloud", icon: Mic, thread: "Outloud", kind: "Content" },
   { href: "/tvs", label: "TVS", icon: GraduationCap, thread: "TVS", kind: "Education" },
   { href: "/brickr", label: "BRICKR", icon: Briefcase, thread: "BRICKR", kind: "Services" },
-  { href: "/quidquo", label: "QuidQuo", icon: Cpu, thread: "QuidQuo", kind: "Technology" },
+  { href: "/eureka", label: "Eureka", icon: FlaskConical, thread: "QuidQuo", kind: "Products" },
   { href: "/blong/networking", label: "BLong", icon: Network, kind: "Community" },
   { href: "/library", label: "Library", icon: BookOpen, kind: "Resources" },
 ];
@@ -42,7 +42,7 @@ export const adminSpaces: NavItem[] = [
   { href: "/admin/outloud", label: "Outloud", icon: Mic, thread: "Outloud" },
   { href: "/admin/tvs", label: "TVS", icon: GraduationCap, thread: "TVS" },
   { href: "/admin/brickr", label: "BRICKR", icon: Briefcase, thread: "BRICKR" },
-  { href: "/admin/quidquo", label: "QuidQuo", icon: Cpu, thread: "QuidQuo" },
+  { href: "/admin/eureka", label: "Eureka", icon: FlaskConical, thread: "QuidQuo" },
 ];
 
 export const adminShared: NavItem[] = [

@@ -60,7 +60,7 @@ export async function Overview({ base }: { base: string }) {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-[15px] font-bold">Last 30 days</h2>
           <span className="flex gap-3 text-[12px] text-faint">
-            <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-[#7c5ce0]" />Messages</span>
+            <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-[#8DBF2E]" />Messages</span>
             <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-[#29be9c]" />Joins</span>
             <span className="inline-flex items-center gap-1"><i className="h-0.5 w-3 bg-[#f2c27a]" />Active members</span>
           </span>
@@ -72,7 +72,7 @@ export async function Overview({ base }: { base: string }) {
               return (
                 <g key={d.day}>
                   <title>{`${d.day}: ${d.messages} messages, ${d.joins} joins, ${d.active} active`}</title>
-                  <rect x={x} y={140 - hm} width={12} height={hm} rx={2} fill="#7c5ce0" />
+                  <rect x={x} y={140 - hm} width={12} height={hm} rx={2} fill="#8DBF2E" />
                   <rect x={x} y={140 - hm - hj} width={12} height={hj} rx={2} fill="#29be9c" />
                 </g>
               );

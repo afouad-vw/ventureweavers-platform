@@ -232,7 +232,7 @@ export function EpisodeTile({ item, image }: { item: ContentItem | null; image: 
 export function QuidQuoTile({ stages, onWaitlist }: { stages: Stage[]; onWaitlist: boolean }) {
   return (
     <section className={tileClass}>
-      <TileHead left={<ThreadTag thread="QuidQuo" />} right={onWaitlist ? "You're on the waitlist" : "Building now"} />
+      <TileHead left={<ThreadTag thread="QuidQuo" label="Eureka · QuidQuo" />} right={onWaitlist ? "You're on the waitlist" : "Building now"} />
       <b className="mt-1 text-[15px]">AI for capital formation</b>
       {stages.length ? (
         <div className="flex gap-1.5">
@@ -246,7 +246,7 @@ export function QuidQuoTile({ stages, onWaitlist }: { stages: Stage[]; onWaitlis
           ))}
         </div>
       ) : null}
-      <LinkButton href="/quidquo" size="sm" variant="secondary" className="mt-auto self-start">{onWaitlist ? "Follow progress" : "Join the waitlist"}</LinkButton>
+      <LinkButton href="/eureka/quidquo" size="sm" variant="secondary" className="mt-auto self-start">{onWaitlist ? "Follow progress" : "Join the waitlist"}</LinkButton>
     </section>
   );
 }

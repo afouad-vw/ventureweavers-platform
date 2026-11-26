@@ -17,7 +17,7 @@ import "./landing.css";
 const SITE_URL = `https://${hostConfig().site}`;
 const TITLE = "VentureWeavers | One house for MENA's venture ecosystem";
 const DESCRIPTION =
-  "Shows, venture education, fractional leadership, AI for capital formation and a member community from Ahmed Fouad and Karim Hemdan, in Cairo, across MENA.";
+  "Shows, venture education, fractional leadership, a products lab building AI tools and a member community from Ahmed Fouad and Karim Hemdan, in Cairo, across MENA.";
 const SHARE_IMAGE = { url: "/images/og-logo.png", width: 1200, height: 630, alt: "VentureWeavers", type: "image/png" };
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   category: "Business",
   keywords: [
     "VentureWeavers", "MENA venture ecosystem", "Cairo startups", "Egypt venture capital", "venture building", "fractional leadership",
-    "startup mentorship", "venture education", "The Venture School", "Open Floor", "Outloud", "BRICKR", "QuidQuo", "BLong", "founder community", "capital formation", "angel investing",
+    "startup mentorship", "venture education", "The Venture School", "Open Floor", "Outloud", "BRICKR", "Eureka", "QuidQuo", "Handlr", "BLong", "founder community", "capital formation", "angel investing",
   ],
   alternates: { canonical: "/" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
@@ -129,26 +129,26 @@ const SPACES: Space[] = [
   },
   {
     key: "quidquo",
-    name: "QuidQuo",
-    colour: "#8DBF2E",
-    tint: "#B4DD5E",
-    kicker: "Technology · AI for capital formation",
-    line: "Less friction between capital and the people who need it.",
-    body: "An agentic AI platform in development that helps founders and investors build their ventures and portfolios, with capital formation as the goal. Follow the build on the platform and join the waitlist to be first in.",
-    points: ["Agentic AI", "Build tracker", "Waitlist", "Early access for members"],
-    cta: "Join the waitlist",
-    href: "/quidquo",
+    name: "Eureka",
+    colour: "#7C5CE0",
+    tint: "#B4A2F5",
+    kicker: "Products · Our lab",
+    line: "Where we build our own products, in the open.",
+    body: "Eureka is the VentureWeavers products lab. QuidQuo is AI for capital formation, for founders and investors alike. Handlr is an AI executive assistant for professionals and businesses. Follow each build on the platform and join its waitlist to be first in.",
+    points: ["QuidQuo", "Handlr", "Build trackers", "Early access for members"],
+    cta: "Join a waitlist",
+    href: "/eureka",
     photo: "/landing/lab.webp",
     size: [1800, 1442],
-    labels: [{ label: "Waitlist open", x: 72, y: 22 }],
+    labels: [{ label: "QuidQuo", x: 72, y: 22 }, { label: "Handlr", x: 30, y: 30 }],
     flows: [[[0, 94.6], [36, 70], [37.6, 68.4], [48, 61.6]]],
     icon: Cpu,
   },
   {
     key: "blong",
     name: "BLong",
-    colour: "#7C5CE0",
-    tint: "#B4A2F5",
+    colour: "#8DBF2E",
+    tint: "#B4DD5E",
     kicker: "Community · Engage and connect",
     line: "Where members meet, talk and grow together.",
     body: "The community space, run by the members themselves. Find people across the ecosystem and follow them, start or join communities around a topic, an industry, a role or a place, and talk things through in live discussions. Every member chooses who can follow them, message them and see what they do.",
@@ -176,7 +176,7 @@ const AUDIENCES: { icon: LucideIcon; name: string; body: string }[] = [
 
 const STEPS = [
   { n: "01", icon: UserPlus, title: "Create your account", body: "Sign up with Google, LinkedIn or email, then tell us your role in the ecosystem and what you're building. It takes about two minutes." },
-  { n: "02", icon: Sparkles, title: "Step into every space", body: "Book Outloud shows, apply to TVS programs, request a BRICKR meeting, join the QuidQuo waitlist and meet members in BLong, all from one place." },
+  { n: "02", icon: Sparkles, title: "Step into every space", body: "Book Outloud shows, apply to TVS programs, request a BRICKR meeting, join a Eureka product waitlist and meet members in BLong, all from one place." },
   { n: "03", icon: MessageSquare, title: "Stay close to the house", body: "Message the team, read VW Notes, open the library and share your own business news with the community." },
 ];
 
@@ -184,7 +184,7 @@ const FEATURES: { icon: LucideIcon; label: string }[] = [
   { icon: CalendarCheck, label: "Book shows" },
   { icon: GraduationCap, label: "Apply to programs" },
   { icon: Users, label: "Meet the partners" },
-  { icon: Cpu, label: "QuidQuo waitlist" },
+  { icon: Cpu, label: "Eureka waitlists" },
   { icon: Network, label: "Communities and discussions" },
   { icon: BookOpen, label: "VW Notes" },
   { icon: Library, label: "Library" },
@@ -195,9 +195,9 @@ const FEATURES: { icon: LucideIcon; label: string }[] = [
 const HOUSE_SPOTS: Hotspot[] = [
   { label: "Outloud", x: 21.4, y: 4, colour: "#E39B2D", href: "#space-outloud" },
   { label: "The Venture School", x: 79.9, y: 4, colour: "#1F4FA3", href: "#space-tvs" },
-  { label: "QuidQuo", x: 13.3, y: 53.5, colour: "#8DBF2E", href: "#space-quidquo" },
+  { label: "Eureka", x: 13.3, y: 53.5, colour: "#7C5CE0", href: "#space-quidquo" },
   { label: "BRICKR", x: 82.7, y: 53.5, colour: "#B5532F", href: "#space-brickr" },
-  { label: "BLong", x: 48, y: 47, colour: "#7C5CE0", href: "#space-blong" },
+  { label: "BLong", x: 48, y: 47, colour: "#8DBF2E", href: "#space-blong" },
 ];
 
 // The teal threads on the house floors, traced from the image (in % of it).
@@ -215,8 +215,8 @@ const JOURNEY = (app: string, join: string): JourneyStep[] => [
   { key: "outloud", tab: "Outloud", kicker: "Content · Live and digital", title: "Conversations worth having in public", body: "Outloud is our content space. Live shows and events bring the ecosystem into one room; episodes, reels, VW Notes and the VW Newsletter carry the conversation further.", cta: { label: "Explore content", href: `${app}/outloud` }, colour: "#E39B2D", tint: "#F2B65A", cam: { x: 24.6, y: 37, s: 3.3 }, label: { x: 50, y: 22 } },
   { key: "tvs", tab: "TVS", kicker: "Education", title: "Learn it in practice", body: "The Venture School is practical, dynamic education for every stakeholder of the ecosystem. Our flagship program, The Venture Asset Class – Beyond Technicalities, is coming soon.", cta: { label: "Explore programs", href: `${app}/tvs` }, colour: "#1F4FA3", tint: "#8AAEF0", cam: { x: 39.5, y: 47, s: 3.3 }, label: { x: 50, y: 22 } },
   { key: "brickr", tab: "BRICKR", kicker: "Services", title: "Build it together", body: "BRICKR is fractional leadership and mentorship. Experienced partners work inside your venture or portfolio, or mentor you through the decisions that matter, hands-on, not hands-off.", cta: { label: "Request a meeting", href: `${app}/brickr` }, colour: "#B5532F", tint: "#E8896A", cam: { x: 52.5, y: 37, s: 3.3 }, label: { x: 50, y: 22 } },
-  { key: "quidquo", tab: "QuidQuo", kicker: "Technology", title: "Raise with less friction", body: "QuidQuo is the AI we are building for capital formation, for founders and investors alike. Follow the build and join the waitlist to be first in.", cta: { label: "Join the waitlist", href: `${app}/quidquo` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 65.5, y: 49, s: 3.3 }, label: { x: 50, y: 22 } },
-  { key: "blong", tab: "BLong", kicker: "Community", title: "Meet the people building it", body: "BLong is the community space. Follow members across the ecosystem, join communities around what you care about, and talk it through in live discussions, on your own terms.", cta: { label: "Meet the community", href: `${app}/blong/networking` }, colour: "#7C5CE0", tint: "#B4A2F5", cam: { x: 84, y: 42, s: 2.3 }, label: { x: 50, y: 20 } },
+  { key: "quidquo", tab: "Eureka", kicker: "Products lab", title: "Products we build in the open", body: "Eureka is our products lab. QuidQuo is AI for capital formation; Handlr is an AI executive assistant for professionals and businesses. Follow each build and join its waitlist to be first in.", cta: { label: "See the products", href: `${app}/eureka` }, colour: "#7C5CE0", tint: "#B4A2F5", cam: { x: 65.5, y: 49, s: 3.3 }, label: { x: 50, y: 22 } },
+  { key: "blong", tab: "BLong", kicker: "Community", title: "Meet the people building it", body: "BLong is the community space. Follow members across the ecosystem, join communities around what you care about, and talk it through in live discussions, on your own terms.", cta: { label: "Meet the community", href: `${app}/blong/networking` }, colour: "#8DBF2E", tint: "#B4DD5E", cam: { x: 84, y: 42, s: 2.3 }, label: { x: 50, y: 20 } },
 ];
 
 const FOUNDERS: Founder[] = [
@@ -460,7 +460,7 @@ export default async function SitePage() {
                 <div className="grid grid-cols-[150px_1fr] sm:grid-cols-[190px_1fr]">
                   <div className="flex flex-col gap-1 border-r border-[var(--lp-line)] bg-black/25 p-3 text-[12px]">
                     <span className="mb-2 flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-teal" /><b className="text-[12.5px]">Home</b></span>
-                    {[["Content", "Outloud", "#E39B2D"], ["Education", "TVS", "#1F4FA3"], ["Services", "BRICKR", "#B5532F"], ["Capital", "QuidQuo", "#8DBF2E"], ["Community", "BLong", "#7C5CE0"], ["Resources", "Library", "#29BE9C"]].map(([type, name, c]) => (
+                    {[["Content", "Outloud", "#E39B2D"], ["Education", "TVS", "#1F4FA3"], ["Services", "BRICKR", "#B5532F"], ["Products", "Eureka", "#7C5CE0"], ["Community", "BLong", "#8DBF2E"], ["Resources", "Library", "#29BE9C"]].map(([type, name, c]) => (
                       <span key={name} className="flex flex-col rounded-lg px-2 py-1.5 hover:bg-white/5">
                         <span className="text-[9.5px] font-bold tracking-wider text-white/35 uppercase">{type}</span>
                         <span className="flex items-center gap-2 font-semibold text-[var(--lp-fg)]"><span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{name}</span>
@@ -489,8 +489,8 @@ export default async function SitePage() {
                       ))}
                     </div>
                     <div className="hidden items-center gap-3 rounded-xl border border-[var(--lp-line)] bg-white/[0.03] p-3 sm:flex">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#8DBF2E]/20 text-[#8DBF2E]"><Cpu size={15} aria-hidden="true" /></span>
-                      <span className="min-w-0 flex-1"><b className="block text-[12.5px]">QuidQuo</b><span className="block text-[11px] text-[var(--lp-muted)]">You&apos;re on the waitlist. We&apos;ll let you in early.</span></span>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7C5CE0]/20 text-[#7C5CE0]"><Cpu size={15} aria-hidden="true" /></span>
+                      <span className="min-w-0 flex-1"><b className="block text-[12.5px]">Eureka · QuidQuo</b><span className="block text-[11px] text-[var(--lp-muted)]">You&apos;re on the waitlist. We&apos;ll let you in early.</span></span>
                       <span className="rounded-full bg-teal/15 px-2.5 py-1 text-[11px] font-bold text-teal">Waitlist</span>
                     </div>
                   </div>
@@ -731,7 +731,7 @@ export default async function SitePage() {
               Step inside <span className="lp-grad">the house.</span>
             </h2>
             <p className="mt-6 max-w-[560px] text-[16px] leading-relaxed text-[var(--lp-fg)]" data-reveal style={{ "--d": 1 } as React.CSSProperties}>
-              Join founders, investors and builders across MENA. One account opens Outloud shows, TVS programs, meetings with the partners, the QuidQuo waitlist, the BLong community, VW Notes and the library.
+              Join founders, investors and builders across MENA. One account opens Outloud shows, TVS programs, meetings with the partners, the Eureka product waitlists, the BLong community, VW Notes and the library.
             </p>
             <div className="mt-9 flex flex-wrap justify-center gap-3" data-reveal style={{ "--d": 2 } as React.CSSProperties}>
               <Primary href={join} big>Join the community</Primary>

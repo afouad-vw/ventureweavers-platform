@@ -75,7 +75,7 @@ export function LibraryManager({ items, access = {} }: { items: AdminResource[];
         ))}
       </TableBox>
       <p className="text-[12.5px] text-faint">
-        Members can open <b>All members</b> resources now. TVS learners, BRICKR clients and QuidQuo waitlist resources show as locked until those memberships exist.
+        Members can open <b>All members</b> resources now. TVS learners, BRICKR clients and QuidQuo waitlist (Eureka) resources show as locked until those memberships exist.
       </p>
 
       <EditorDrawer

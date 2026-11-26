@@ -7,7 +7,8 @@ const SPACES = [
   { name: "Outloud", colour: COLOURS.outloud },
   { name: "The Venture School", colour: COLOURS.tvs },
   { name: "BRICKR", colour: COLOURS.brickr },
-  { name: "QuidQuo", colour: COLOURS.quidquo },
+  { name: "Eureka", colour: COLOURS.quidquo },
+  { name: "BLong", colour: COLOURS.blong },
 ];
 
 /** Sign in, Join and the other account pages: logo and a glass card centred on the dark backdrop. */

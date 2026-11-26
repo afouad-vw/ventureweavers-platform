@@ -32,7 +32,7 @@ export const SCENES: Partial<Record<SpaceKey, Scene>> = {
     spots: [
       { label: "Outloud", x: 21.4, y: 6, colour: COLOURS.outloud, to: "outloud" },
       { label: "The Venture School", x: 79.9, y: 6, colour: COLOURS.tvs, to: "tvs" },
-      { label: "QuidQuo", x: 13.3, y: 53.5, colour: COLOURS.quidquo, to: "quidquo" },
+      { label: "Eureka", x: 13.3, y: 53.5, colour: COLOURS.quidquo, to: "quidquo" },
       { label: "BRICKR", x: 82.7, y: 53.5, colour: COLOURS.brickr, to: "brickr" },
       { label: "BLong", x: 48, y: 47, colour: COLOURS.blong, to: "blong" },
     ],
@@ -53,9 +53,9 @@ export const SCENES: Partial<Record<SpaceKey, Scene>> = {
     labels: [{ label: "Lead", x: 40.6, y: 38 }, { label: "Mentor", x: 76, y: 48 }],
   },
   quidquo: {
-    src: "/landing/lab.webp", width: 1800, height: 1442, alt: "QuidQuo: an AI lab with glowing screens",
+    src: "/landing/lab.webp", width: 1800, height: 1442, alt: "Eureka: our products lab, with glowing screens",
     flows: [[[0, 94.6], [36, 70], [37.6, 68.4], [48, 61.6]]],
-    labels: [{ label: "Waitlist open", x: 72, y: 22 }],
+    labels: [{ label: "QuidQuo", x: 72, y: 22 }, { label: "Handlr", x: 30, y: 30 }],
   },
   blong: {
     src: "/landing/blong.webp", width: 2000, height: 1611, alt: "BLong: members networking in a lounge under a violet light, linked by teal threads",

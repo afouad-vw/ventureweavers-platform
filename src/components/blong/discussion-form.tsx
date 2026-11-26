@@ -60,7 +60,7 @@ export function DiscussionForm({ id, slug, initial, communities = [], community 
           {ROOM_PRIVACY.map((o) => (
             <label key={o.value} className={cn("bl-opt flex cursor-pointer flex-col gap-1 rounded-2xl border p-3.5", privacy === o.value && "on")}>
               <span className="flex items-center gap-2 text-[14px] font-extrabold">
-                <input type="radio" name="privacy-choice" checked={privacy === o.value} onChange={() => setPrivacy(o.value)} className="accent-[#7C5CE0]" />
+                <input type="radio" name="privacy-choice" checked={privacy === o.value} onChange={() => setPrivacy(o.value)} className="accent-[#8DBF2E]" />
                 {o.label}
               </span>
               <span className="text-[12.5px] text-faint">{o.note}</span>

@@ -11,7 +11,7 @@ export const isHouseLook = (cookie: string | undefined) => cookie !== CLASSIC_VA
 
 export type SpaceKey = "house" | "outloud" | "tvs" | "brickr" | "quidquo" | "blong" | "me";
 
-export type DockItem = { label: string; href: string; icon: string; colour: string; signOut?: boolean };
+export type DockItem = { label: string; href: string; icon: string; colour: string; signOut?: boolean; /** A logo shown in place of the icon. */ img?: string };
 
 export type Slide = {
   key: SpaceKey;
@@ -25,8 +25,8 @@ export type Slide = {
   dock: DockItem[];
 };
 
-export const COLOURS = { teal: "#29BE9C", outloud: "#E39B2D", tvs: "#1F4FA3", brickr: "#B5532F", quidquo: "#8DBF2E", blong: "#7C5CE0" } as const;
-export const TINTS = { teal: "#5fe0c0", outloud: "#F2B65A", tvs: "#8AAEF0", brickr: "#E8896A", quidquo: "#B4DD5E", blong: "#B4A2F5" } as const;
+export const COLOURS = { teal: "#29BE9C", outloud: "#E39B2D", tvs: "#1F4FA3", brickr: "#B5532F", quidquo: "#7C5CE0", blong: "#8DBF2E" } as const;
+export const TINTS = { teal: "#5fe0c0", outloud: "#F2B65A", tvs: "#8AAEF0", brickr: "#E8896A", quidquo: "#B4A2F5", blong: "#B4DD5E" } as const;
 
 export const SLIDES: Slide[] = [
   {
@@ -62,11 +62,12 @@ export const SLIDES: Slide[] = [
     ],
   },
   {
-    key: "quidquo", short: "QuidQuo", name: "QuidQuo", kicker: "Capital · In development", line: "Less friction between capital and the people who need it.",
+    key: "quidquo", short: "Eureka", name: "Eureka", kicker: "Products · Lab", line: "Where VentureWeavers builds its own products, in the open.",
     colour: COLOURS.quidquo, tint: TINTS.quidquo,
     dock: [
-      { label: "Progress", href: "/quidquo", icon: "activity", colour: COLOURS.quidquo },
-      { label: "Waiting list", href: "/quidquo?tab=waitlist", icon: "list", colour: COLOURS.quidquo },
+      { label: "All products", href: "/eureka", icon: "lab", colour: COLOURS.quidquo },
+      { label: "QuidQuo", href: "/eureka/quidquo", icon: "cpu", colour: COLOURS.quidquo, img: "/brand/products/quidquo/mark-on-dark.svg" },
+      { label: "Handlr", href: "/eureka/handlr", icon: "bot", colour: COLOURS.quidquo },
     ],
   },
   {
@@ -111,8 +112,9 @@ const SUBS: Record<string, string> = {
   "Fractional services": "Experienced partners inside your venture or portfolio: in the decisions, in the work, measured by what it produces.",
   Mentorship: "Personal, output-oriented sessions that end in decisions and actions, tracked to completion.",
   "My projects": "Your work with the BRICKR partners.",
-  Progress: "AI for raising capital, built in the open. Follow every stage.",
-  "Waiting list": "Be first in when QuidQuo opens. We message you before each stage.",
+  "All products": "Our products lab: what we're building and where each product is.",
+  QuidQuo: "AI for capital formation, built in the open. Follow every stage and join the waiting list.",
+  Handlr: "An AI executive assistant for professionals and businesses. Follow every stage and join the waiting list.",
   Tickets: "Your seats for shows and masterclasses.",
   Learning: "Programs and masterclasses you have applied to or joined.",
   Requests: "Meetings and requests you have sent to the team.",
@@ -131,7 +133,7 @@ const SUBS: Record<string, string> = {
   Networking: "Find members, follow them, and see what the people you follow are up to.",
 };
 
-const SPACE_NAMES: Record<SpaceKey, string> = { house: "VentureWeavers", outloud: "Outloud", tvs: "The Venture School", brickr: "BRICKR", quidquo: "QuidQuo", blong: "BLong", me: "My space" };
+const SPACE_NAMES: Record<SpaceKey, string> = { house: "VentureWeavers", outloud: "Outloud", tvs: "The Venture School", brickr: "BRICKR", quidquo: "Eureka", blong: "BLong", me: "My space" };
 
 /** Which space and section a member page belongs to, for the panel header and the slide behind it. */
 export function panelMeta(pathname: string, search: string | URLSearchParams = ""): PanelMeta {
@@ -163,7 +165,11 @@ export function panelMeta(pathname: string, search: string | URLSearchParams = "
     case "projects":
       return make("brickr", seg[1] ? "Project" : "My projects", "brief");
     case "quidquo":
-      return tab === "waitlist" ? make("quidquo", "Waiting list", "list") : make("quidquo", "Progress", "activity");
+      return make("quidquo", "QuidQuo", "cpu");
+    case "eureka":
+      if (seg[1] === "quidquo") return make("quidquo", "QuidQuo", "cpu", false);
+      if (seg[1] === "handlr") return make("quidquo", "Handlr", "bot", false);
+      return make("quidquo", "All products", "lab");
     case "blong":
       if (seg[1] === "members") return make("blong", "Member", "user");
       if (seg[1] === "communities") return make("blong", "Communities", "users", seg.length > 2);

@@ -94,7 +94,7 @@ export function CommunityForm({ id, slug, initial }: { id?: string; slug?: strin
           ] as const).map(({ value, title, text, Icon }) => (
             <label key={value} className={cn("bl-opt flex cursor-pointer flex-col gap-1 rounded-2xl border p-3.5", v.visibility === value && "on")}>
               <span className="flex items-center gap-2 text-[14px] font-extrabold">
-                <input type="radio" name="vis" checked={v.visibility === value} onChange={() => set("visibility", value)} className="accent-[#7C5CE0]" />
+                <input type="radio" name="vis" checked={v.visibility === value} onChange={() => set("visibility", value)} className="accent-[#8DBF2E]" />
                 <Icon size={15} aria-hidden="true" />{title}
               </span>
               <span className="text-[12.5px] text-faint">{text}</span>

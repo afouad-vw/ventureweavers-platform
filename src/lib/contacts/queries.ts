@@ -4,6 +4,7 @@ import type { TagTone } from "@/components/ui/tag";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { applicationLabel } from "@/lib/tvs/format";
+import { productName } from "@/lib/eureka";
 
 /**
  * The partners' view of people. Read with the service key, so every caller must have passed
@@ -72,7 +73,7 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
     svc.from("enrolments").select("id, member_id, status, offered_at, confirmed_at, cohorts(label, programs(name))").limit(5000),
     svc.from("applications").select("id, member_id, status, created_at, programs(name)").limit(5000),
     svc.from("requests").select("id, member_id, status, space, created_at, services(name)").limit(5000),
-    svc.from("waitlist").select("id, member_id, name, email, role, invited_by, joined_at").limit(10000),
+    svc.from("waitlist").select("id, member_id, name, email, role, invited_by, joined_at, product").limit(10000),
     svc.from("topic_suggestions").select("id, member_id, text, created_at").order("created_at", { ascending: false }).limit(200),
     svc.from("contacts").select("id, name, email, phone, company, role, source, tags, consent, created_at").limit(10000),
     svc.from("contact_notes").select("member_id, contact_id, note, tags"),
@@ -119,12 +120,12 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
     add(r.member_id, { label: `Requested ${r.services?.name ?? "a meeting"}`, status: applicationLabel(r.status), at: r.created_at, space: r.space });
     activity.push({ at: r.created_at, text: `${who(r.member_id)} requested ${r.services?.name ?? "a meeting"}`, space: r.space, who: r.member_id, key: `r${r.id}` });
   }
-  const wl = (waitlist.data ?? []) as { id: string; member_id: string | null; name: string | null; email: string | null; role: string; invited_by: string | null; joined_at: string }[];
+  const wl = (waitlist.data ?? []) as { id: string; member_id: string | null; name: string | null; email: string | null; role: string; invited_by: string | null; joined_at: string; product: string }[];
   const invitedMembers = new Set(wl.filter((w) => w.member_id && w.invited_by).map((w) => w.member_id!));
   for (const w of wl) {
     if (!w.member_id) continue;
-    add(w.member_id, { label: `QuidQuo waitlist · ${w.role.toLowerCase()}`, status: "Joined", at: w.joined_at, space: "QuidQuo" });
-    activity.push({ at: w.joined_at, text: `${who(w.member_id)} joined the QuidQuo waitlist`, space: "QuidQuo", who: w.member_id, key: `w${w.id}` });
+    add(w.member_id, { label: `${productName(w.product)} waitlist · ${w.role.toLowerCase()}`, status: "Joined", at: w.joined_at, space: "QuidQuo" });
+    activity.push({ at: w.joined_at, text: `${who(w.member_id)} joined the ${productName(w.product)} waitlist`, space: "QuidQuo", who: w.member_id, key: `w${w.id}` });
   }
   for (const t of (topics.data ?? []) as { id: string; member_id: string; text: string; created_at: string }[]) {
     activity.push({ at: t.created_at, text: `${who(t.member_id)} suggested a topic: “${t.text.slice(0, 80)}”`, space: "Outloud", who: t.member_id, key: `t${t.id}` });
@@ -204,9 +205,18 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
   }
   // Waitlist people added by admins who aren't already a member or a contact.
   const known = new Set(contacts.map((c) => c.email?.toLowerCase()).filter(Boolean));
+  const wlByEmail = new Map<string, Contact>();
   for (const w of wl) {
     if (w.member_id || !w.email || known.has(w.email.toLowerCase())) continue;
-    contacts.push({
+    const item = { label: `${productName(w.product)} waitlist · ${w.role.toLowerCase()}`, status: "Joined", at: w.joined_at, space: "QuidQuo" as Space };
+    // Someone on both products' lists is one person.
+    const same = wlByEmail.get(w.email.toLowerCase());
+    if (same) {
+      same.items.push(item);
+      if (w.joined_at > (same.last?.at ?? "")) same.last = { text: `On the ${productName(w.product)} waitlist`, at: w.joined_at };
+      continue;
+    }
+    const c: Contact = {
       key: `w:${w.id}`,
       memberId: null,
       contactId: null,
@@ -222,13 +232,15 @@ export async function loadPeople(): Promise<{ contacts: Contact[]; activity: Act
       role: w.role,
       spaces: ["QuidQuo"],
       adminTags: [],
-      source: "Added to the QuidQuo waitlist",
+      source: `Added to the ${productName(w.product)} waitlist`,
       consent: "Email",
       note: "",
       joinedAt: w.joined_at,
-      last: { text: "On the QuidQuo waitlist", at: w.joined_at },
-      items: [{ label: `QuidQuo waitlist · ${w.role.toLowerCase()}`, status: "Joined", at: w.joined_at, space: "QuidQuo" }],
-    });
+      last: { text: `On the ${productName(w.product)} waitlist`, at: w.joined_at },
+      items: [item],
+    };
+    wlByEmail.set(w.email.toLowerCase(), c);
+    contacts.push(c);
   }
 
   contacts.sort((a, b) => (b.last?.at ?? "").localeCompare(a.last?.at ?? ""));

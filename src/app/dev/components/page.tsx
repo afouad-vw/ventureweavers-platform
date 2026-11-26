@@ -20,7 +20,7 @@ const swatches = [
   ["Outloud", "#E39B2D", "bg-out"],
   ["TVS", "#1F4FA3", "bg-tvs"],
   ["BRICKR", "#B5532F", "bg-brk"],
-  ["QuidQuo", "#8DBF2E", "bg-qq"],
+  ["QuidQuo", "#7C5CE0", "bg-qq"],
 ] as const;
 
 export default function ComponentsPage() {

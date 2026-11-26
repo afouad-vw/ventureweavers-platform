@@ -228,7 +228,7 @@ export async function HomeDashboard({ space, base = "/" }: { space: string; base
           </>
         ) : (
           <EmptyState>
-            Your feed shows updates from Outloud, TVS, BRICKR and QuidQuo. <Link href="/sign-in" className="font-bold text-link">Sign in</Link> to see it.
+            Your feed shows updates from Outloud, TVS, BRICKR, Eureka and BLong. <Link href="/sign-in" className="font-bold text-link">Sign in</Link> to see it.
           </EmptyState>
         )}
       </Card>

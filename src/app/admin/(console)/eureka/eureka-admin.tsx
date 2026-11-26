@@ -8,13 +8,14 @@ import { SelectField, TextArea, TextField } from "@/components/ui/field";
 import { StatusPill } from "@/components/ui/tag";
 import { useToast } from "@/components/ui/toast";
 import type { LogEntry, Stage, WaitlistRow } from "@/lib/brickr/queries";
+import { PRODUCT_INFO, type Product } from "@/lib/eureka";
 import { formatDate } from "@/lib/events/format";
 import { addToWaitlist, deleteLog, deleteStage, duplicateLog, exportWaitlistCsv, removeFromWaitlist, saveLog, saveStage, setLogStatus } from "./actions";
 
-const ROLES = ["Founder raising capital", "Investor or angel", "Ecosystem partner"];
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function StagesManager({ stages }: { stages: Stage[] }) {
+export function StagesManager({ product, stages }: { product: Product; stages: Stage[] }) {
+  const name = PRODUCT_INFO[product].name;
   const [edit, setEdit] = useState<Stage | "new" | null>(null);
   const [del, setDel] = useState<Stage | null>(null);
   const r = useRunner();
@@ -42,7 +43,8 @@ export function StagesManager({ stages }: { stages: Stage[] }) {
           </tr>
         ))}
       </TableBox>
-      <EditorDrawer open={edit !== null} onClose={() => setEdit(null)} eyebrow="QuidQuo · Stage" title={s ? "Edit stage" : "New stage"} pending={r.pending} error={r.error} formKey={s?.id ?? "new"} onSubmit={(fd) => r.run(() => saveStage(fd), () => setEdit(null))}>
+      <EditorDrawer open={edit !== null} onClose={() => setEdit(null)} eyebrow={`${name} · Stage`} title={s ? "Edit stage" : "New stage"} pending={r.pending} error={r.error} formKey={s?.id ?? "new"} onSubmit={(fd) => r.run(() => saveStage(fd), () => setEdit(null))}>
+        <input type="hidden" name="product" value={product} />
         {s ? <input type="hidden" name="id" value={s.id} /> : null}
         <TextField label="Name" name="name" defaultValue={s?.name ?? ""} required maxLength={60} />
         <TextArea label="What happens in this stage" name="description" rows={3} defaultValue={s?.description ?? ""} maxLength={300} />
@@ -51,12 +53,13 @@ export function StagesManager({ stages }: { stages: Stage[] }) {
           <TextField label="Order" name="position" type="number" min={1} max={50} defaultValue={s?.position ?? stages.length + 1} />
         </div>
       </EditorDrawer>
-      <ConfirmDelete name={del?.name} open={del !== null} onClose={() => setDel(null)} pending={r.pending} note="Members stop seeing it on the QuidQuo page." onConfirm={() => del && r.run(() => deleteStage(del.id), () => setDel(null))} />
+      <ConfirmDelete name={del?.name} open={del !== null} onClose={() => setDel(null)} pending={r.pending} note={`Members stop seeing it on the ${name} page.`} onConfirm={() => del && r.run(() => deleteStage(del.id), () => setDel(null))} />
     </>
   );
 }
 
-export function LogManager({ entries }: { entries: LogEntry[] }) {
+export function LogManager({ product, entries }: { product: Product; entries: LogEntry[] }) {
+  const name = PRODUCT_INFO[product].name;
   const [edit, setEdit] = useState<LogEntry | "new" | null>(null);
   const [del, setDel] = useState<LogEntry | null>(null);
   const r = useRunner();
@@ -83,7 +86,8 @@ export function LogManager({ entries }: { entries: LogEntry[] }) {
           </tr>
         ))}
       </TableBox>
-      <EditorDrawer open={edit !== null} onClose={() => setEdit(null)} eyebrow="QuidQuo · Build log" title={e ? "Edit entry" : "New entry"} pending={r.pending} error={r.error} formKey={e?.id ?? "new"} onSubmit={(fd) => r.run(() => saveLog(fd), () => setEdit(null))}>
+      <EditorDrawer open={edit !== null} onClose={() => setEdit(null)} eyebrow={`${name} · Build log`} title={e ? "Edit entry" : "New entry"} pending={r.pending} error={r.error} formKey={e?.id ?? "new"} onSubmit={(fd) => r.run(() => saveLog(fd), () => setEdit(null))}>
+        <input type="hidden" name="product" value={product} />
         {e ? <input type="hidden" name="id" value={e.id} /> : null}
         <TextField label="Title" name="title" defaultValue={e?.title ?? ""} required maxLength={160} />
         <TextArea label="What happened" name="body" rows={4} defaultValue={e?.body ?? ""} maxLength={1000} />
@@ -97,7 +101,8 @@ export function LogManager({ entries }: { entries: LogEntry[] }) {
   );
 }
 
-export function WaitlistTable({ rows }: { rows: WaitlistRow[] }) {
+export function WaitlistTable({ product, rows }: { product: Product; rows: WaitlistRow[] }) {
+  const { name, roles } = PRODUCT_INFO[product];
   const [adding, setAdding] = useState(false);
   const [del, setDel] = useState<WaitlistRow | null>(null);
   const r = useRunner();
@@ -110,10 +115,10 @@ export function WaitlistTable({ rows }: { rows: WaitlistRow[] }) {
           <Button
             variant="secondary"
             onClick={async () => {
-              const res = await exportWaitlistCsv();
+              const res = await exportWaitlistCsv(product);
               if (!res.ok) return toast(res.error);
               const url = URL.createObjectURL(new Blob([res.csv], { type: "text/csv;charset=utf-8" }));
-              Object.assign(document.createElement("a"), { href: url, download: `quidquo-waitlist-${today()}.csv` }).click();
+              Object.assign(document.createElement("a"), { href: url, download: `${product}-waitlist-${today()}.csv` }).click();
               URL.revokeObjectURL(url);
             }}
           >
@@ -136,17 +141,18 @@ export function WaitlistTable({ rows }: { rows: WaitlistRow[] }) {
           </tr>
         ))}
       </TableBox>
-      <EditorDrawer open={adding} onClose={() => setAdding(false)} eyebrow="QuidQuo · Waitlist" title="Add person" pending={r.pending} error={r.error} formKey="add" onSubmit={(fd) => r.run(() => addToWaitlist(fd), () => setAdding(false))}>
+      <EditorDrawer open={adding} onClose={() => setAdding(false)} eyebrow={`${name} · Waitlist`} title="Add person" pending={r.pending} error={r.error} formKey="add" onSubmit={(fd) => r.run(() => addToWaitlist(fd), () => setAdding(false))}>
+        <input type="hidden" name="product" value={product} />
         <TextField label="Full name" name="name" maxLength={120} />
         <TextField label="Email" name="email" type="email" required maxLength={200} />
-        <SelectField label="Joined as" name="role" defaultValue={ROLES[1]} options={ROLES} />
+        <SelectField label="Joined as" name="role" defaultValue={roles[0]} options={[...roles]} />
         <label className="flex min-h-10 items-center gap-2 text-[13px] font-bold">
           <input type="checkbox" name="feedback_calls" defaultChecked className="h-[18px] w-[18px] accent-primary" />
           Open to feedback calls
         </label>
         <p className="text-[12.5px] text-faint">People added here don&apos;t get the waitlist Library level until they join with a member account.</p>
       </EditorDrawer>
-      <ConfirmDelete name={del?.name} open={del !== null} onClose={() => setDel(null)} pending={r.pending} note="They can join again from the QuidQuo page." onConfirm={() => del && r.run(() => removeFromWaitlist(del.id), () => setDel(null))} />
+      <ConfirmDelete name={del?.name} open={del !== null} onClose={() => setDel(null)} pending={r.pending} note={`They can join again from the ${name} page.`} onConfirm={() => del && r.run(() => removeFromWaitlist(del.id), () => setDel(null))} />
     </>
   );
 }

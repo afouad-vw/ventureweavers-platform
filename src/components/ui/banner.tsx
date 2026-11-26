@@ -19,7 +19,7 @@ const bg: Record<TagTone, string> = {
   Outloud: "bg-[#7a4700]",
   TVS: "bg-[#1c3f86]",
   BRICKR: "bg-[#8a3a1e]",
-  QuidQuo: "bg-[#3f5a0a]",
+  QuidQuo: "bg-[#3b2a7a]",
   House: "bg-deep",
 };
 

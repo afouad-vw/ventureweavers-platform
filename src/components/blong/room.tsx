@@ -176,7 +176,7 @@ export function Room({ d, me, initial }: { d: DiscussionPage; me: string; initia
                     <p className={`bl-chip review ${m.mod_status === "held" ? "warn" : "bad"} mt-1`}>{m.mod_status === "held" ? "Waiting for review · only you can see this" : "Hidden after reports · the team will review it"}</p>
                   ) : null}
                   {m.reply_to ? (
-                    <p className="mt-1 line-clamp-1 border-l-2 border-[#7c5ce0] pl-2 text-[12px] text-faint"><CornerUpLeft size={11} className="mr-1 inline" aria-hidden="true" />{m.reply_name}: {m.reply_body || "removed message"}</p>
+                    <p className="mt-1 line-clamp-1 border-l-2 border-[#8DBF2E] pl-2 text-[12px] text-faint"><CornerUpLeft size={11} className="mr-1 inline" aria-hidden="true" />{m.reply_name}: {m.reply_body || "removed message"}</p>
                   ) : null}
                   {m.removed ? (
                     <p className="mt-0.5 text-[13.5px] text-faint italic">Message removed</p>

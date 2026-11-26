@@ -74,6 +74,13 @@ select pg_temp.check((select role from public.waitlist) = 'Investor or angel', '
 select pg_temp.check((select count(*) from public.waitlist) = 1, 'one entry per member');
 select pg_temp.expect_error($$select public.join_waitlist('Astronaut', true)$$, '%bad_role%', 'only known roles');
 select pg_temp.expect_error($$insert into public.waitlist (role, email) values ('Investor or angel', 'x@y.com')$$, '%row-level security%', 'members cannot add other people');
+-- Eureka: Handlr has its own waiting list and roles
+select pg_temp.expect_error($$select public.join_waitlist('Founder raising capital', true, null, 'handlr')$$, '%bad_role%', 'Handlr has its own roles');
+select pg_temp.check(public.join_waitlist('Professional', true, null, 'handlr') ~ '^[2-9A-Z]{8}$', 'members join Handlr''s list too');
+select pg_temp.check((select count(*) from public.waitlist) = 2, 'one entry per member per product');
+select pg_temp.check((select role from public.waitlist where product = 'quidquo') = 'Investor or angel', 'joining Handlr leaves the QuidQuo entry alone');
+select pg_temp.expect_error($$select public.join_waitlist('Professional', true, null, 'nope')$$, '%bad_product%', 'only known products');
+delete from public.waitlist where product = 'handlr';
 
 -- ---------------------------------------------------------------- member F2 joins through F1's invite
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000f2');

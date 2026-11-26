@@ -127,7 +127,7 @@ export function NotesCard({ contact: c, readOnly = false }: { contact: Contact; 
     return (
       <Card>
         <CardHeader title="Notes" />
-        <span className="text-[13px] text-faint">Added from the QuidQuo waitlist. Add them as a contact to keep notes.</span>
+        <span className="text-[13px] text-faint">Added from a Eureka waitlist. Add them as a contact to keep notes.</span>
       </Card>
     );
   }

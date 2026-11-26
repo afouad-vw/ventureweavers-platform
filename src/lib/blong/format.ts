@@ -1,7 +1,7 @@
 /** BLong, the community space (Phase 18). Shared by server and client; no React or database here so it stays testable. */
 
-export const BLONG_COLOUR = "#7C5CE0";
-export const BLONG_TINT = "#B4A2F5";
+export const BLONG_COLOUR = "#8DBF2E";
+export const BLONG_TINT = "#B4DD5E";
 
 /** Communities and Discussions can be switched off by the team (Coming soon + Notify me). Ids of their Notify me lists. */
 export type BlongSection = "communities" | "discussions";

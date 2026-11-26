@@ -67,7 +67,7 @@ export function FilterBar({ action, keep, selects, checks = [], sort, clearHref 
         {selects.map(field)}
         {checks.map((c) => (
           <label key={c.name} className="flex items-center gap-2 self-end pb-2 text-[13px] font-bold">
-            <input type="checkbox" name={c.name} value="1" defaultChecked={c.checked} onChange={go} className="h-4 w-4 accent-[#7c5ce0]" />
+            <input type="checkbox" name={c.name} value="1" defaultChecked={c.checked} onChange={go} className="h-4 w-4 accent-[#8DBF2E]" />
             {c.label}
           </label>
         ))}

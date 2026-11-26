@@ -7,7 +7,7 @@ export const PRIVACY = `This policy explains what personal data VentureWeavers c
 
 ## Who we are
 
-VentureWeavers is a venture house founded by Ahmed Fouad and Karim Hemdan, based in Cairo and working across MENA. It runs four threads: Outloud, The Venture School (TVS), BRICKR and QuidQuo. The platform is operated by VentureWeavers. For anything about your data, email [${LEGAL_CONTACT}](mailto:${LEGAL_CONTACT}).
+VentureWeavers is a venture house founded by Ahmed Fouad and Karim Hemdan, based in Cairo and working across MENA. It runs five spaces: Outloud, The Venture School (TVS), BRICKR, Eureka (our products lab, home to QuidQuo and Handlr) and BLong. The platform is operated by VentureWeavers. For anything about your data, email [${LEGAL_CONTACT}](mailto:${LEGAL_CONTACT}).
 
 ## What we collect
 
@@ -148,7 +148,7 @@ Shows may be filmed and photographed, and we may use the footage in our content.
 
 ## Content
 
-Shows, recordings, programs, Library files, blog posts and the VentureWeavers, Outloud, TVS, BRICKR and QuidQuo names and logos belong to VentureWeavers or our partners. You may use them for your own learning. You may not copy, resell or publish them without our written permission.
+Shows, recordings, programs, Library files, blog posts and the VentureWeavers, Outloud, TVS, BRICKR, Eureka, QuidQuo, Handlr and BLong names and logos belong to VentureWeavers or our partners. You may use them for your own learning. You may not copy, resell or publish them without our written permission.
 
 You keep ownership of what you send us, such as questions, feedback and application answers. You let us use them to run the platform and our shows. When we use your words in content, we will not name you without your permission.
 

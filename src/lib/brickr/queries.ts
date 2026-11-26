@@ -4,6 +4,7 @@ import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { peopleById } from "@/lib/tvs/queries";
 import type { ApplicationStatus } from "@/lib/tvs/format";
+import type { Product } from "@/lib/eureka";
 
 export type Service = {
   id: string;
@@ -83,26 +84,26 @@ export async function myRequests(): Promise<MyRequest[]> {
   return (data ?? []) as unknown as MyRequest[];
 }
 
-export async function qqStages(): Promise<Stage[]> {
+export async function qqStages(product: Product = "quidquo"): Promise<Stage[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  const { data } = await supabase.from("qq_stages").select("id, position, name, description, progress").order("position");
+  const { data } = await supabase.from("qq_stages").select("id, position, name, description, progress").eq("product", product).order("position");
   return (data ?? []) as Stage[];
 }
 
-export async function qqLog(all = false): Promise<LogEntry[]> {
+export async function qqLog(product: Product = "quidquo", all = false): Promise<LogEntry[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  let q = supabase.from("qq_log").select("id, entry_date, title, body, status").order("entry_date", { ascending: false }).limit(100);
+  let q = supabase.from("qq_log").select("id, entry_date, title, body, status").eq("product", product).order("entry_date", { ascending: false }).limit(100);
   if (!all) q = q.eq("status", "published");
   const { data } = await q;
   return (data ?? []) as LogEntry[];
 }
 
-export async function myWaitlist(memberId: string): Promise<MyWaitlist> {
+export async function myWaitlist(memberId: string, product: Product = "quidquo"): Promise<MyWaitlist> {
   if (!supabaseConfigured) return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("waitlist").select("role, feedback_calls, invite_code, joined_at").eq("member_id", memberId).maybeSingle();
+  const { data } = await supabase.from("waitlist").select("role, feedback_calls, invite_code, joined_at").eq("member_id", memberId).eq("product", product).maybeSingle();
   return (data as MyWaitlist) ?? null;
 }
 
@@ -190,10 +191,10 @@ export async function adminInbox(): Promise<InboxItem[]> {
 
 export type WaitlistRow = { id: string; name: string; email: string | null; role: string; feedback_calls: boolean; invited_by: string | null; joined_at: string; member: boolean };
 
-export async function adminWaitlist(): Promise<WaitlistRow[]> {
+export async function adminWaitlist(product: Product = "quidquo"): Promise<WaitlistRow[]> {
   if (!supabaseConfigured) return [];
   const supabase = await createClient();
-  const { data } = await supabase.from("waitlist").select("id, member_id, name, email, role, feedback_calls, invited_by, joined_at").order("joined_at", { ascending: false }).limit(5000);
+  const { data } = await supabase.from("waitlist").select("id, member_id, name, email, role, feedback_calls, invited_by, joined_at").eq("product", product).order("joined_at", { ascending: false }).limit(5000);
   const rows = (data ?? []) as { id: string; member_id: string | null; name: string | null; email: string | null; role: string; feedback_calls: boolean; invited_by: string | null; joined_at: string }[];
   const people = await peopleById(rows.map((x) => x.member_id).filter(Boolean) as string[]);
   const named = new Map(rows.map((x) => [x.id, (x.member_id && people.get(x.member_id)?.name) || x.name || x.email || "Member"]));

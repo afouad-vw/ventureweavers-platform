@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Activity, ArrowLeft, Bell, BookMarked, BookOpen, Bookmark, BrickWall, Briefcase, ChevronLeft, ChevronRight, ClipboardList, Compass, Cpu, CreditCard,
+  Activity, ArrowLeft, Bell, BookMarked, BookOpen, Bookmark, Bot, BrickWall, Briefcase, ChevronLeft, ChevronRight, ClipboardList, Compass, Cpu, CreditCard, FlaskConical,
   GraduationCap, House, Inbox, LogOut, Megaphone, MessageSquare, MessagesSquare, Mic, Network, MonitorPlay, Presentation, Radio, Search, SlidersHorizontal, Ticket, User, Users, X,
   type LucideIcon,
 } from "lucide-react";
@@ -23,7 +23,7 @@ import "./house.css";
 const ICONS: Record<string, LucideIcon> = {
   mic: Mic, cap: GraduationCap, bricks: BrickWall, cpu: Cpu, user: User, radio: Radio, play: MonitorPlay, book: BookOpen, board: Presentation,
   users: Users, brief: Briefcase, compass: Compass, activity: Activity, list: ClipboardList, ticket: Ticket, learn: BookMarked, inbox: Inbox,
-  card: CreditCard, mega: Megaphone, mark: Bookmark, sliders: SlidersHorizontal, out: LogOut, msg: MessageSquare, search: Search, house: House, bell: Bell, chat: MessagesSquare, net: Network,
+  card: CreditCard, mega: Megaphone, mark: Bookmark, sliders: SlidersHorizontal, out: LogOut, msg: MessageSquare, search: Search, house: House, bell: Bell, chat: MessagesSquare, net: Network, lab: FlaskConical, bot: Bot,
 };
 
 export type HouseMember = { name: string; firstName: string; initials: string; avatar?: string | null } | null;
@@ -47,12 +47,57 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
   const panelOpen = pathname !== "/";
   const meta = panelMeta(pathname, params.toString());
 
+  // Morph: each slide knows how far it is from the centre (--p, -1 to 1) and the CSS slides, scales and fades it.
+  // Only slides whose value changed are touched, so off-screen slides cost nothing per frame.
+  const frame = useRef(0);
+  const last = useRef<string[]>([]);
+  const morph = useCallback(() => {
+    const el = track.current;
+    if (!el || !el.clientWidth) return;
+    const w = el.clientWidth, x = el.scrollLeft;
+    Array.from(el.children).forEach((c, i) => {
+      const p = Math.max(-1, Math.min(1, (i * w - x) / w)).toFixed(3);
+      if (last.current[i] === p) return;
+      last.current[i] = p;
+      (c as HTMLElement).style.setProperty("--p", p);
+      (c as HTMLElement).style.setProperty("--a", Math.abs(Number(p)).toFixed(3));
+    });
+  }, []);
+  useEffect(() => { morph(); }, [morph]);
+
+  // Desktop moves between spaces with our own eased glide (snapping paused while it runs): the browser's
+  // smooth scroll fights scroll-snap there and stutters. Phones keep the native swipe and scroll.
+  const glide = useRef(0);
+  const stopGlide = useCallback(() => {
+    if (!glide.current) return;
+    cancelAnimationFrame(glide.current);
+    glide.current = 0;
+    if (track.current) track.current.style.scrollSnapType = "";
+  }, []);
   const go = useCallback((i: number, smooth = true) => {
     const k = Math.max(0, Math.min(SLIDES.length - 1, i));
     const el = track.current;
-    if (el) el.scrollTo({ left: k * el.clientWidth, behavior: smooth && !still() ? "smooth" : "auto" });
     setSlide(k);
-  }, []);
+    if (!el) return;
+    stopGlide();
+    const to = k * el.clientWidth, from = el.scrollLeft, dist = to - from;
+    if (!smooth || still() || Math.abs(dist) < 1) { el.scrollTo({ left: to }); morph(); return; }
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) { el.scrollTo({ left: to, behavior: "smooth" }); return; }
+    const slides = Math.abs(dist) / el.clientWidth;
+    const ms = Math.min(1100, 620 + (slides - 1) * 140);
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const start = performance.now();
+    el.style.scrollSnapType = "none";
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / ms);
+      el.scrollLeft = from + dist * ease(t);
+      morph();
+      if (t < 1) glide.current = requestAnimationFrame(step);
+      else { glide.current = 0; el.style.scrollSnapType = ""; }
+    };
+    glide.current = requestAnimationFrame(step);
+  }, [stopGlide, morph]);
+  useEffect(() => stopGlide, [stopGlide]);
 
   // A page opens over its own space.
   useEffect(() => {
@@ -76,23 +121,12 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
     if (row && btn && row.scrollWidth > row.clientWidth) row.scrollTo({ left: btn.offsetLeft - (row.clientWidth - btn.offsetWidth) / 2, behavior: still() ? "auto" : "smooth" });
   }, [slide]);
 
-  // Morph: each slide knows how far it is from the centre (--p, -1 to 1) and the CSS bends, shrinks and blurs it.
-  const frame = useRef(0);
-  const morph = useCallback(() => {
-    const el = track.current;
-    if (!el || !el.clientWidth) return;
-    const w = el.clientWidth, x = el.scrollLeft;
-    Array.from(el.children).forEach((c, i) => {
-      const p = Math.max(-1, Math.min(1, (i * w - x) / w));
-      (c as HTMLElement).style.setProperty("--p", p.toFixed(3));
-      (c as HTMLElement).style.setProperty("--a", Math.abs(p).toFixed(3));
-    });
-  }, []);
-  useEffect(() => { morph(); }, [morph]);
 
   const onScroll = () => {
     const el = track.current;
     if (!el || !el.clientWidth) return;
+    // During a glide the target slide is already set and the glide drives the morph itself.
+    if (glide.current) return;
     const i = Math.round(el.scrollLeft / el.clientWidth);
     if (i !== slide) setSlide(i);
     if (!still()) {
@@ -186,7 +220,7 @@ export function HouseShell({ member, live = false, notifications = [], unreadMes
       </header>
 
       <main className="hs-stage" aria-hidden={panelOpen ? true : undefined} inert={panelOpen ? true : undefined}>
-        <div className="hs-track" ref={track} onScroll={onScroll}>
+        <div className="hs-track" ref={track} onScroll={onScroll} onWheel={stopGlide} onPointerDown={stopGlide}>
           {SLIDES.map((s, i) => (
             <section key={s.key} className={`hs-slide ${i === slide ? "on" : ""}`} aria-label={s.name} style={{ "--c": s.colour, "--t": s.tint } as React.CSSProperties}>
               <div className="hs-scene-wrap">
@@ -292,8 +326,8 @@ function MeHero({ member }: { member: HouseMember }) {
           <i style={{ "--c": "#E39B2D", left: "50%", top: -6 } as React.CSSProperties} />
           <i style={{ "--c": "#1F4FA3", right: -6, top: "50%" } as React.CSSProperties} />
           <i style={{ "--c": "#B5532F", left: "50%", bottom: -6 } as React.CSSProperties} />
-          <i style={{ "--c": "#8DBF2E", left: -6, top: "50%" } as React.CSSProperties} />
-          <i style={{ "--c": "#7C5CE0", left: "14%", top: "14%" } as React.CSSProperties} />
+          <i style={{ "--c": "#7C5CE0", left: -6, top: "50%" } as React.CSSProperties} />
+          <i style={{ "--c": "#8DBF2E", left: "14%", top: "14%" } as React.CSSProperties} />
         </div>
         {member?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element -- member photo, cropped to a circle
@@ -337,7 +371,8 @@ function Dock({ items, onSpace, soon }: { items: DockItem[]; onSpace: (k: SpaceK
           const Icon = ICONS[d.icon] ?? House;
           const inner = (
             <>
-              <span className="hs-o-c"><Icon size={22} strokeWidth={1.7} aria-hidden="true" />{soon.some((p) => d.href.startsWith(p)) ? <span className="hs-o-soon">Soon</span> : null}</span>
+              <span className="hs-o-c">{/* eslint-disable-next-line @next/next/no-img-element -- small SVG logo */}
+              {d.img ? <img src={d.img} alt="" className="hs-o-img" aria-hidden="true" /> : <Icon size={22} strokeWidth={1.7} aria-hidden="true" />}{soon.some((p) => d.href.startsWith(p)) ? <span className="hs-o-soon">Soon</span> : null}</span>
               <span className="hs-o-l">{d.label}</span>
             </>
           );

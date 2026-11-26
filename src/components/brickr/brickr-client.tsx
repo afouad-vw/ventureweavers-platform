@@ -4,7 +4,8 @@ import { useRef, useState, useTransition } from "react";
 import { Briefcase, Check, Link2, Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { requestMeeting, withdrawRequest } from "@/app/(member)/brickr/actions";
-import { joinWaitlist, leaveWaitlist } from "@/app/(member)/quidquo/actions";
+import { joinWaitlist, leaveWaitlist } from "@/app/(member)/eureka/actions";
+import { PRODUCT_INFO, type Product } from "@/lib/eureka";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Modal } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
@@ -153,10 +154,9 @@ export function WithdrawButton({ id }: { id: string }) {
   );
 }
 
-export const QQ_ROLES = ["Founder raising capital", "Investor or angel", "Ecosystem partner"] as const;
-
-export function WaitlistForm({ signedIn, refCode, current }: { signedIn: boolean; refCode: string | null; current: { role: string; feedback_calls: boolean } | null }) {
-  const [role, setRole] = useState(current?.role ?? QQ_ROLES[0]);
+export function WaitlistForm({ product, signedIn, refCode, current }: { product: Product; signedIn: boolean; refCode: string | null; current: { role: string; feedback_calls: boolean } | null }) {
+  const info = PRODUCT_INFO[product];
+  const [role, setRole] = useState(current?.role ?? info.roles[0]);
   const [feedback, setFeedback] = useState(current?.feedback_calls ?? true);
   const [pending, start] = useTransition();
   const toast = useToast();
@@ -166,16 +166,16 @@ export function WaitlistForm({ signedIn, refCode, current }: { signedIn: boolean
       className="flex flex-col gap-2.5"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!signedIn) return router.push(`/sign-in?next=${encodeURIComponent("/quidquo" + (refCode ? `?ref=${refCode}` : ""))}`);
+        if (!signedIn) return router.push(`/sign-in?next=${encodeURIComponent(`/eureka/${product}` + (refCode ? `?ref=${refCode}` : ""))}`);
         start(async () => {
-          const r = await joinWaitlist(role, feedback, refCode);
+          const r = await joinWaitlist(product, role, feedback, refCode);
           toast(r.ok ? r.message ?? "Saved" : r.error);
           if (r.ok) router.refresh();
         });
       }}
     >
-      <div className="flex flex-col gap-1.5" role="radiogroup" aria-label="How you'd use QuidQuo">
-        {QQ_ROLES.map((r) => (
+      <div className="flex flex-col gap-1.5" role="radiogroup" aria-label={`How you'd use ${info.name}`}>
+        {info.roles.map((r) => (
           <button
             key={r}
             type="button"
@@ -195,24 +195,24 @@ export function WaitlistForm({ signedIn, refCode, current }: { signedIn: boolean
         Invite me to feedback calls
         <input type="checkbox" checked={feedback} onChange={(e) => setFeedback(e.target.checked)} className="h-[18px] w-[18px] accent-primary" />
       </label>
-      <Button type="submit" disabled={pending} className="w-full !bg-qq !text-ink hover:brightness-95">
+      <Button type="submit" disabled={pending} className="w-full !bg-qq !text-white hover:brightness-110">
         {pending ? "Saving…" : current ? "Save" : signedIn ? "Join the waitlist" : "Sign in to join"}
       </Button>
     </form>
   );
 }
 
-export function CopyInviteButton({ code }: { code: string }) {
+export function CopyInviteButton({ product, code }: { product: Product; code: string }) {
   const toast = useToast();
   return (
     <Button
       variant="secondary"
       onClick={async () => {
         try {
-          await navigator.clipboard.writeText(`${window.location.origin}/quidquo?ref=${code}`);
+          await navigator.clipboard.writeText(`${window.location.origin}/eureka/${product}?ref=${code}`);
           toast("Invite link copied");
         } catch {
-          toast(`Couldn't copy. Your link: ${window.location.origin}/quidquo?ref=${code}`);
+          toast(`Couldn't copy. Your link: ${window.location.origin}/eureka/${product}?ref=${code}`);
         }
       }}
     >
@@ -222,7 +222,7 @@ export function CopyInviteButton({ code }: { code: string }) {
   );
 }
 
-export function LeaveWaitlistButton() {
+export function LeaveWaitlistButton({ product }: { product: Product }) {
   const [pending, start] = useTransition();
   const toast = useToast();
   const router = useRouter();
@@ -232,7 +232,7 @@ export function LeaveWaitlistButton() {
       disabled={pending}
       onClick={() =>
         start(async () => {
-          const r = await leaveWaitlist();
+          const r = await leaveWaitlist(product);
           toast(r.ok ? r.message ?? "Done" : r.error);
           if (r.ok) router.refresh();
         })
@@ -246,7 +246,7 @@ export function LeaveWaitlistButton() {
 
 export function JoinedMark() {
   return (
-    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-qq text-ink">
+    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-qq text-white">
       <Check size={20} strokeWidth={2.6} aria-hidden="true" />
     </span>
   );

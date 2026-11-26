@@ -2,21 +2,22 @@
 
 One Next.js app serving three addresses: `ventureweavers.com` (landing page), `app.ventureweavers.com` (member app) and `admin.ventureweavers.com` (admin console). Members and admins have separate logins; the member app never links to the admin console. Host routing is in `src/lib/hosts.ts` and `src/middleware.ts`.
 
-- **Member app**: Home, Outloud, TVS, BRICKR, QuidQuo, Library, My space, Live mode, Join.
-- **Admin console** (`admin.` host; `/admin` paths in local and preview path mode; login with username and password): Overview, Contacts, Requests, Payments, one section per space (Outloud, TVS, BRICKR, QuidQuo), Library, Publishing.
+- **Member app**: Home, Outloud, TVS, BRICKR, Eureka, BLong, Library, My space, Live mode, Join.
+- **Admin console** (`admin.` host; `/admin` paths in local and preview path mode; login with username and password): Overview, Contacts, Requests, Payments, one section per space (Outloud, TVS, BRICKR, Eureka), Community, Library, Publishing.
 
 `reference/prototype.html` is the clickable spec. Its Member/Admin switch exists only for convenience in the prototype; the real product has no switch. Every screen and flow in it must exist in the real product. Open it in a browser before building any screen, and match its layout and copy.
 
 ## Who we are
 
-VentureWeavers is Ahmed Fouad and Karim Hemdan. We bring our experience, knowledge and access to MENA's venture ecosystem through four spaces:
+VentureWeavers is Ahmed Fouad and Karim Hemdan. We bring our experience, knowledge and access to MENA's venture ecosystem through five spaces:
 
 | Space | What it is | Colour |
 | --- | --- | --- |
 | Outloud | Content, shows & events. Open Floor is its first format. | amber `#E39B2D` |
 | TVS (The Venture School) | Programs, masterclasses and the classroom (LMS). TVAC is the foundation for every 360 program. | Egyptian blue `#1F4FA3` |
 | BRICKR | Fractional leadership: hands-on work with partners on building and growing ventures and portfolios. | brick `#B5532F` |
-| QuidQuo | AI for capital formation. In development: progress tracker + waitlist. | lime `#8DBF2E` |
+| Eureka | Products lab: QuidQuo (AI for capital formation) and Handlr (AI executive assistant). Each in development with its own progress tracker + waitlist. | violet `#7C5CE0` |
+| BLong | Community: communities, discussions, networking. | green `#8DBF2E` |
 
 VentureWeavers house branding leads; spaces appear as coloured tags.
 
@@ -114,3 +115,4 @@ Add product decisions here as they are made (prices, refund policy, roles, langu
 - Deploying (2026-11-24): Vercel does not start a deployment for pushes made from a cloud session. After pushing main, start a production deployment in Vercel (Deployments › … › Create Deployment › main) and check the live site. Commits use Ahmed's git identity (as before).
 - Phase 19d live (2026-11-25): filters and sort under BLong lists (a Filters button, choices kept in the address). Communities: topic, audience, Public/Private, size; sort by members, newest, name. Discussions: community, who can join, open/closed, tag, has room; sort by active, newest, members (both filtered in the app, `src/lib/blong/filters.ts`). Networking › Members: country, business type, venture stage, Public/Private, follows you; sort by name or newest (`member_search`, `member_countries`). Feed: by kind. Phase 19 complete.
 - House look tweaks (2026-11-25, asked by Ahmed): the morph between spaces replaced by a light slide-and-fade (the scene lags a little, scales to 90% and fades; transform and opacity only, no blur, 3D turn or clipping) because the morph was heavy and glitchy. My space no longer has My communities / My discussions icons (they live in BLong); the floating card is Saved.
+- Eureka (2026-11-26, asked by Ahmed): the QuidQuo space becomes Eureka, our products lab, with two products: QuidQuo (AI for capital formation) and Handlr (AI executive assistant for professionals and businesses). Colours swapped: Eureka violet `#7C5CE0` (tint `#B4A2F5`), BLong green `#8DBF2E` (tint `#B4DD5E`); the internal space key and `qq` tokens stay `quidquo`. Each product has its own stages, build log and waitlist (`product` column on `qq_stages`, `qq_log`, `waitlist`; one entry per member per product; Handlr started with a copy of QuidQuo's stages). Handlr waitlist roles: Professional, Business owner or team, Executive assistant or operations. Member pages `/eureka` (product cards) and `/eureka/[product]` (logo banner, stages, build log, waitlist, `?tab=waitlist`); `/quidquo` redirects there, invite links included. Product config and logos in `src/lib/eureka.ts`; QuidQuo logos in `public/brand/products/quidquo/` (Handlr shows a wordmark until its logo arrives). Admin › Eureka (`/admin/eureka`, product tabs, each with Stages / Build log / Waitlist; access area key stays `quidquo`). The "QuidQuo waitlist" Library level stays QuidQuo's list only. Renamed on the landing page too. Desktop moves between spaces with an eased glide (snap paused while it runs); phones keep the native swipe.
