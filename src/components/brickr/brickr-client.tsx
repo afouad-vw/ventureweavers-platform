@@ -182,10 +182,10 @@ export function WaitlistForm({ product, signedIn, refCode, current }: { product:
             role="radio"
             aria-checked={role === r}
             onClick={() => setRole(r)}
-            className={cn("flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg border px-3 text-left text-[13.5px] font-semibold", role === r ? "border-qq bg-qq-bg" : "border-line2 bg-card hover:bg-hover")}
+            className={cn("flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg border px-3 text-left text-[13.5px] font-semibold", role === r ? "border-[var(--pa,var(--color-qq))] bg-[color-mix(in_srgb,var(--pa,var(--color-qq))_12%,transparent)]" : "border-line2 bg-card hover:bg-hover")}
           >
-            <span className={cn("inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2", role === r ? "border-qq-fg" : "border-line2")}>
-              {role === r ? <span className="h-2 w-2 rounded-full bg-qq-fg" /> : null}
+            <span className={cn("inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2", role === r ? "border-fg" : "border-line2")}>
+              {role === r ? <span className="h-2 w-2 rounded-full bg-fg" /> : null}
             </span>
             {r}
           </button>
@@ -195,7 +195,7 @@ export function WaitlistForm({ product, signedIn, refCode, current }: { product:
         Invite me to feedback calls
         <input type="checkbox" checked={feedback} onChange={(e) => setFeedback(e.target.checked)} className="h-[18px] w-[18px] accent-primary" />
       </label>
-      <Button type="submit" disabled={pending} className="w-full !bg-qq !text-white hover:brightness-110">
+      <Button type="submit" disabled={pending} className="w-full !bg-none !bg-[var(--pa,var(--color-qq))] !text-[var(--pt,#fff)] hover:brightness-110">
         {pending ? "Saving…" : current ? "Save" : signedIn ? "Join the waitlist" : "Sign in to join"}
       </Button>
     </form>
@@ -246,7 +246,7 @@ export function LeaveWaitlistButton({ product }: { product: Product }) {
 
 export function JoinedMark() {
   return (
-    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-qq text-white">
+    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--pa,var(--color-qq))] text-[var(--pt,#fff)]">
       <Check size={20} strokeWidth={2.6} aria-hidden="true" />
     </span>
   );

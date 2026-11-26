@@ -66,8 +66,8 @@ export const SLIDES: Slide[] = [
     colour: COLOURS.quidquo, tint: TINTS.quidquo,
     dock: [
       { label: "All products", href: "/eureka", icon: "lab", colour: COLOURS.quidquo },
-      { label: "QuidQuo", href: "/eureka/quidquo", icon: "cpu", colour: COLOURS.quidquo, img: "/brand/products/quidquo/mark-on-dark.svg" },
-      { label: "Handlr", href: "/eureka/handlr", icon: "bot", colour: COLOURS.quidquo },
+      { label: "QuidQuo", href: "/eureka/quidquo", icon: "cpu", colour: COLOURS.quidquo, img: "/brand/products/quidquo/mark-mono-bone.svg" },
+      { label: "Handlr", href: "/eureka/handlr", icon: "bot", colour: COLOURS.quidquo, img: "/brand/products/handlr/mark-white.svg" },
     ],
   },
   {

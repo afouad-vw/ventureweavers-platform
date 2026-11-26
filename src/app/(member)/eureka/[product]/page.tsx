@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WeaveHero } from "@/components/ui/weave";
 import { CopyInviteButton, JoinedMark, LeaveWaitlistButton, WaitlistForm } from "@/components/brickr/brickr-client";
-import { ProductLogo } from "@/components/eureka/product-logo";
+import { ProductBanner, ProductLogo } from "@/components/eureka/product-logo";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/misc";
 import { StatusPill, ThreadTag } from "@/components/ui/tag";
@@ -28,8 +28,10 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const [stages, log, mine] = await Promise.all([qqStages(product), qqLog(product), member ? myWaitlist(member.id, product) : null]);
   const nowIdx = stages.findIndex((s) => s.progress < 100);
 
+  // The product's own accent (not Eureka's violet) for progress, choices and buttons.
+  const vars = { "--pa": info.brand.accent, "--pt": info.brand.accentText } as React.CSSProperties;
   return (
-    <>
+    <div className="contents" style={vars}>
       <WeaveHero
         id={`${product}-weave`}
         above={<ThreadTag thread="QuidQuo" label={`Eureka · ${info.name} · building now`} />}
@@ -37,22 +39,26 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
         description={info.description}
         actions={mine ? <StatusPill tone="ok">On the waitlist</StatusPill> : undefined}
       />
-      <section className="relative flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-[20px] border border-white/[0.06] bg-[radial-gradient(120%_140%_at_15%_0%,#3b2a7a,#0b0a1a_72%)] px-5 py-5 text-white shadow-depth desk:px-7">
+      <ProductBanner product={product} className="flex flex-wrap items-center justify-between gap-4 rounded-[20px] border border-line px-5 py-5 shadow-depth desk:px-7">
         <div className="flex min-w-0 flex-col gap-2.5">
-          <ProductLogo product={product} on="dark" className="h-10 text-[32px] desk:h-12 desk:text-[38px]" />
-          <span className="text-[13.5px] text-white/75">{info.tagline}</span>
+          <ProductLogo product={product} height={44} />
+          <span className="text-[13.5px]" style={{ color: info.brand.muted }}>{info.tagline}</span>
         </div>
-        {mine ? <StatusPill tone="ok">On the waitlist</StatusPill> : <span className="rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold text-white/85">In development</span>}
-      </section>
+        {mine ? (
+          <StatusPill tone="ok">On the waitlist</StatusPill>
+        ) : (
+          <span className="rounded-full px-3 py-1 text-[12px] font-bold" style={{ backgroundColor: info.brand.accent, color: info.brand.accentText }}>In development</span>
+        )}
+      </ProductBanner>
       {waitlistOnly ? null : (
       <Card>
         <CardHeader title="Where we are" action={stages.length ? <span className="font-normal text-faint">Stage {Math.max(1, (nowIdx < 0 ? stages.length - 1 : nowIdx) + 1)} of {stages.length}</span> : null} />
         {stages.length ? (
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
             {stages.map((s, i) => (
-              <div key={s.id} className={cn("flex flex-col gap-1.5 rounded-xl border p-3", i === nowIdx ? "border-qq bg-qq-bg" : "border-line")}>
-                <div className="h-1.5 overflow-hidden rounded-full bg-hover"><span className="block h-full rounded-full bg-qq" style={{ width: `${s.progress}%` }} /></div>
-                <span className={cn("text-[11px] font-extrabold tracking-[1.2px] uppercase", s.progress ? "text-qq-fg" : "text-faint")}>
+              <div key={s.id} className={cn("flex flex-col gap-1.5 rounded-xl border p-3", i === nowIdx ? "border-[var(--pa)] bg-[color-mix(in_srgb,var(--pa)_12%,transparent)]" : "border-line")}>
+                <div className="h-1.5 overflow-hidden rounded-full bg-hover"><span className="block h-full rounded-full" style={{ width: `${s.progress}%`, backgroundColor: info.brand.accent }} /></div>
+                <span className={cn("text-[11px] font-extrabold tracking-[1.2px] uppercase", s.progress ? "text-fg" : "text-faint")}>
                   Stage {i + 1} · {s.progress >= 100 ? "Done" : i === nowIdx ? "Now" : "Next"}
                 </span>
                 <b className="text-[14px]">{s.name}</b>
@@ -108,12 +114,12 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
               <WaitlistForm product={product} signedIn={!!member} refCode={refCode} current={null} />
             </Card>
           )}
-          <Card className="border-transparent bg-qq-bg">
+          <Card className="border-[color-mix(in_srgb,var(--pa)_45%,transparent)]">
             <h2 className="text-[15px] font-extrabold">Shape what we build</h2>
             <span className="text-[13px]">Waitlist members join short feedback calls and try features first.</span>
           </Card>
         </aside>
       </div>
-    </>
+    </div>
   );
 }

@@ -10,8 +10,12 @@ export type ProductInfo = {
   description: string;
   /** Waiting-list roles, in order (the database checks the same list). */
   roles: readonly string[];
-  /** Logos in /public; null until the product's logo is shared. */
-  logo: { onDark: string; onLight: string; mark: string; markOnLight: string } | null;
+  /** Logos in /public: the main logo for the product's own banner, a white mark for the house icons. */
+  logo: { main: string; markWhite: string };
+  /** The product's own brand colours, used for its banner and progress (not Eureka's violet). */
+  brand: { bg: string; fg: string; muted: string; accent: string; accentText: string };
+  /** How tall the main logo is drawn relative to the others, so the wordmarks look the same size. */
+  logoScale: number;
 };
 
 export const PRODUCT_INFO: Record<Product, ProductInfo> = {
@@ -21,12 +25,10 @@ export const PRODUCT_INFO: Record<Product, ProductInfo> = {
     tagline: "AI for capital formation",
     description: "AI for raising capital, built in the open. Follow every stage and be first in when it opens.",
     roles: ["Founder raising capital", "Investor or angel", "Ecosystem partner"],
-    logo: {
-      onDark: "/brand/products/quidquo/horizontal-on-dark.svg",
-      onLight: "/brand/products/quidquo/horizontal-on-light.svg",
-      mark: "/brand/products/quidquo/mark-on-dark.svg",
-      markOnLight: "/brand/products/quidquo/mark-on-light.svg",
-    },
+    // QuidQuo's full-colour logo sits on its carbon background; lime is its accent.
+    logo: { main: "/brand/products/quidquo/horizontal-on-dark.svg", markWhite: "/brand/products/quidquo/mark-mono-bone.svg" },
+    brand: { bg: "#0A0B0A", fg: "#F4F6EE", muted: "rgb(244 246 238 / 0.7)", accent: "#A8E01F", accentText: "#0A0B0A" },
+    logoScale: 1,
   },
   handlr: {
     key: "handlr",
@@ -34,7 +36,10 @@ export const PRODUCT_INFO: Record<Product, ProductInfo> = {
     tagline: "AI executive assistant",
     description: "An AI executive assistant for professionals and businesses, built in the open. Follow every stage and be first in when it opens.",
     roles: ["Professional", "Business owner or team", "Executive assistant or operations"],
-    logo: null,
+    // Handlr's main logo (near-black wordmark, violet dots) sits on white; its violet is the accent.
+    logo: { main: "/brand/products/handlr/logo.svg", markWhite: "/brand/products/handlr/mark-white.svg" },
+    brand: { bg: "#FFFFFF", fg: "#0A0A0B", muted: "rgb(10 10 11 / 0.62)", accent: "#6A00FF", accentText: "#FFFFFF" },
+    logoScale: 0.78,
   },
 };
 
