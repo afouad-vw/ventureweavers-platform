@@ -19,7 +19,7 @@ export type Scene = {
 export const SCENES: Partial<Record<SpaceKey, Scene>> = {
   house: {
     src: "/landing/house-blong.webp", width: 2000, height: 1618, plain: true,
-    alt: "The VentureWeavers house: a show stage, a classroom, a workshop and an AI lab, with members networking in the middle, joined by glowing teal threads",
+    alt: "The VentureWeavers house: a show stage, a classroom, a workshop and the Eureka products lab, with members networking in the middle, joined by glowing teal threads",
     flows: [
       [[31.8, 45.3], [42, 39.5], [46, 35.6], [47.7, 33.6]],
       [[64.8, 45.5], [56, 40.2], [51.6, 35.6], [50.2, 34.4]],
@@ -53,7 +53,7 @@ export const SCENES: Partial<Record<SpaceKey, Scene>> = {
     labels: [{ label: "Lead", x: 40.6, y: 38 }, { label: "Mentor", x: 76, y: 48 }],
   },
   quidquo: {
-    src: "/landing/lab.webp", width: 1800, height: 1442, alt: "Eureka: our products lab, with glowing screens",
+    src: "/landing/lab.webp", width: 1800, height: 1442, alt: "Eureka: our products lab under violet light, with glowing screens",
     flows: [[[0, 94.6], [36, 70], [37.6, 68.4], [48, 61.6]]],
     labels: [{ label: "QuidQuo", x: 72, y: 22 }, { label: "Handlr", x: 30, y: 30 }],
   },
