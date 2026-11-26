@@ -58,7 +58,7 @@ export const SCENES: Partial<Record<SpaceKey, Scene>> = {
     labels: [{ label: "QuidQuo", x: 72, y: 22 }, { label: "Handlr", x: 30, y: 30 }],
   },
   blong: {
-    src: "/landing/blong.webp", width: 2000, height: 1611, alt: "BLong: members networking in a lounge under a violet light, linked by teal threads",
+    src: "/landing/blong.webp", width: 2000, height: 1750, alt: "BLong: members networking in a lounge under a green light, linked by teal threads",
     flows: [],
     labels: [{ label: "Meet", x: 20, y: 30 }, { label: "Talk", x: 50, y: 14 }, { label: "Connect", x: 82, y: 32 }],
   },

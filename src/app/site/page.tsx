@@ -156,7 +156,7 @@ const SPACES: Space[] = [
     cta: "Meet the community",
     href: "/blong/networking",
     photo: "/landing/blong.webp",
-    size: [2000, 1611],
+    size: [2000, 1750],
     labels: [{ label: "Meet", x: 20, y: 30 }, { label: "Talk", x: 50, y: 14 }, { label: "Connect", x: 82, y: 32 }],
     flows: [],
     icon: Network,
